@@ -1,0 +1,14 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "SampleConsoleApp": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "CORECLR_ENABLE_PROFILING": "1",
+        "CORECLR_PROFILER": "{36032161-FFC0-4B61-B559-F6C5D41BAE5A}",
+        "CORECLR_PROFILER_PATH": "C:\\Coding\\CodeLevelTracing\\profiler\\Release\\win-x64\\Profiler.Sample.dll",
+        "CORECLR_PROFILER_PATH_64": "C:\\Coding\\CodeLevelTracing\\profiler\\Release\\win-x64\\Profiler.Sample.dll"
+      }
+    }
+  }
+}

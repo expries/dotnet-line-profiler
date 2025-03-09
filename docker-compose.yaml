@@ -1,0 +1,48 @@
+
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.120.0
+    command: "--config /etc/otel-collector-config.yaml --feature-gates=service.profilesSupport"
+    environment:
+      OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: false
+    ports:
+      - 4317:4317   # otlp grpc
+      - 4318:4318   # otlp http
+      - 13133:13133 # health_check extension
+    volumes:
+      - ./otel-collector/config.yaml:/etc/otel-collector-config.yaml/:ro    
+    depends_on:
+     - pyroscope
+    
+
+  pyroscope:
+    # fixed versions for pyroscope, otel-collector, otel-profiler due to protocol changes
+    image: grafana/pyroscope:weekly-f96-1886f2c42 
+    command: ["-self-profiling.disable-push=true"]
+    ports:
+      - 4040:4040
+
+  grafana:
+    image: grafana/grafana-enterprise
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/data:/var/lib/grafana/:rw
+
+  profiles-api:
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:8080;
+    ports:
+    - 8080:8080
+    build:
+      context: ./profiles-api
+
+  app:
+    platform: linux/amd64
+    environment:
+      ASPNETCORE_URLS: http://*:5000
+    ports:
+    - 5000:5000
+    build:
+      context: ./example-app

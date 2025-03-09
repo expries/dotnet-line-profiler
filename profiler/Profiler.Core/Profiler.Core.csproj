@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <PublishAot>true</PublishAot>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\Profiler.Core.NativeStubGenerator\Profiler.Core.NativeStubGenerator.csproj" OutputItemType="Analyzer" />
+    </ItemGroup>
+    
+</Project>

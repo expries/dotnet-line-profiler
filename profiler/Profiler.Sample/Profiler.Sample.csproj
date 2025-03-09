@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <PublishAot>true</PublishAot>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="..\publish.bat" />
+        <Content Include="..\publish.sh" />
+        
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\IlRewriter\IlRewriter.csproj" />
+      <ProjectReference Include="..\Profiler.Core\Profiler.Core.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="SharpPdb" Version="1.0.4" />
+    </ItemGroup>
+</Project>
