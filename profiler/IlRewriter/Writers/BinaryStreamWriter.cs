@@ -58,7 +58,9 @@ public class BinaryStreamWriter : BinaryWriter
         var position = Position;
         var bytes = ((position + align) & ~align) - position;
 
-        for (int i = 0; i < bytes; i++)
-            WriteByte (0);
+        for (var i = 0; i < bytes; i++)
+        {
+            WriteByte(0);
+        }
     }
 }

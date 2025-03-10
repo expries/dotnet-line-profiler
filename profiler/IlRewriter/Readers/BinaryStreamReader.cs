@@ -14,24 +14,6 @@ public class BinaryStreamReader(Stream stream) : BinaryReader(stream)
         BaseStream.Seek(bytes, SeekOrigin.Current);
     }
 
-    public ushort Read2Bytes()
-    {
-        return ReadUInt16();
-    }
-
-    public int Read3Bytes()
-    {
-        Advance(-1);
-        var fourBytes = ReadInt32();
-        var threeBytes = fourBytes >> 8;
-        return threeBytes;
-    }
-
-    public int Read4Bytes()
-    {
-        return ReadInt32();
-    }
-
     public void MoveTo(uint position)
     {
         BaseStream.Seek(position, SeekOrigin.Begin);

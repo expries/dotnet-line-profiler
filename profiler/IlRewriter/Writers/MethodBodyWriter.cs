@@ -18,10 +18,8 @@ public class MethodBodyWriter
             instruction.Offset = instructionOffset;
         }
         
-        
         foreach (var instruction in body.Instructions)
         {
-            //Console.WriteLine(instruction.Offset + ": " + instruction.OpCode.Name);
             _instructionWriter.WriteToStream(instruction, stream);
         }
 

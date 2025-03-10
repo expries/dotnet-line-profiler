@@ -1,9 +1,6 @@
 ﻿using SampleConsoleApp;
 
-//Console.Read();
 Console.WriteLine("Hello, World!");
-
-
 
 var random = new Random().Next(0, 100);
 switch (random)

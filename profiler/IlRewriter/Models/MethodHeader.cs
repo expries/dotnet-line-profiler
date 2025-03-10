@@ -1,14 +1,5 @@
 ﻿namespace IlRewriter.Models;
 
-[Flags]
-public enum MethodHeaderFlags
-{
-    FatFormat = 0x3,
-    TinyFormat = 0x2,
-    MoreSects = 0x8,
-    InitLocals = 0x10,
-}
-
 public class MethodHeader
 {
     public int Size { get; set; }
