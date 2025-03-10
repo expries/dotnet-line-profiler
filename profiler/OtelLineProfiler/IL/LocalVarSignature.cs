@@ -1,10 +1,10 @@
 ﻿namespace OtelLineProfiler.IL;
 
-public class LocalSignature
+public class LocalVarSignature
 {
     public byte[] Data { get; set; }
 
-    public LocalSignature(byte[] data)
+    public LocalVarSignature(byte[] data)
     {
         Data = data;
     }

@@ -7,25 +7,25 @@ namespace OtelLineProfiler.IL;
 
 public static class MethodFlowInstrumentation
 {
-    public static byte[] ProbeSignature = MethodSignatureFactory.Create(
+    public static readonly byte[] ProbeSignature = MethodSignatureFactory.Create(
         CorUnmanagedCallingConventionFlags.IMAGE_CEE_UNMANAGED_CALLCONV_STDCALL, 
         CorElementTypeFlags.ELEMENT_TYPE_VOID, 2, 
         CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN, 
         CorElementTypeFlags.ELEMENT_TYPE_I4);
     
-    public static LocalSignature PatchLocalVariableSignature(LocalSignature localSignature)
+    public static LocalVarSignature PatchLocalVarSignature(LocalVarSignature localVarSignature)
     {
-        byte[] pinnedBoolArraySignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_SZARRAY, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
-        byte[] boolPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
-        localSignature.AddLocalVariable(pinnedBoolArraySignature);
-        localSignature.AddLocalVariable(boolPtrSignature);
-        return localSignature;
+        byte[] arraySignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_SZARRAY, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
+        byte[] arrayPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
+        localVarSignature.AddLocalVariable(arraySignature);
+        localVarSignature.AddLocalVariable(arrayPtrSignature);
+        return localVarSignature;
     }
     
     public static Method InstrumentMethod(Method method, uint localVarCount, MdTypeRef boolTypeRef, MdSignature localSignature, MdSignature probeSignature)
     {
-        var localVarIndex = localVarCount - 1;
-        AddProbeAt(method, boolTypeRef, localVarIndex, localSignature, probeSignature);
+        var arrayPtrLocalVarIndex = localVarCount - 1;
+        AddProbeAt(method, boolTypeRef, arrayPtrLocalVarIndex, localSignature, probeSignature);
         return method;
     }
     

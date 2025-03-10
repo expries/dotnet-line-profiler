@@ -10,7 +10,6 @@ public class MethodHeaderReader : IlReader<MethodHeader>
 
     public override MethodHeader ReadFromStream()
     {
-        
         // 2 least significant bit of the first byte indicate hat of header is present
         var firstByte = ReadByte();
         var header =  (firstByte & 0x3) switch
@@ -26,7 +25,6 @@ public class MethodHeaderReader : IlReader<MethodHeader>
     
     private MethodHeader ReadTinyHeader(byte firstByte)
     {
-        var flags = firstByte & 0b00000011;
         var bodySizeInBytes = firstByte >> 2;
         
         return new MethodHeader
@@ -54,14 +52,6 @@ public class MethodHeaderReader : IlReader<MethodHeader>
         var maxStack = ReadUInt16();
         var codeSize = ReadInt32();
         var localVarSigToken = ReadUInt32();
-
-        if (localVarSigToken > 0)
-        {
-            var first = ReadByte();
-            Console.WriteLine(BitConverter.ToString([first]));
-            var count = ReadByte();
-            Console.WriteLine("Count: " + count);
-        }
         
         var moreSections = (flags & 0x8) != 0;
         var initLocals = (flags & 0x10) != 0;

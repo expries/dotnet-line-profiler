@@ -2,9 +2,9 @@
 
 namespace OtelLineProfiler.Helpers;
 
-public static class TypeHelper
+public static class UnsafeTypes
 {
-    public static unsafe byte[] GetByteArrayFromPointer(IntPtr* ptr, uint length)
+    public static unsafe byte[] GetByteArrayFromPtr(IntPtr* ptr, uint length)
     {
         var byteArray = new byte[length];
         Marshal.Copy((IntPtr) ptr, byteArray, 0, (int) length);
@@ -23,7 +23,7 @@ public static class TypeHelper
         }
     }
 
-    public static unsafe string GetStringFromCharPointer(char* pString, uint size)
+    public static unsafe string GetStringFromCharPtr(char* pString, uint size)
     {
         var str = string.Empty;
         
@@ -35,7 +35,7 @@ public static class TypeHelper
         return str;
     }
     
-    public static unsafe MemoryStream GetStreamFromBytePointer(byte* pData, uint size)
+    public static unsafe MemoryStream GetStreamFromBytePtr(byte* pData, uint size)
     {
         var data = new byte[size];
         Marshal.Copy((IntPtr) pData, data, 0, (int) size);

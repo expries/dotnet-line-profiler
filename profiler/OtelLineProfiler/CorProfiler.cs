@@ -18,11 +18,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
     
     private InMemorySignatureTokenCache SignatureTokenCache { get; } = new();
     
-    private LocalVarVarSignatureReader LocalVarVarSignatureReader { get; } = new();
-    
-
-    
-    private Dictionary<IntPtr, int> _probeSigTokens = new();
+    private LocalVarSignatureReader LocalVarSignatureReader { get; } = new();
 
     protected override HResult Initialize(int iCorProfilerInfoVersion)
     {
@@ -43,20 +39,33 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
     
     protected override HResult JITCompilationStarted(FunctionId functionId, bool fIsSafeToBlock)
     {
-        var (_, _, moduleId, methodToken) = ICorProfilerInfo2.GetFunctionInfo(functionId);
-        var (_, _, _, assemblyId) = ICorProfilerInfo2.GetModuleInfo(moduleId);
+        var (hGetFunction, _, moduleId, methodToken) = ICorProfilerInfo2.GetFunctionInfo(functionId);
+
+        if (!hGetFunction.IsOK)
+        {
+            Log($"Failed to get function info for function id {functionId.Value}: {hGetFunction.Code}");
+            return HResult.S_OK;
+        }
+        
+        var (hGetModule, _, _, assemblyId) = ICorProfilerInfo2.GetModuleInfo(moduleId);
+
+        if (!hGetModule.IsOK)
+        {
+            Log($"Failed to get module info for moduleId id {moduleId.Value}: {hGetModule.Code}");
+            return HResult.S_OK;
+        }
         
         // Check if assembly of method is the one we want to intercept
-        var assemblyNameSpan = TypeHelper.CreateSpanForName();
+        var assemblyNameSpan = UnsafeTypes.CreateSpanForName();
         var hGetAssembly = ICorProfilerInfo2.GetAssemblyInfo(assemblyId, assemblyNameSpan, out var cchAssembly, out var _, out var _);
 
         if (!hGetAssembly.IsOK)
         {
-            Log($"Failed to get assembly info for assembly id {assemblyId}");
+            Log($"Failed to get assembly info for assembly id {assemblyId.Value}: {hGetAssembly.Code}");
             return HResult.S_OK;
         }
         
-        var assemblyName = TypeHelper.ConvertSpanToString(assemblyNameSpan, cchAssembly);
+        var assemblyName = UnsafeTypes.ConvertSpanToString(assemblyNameSpan, cchAssembly);
 
         if (!ShouldInterceptAssembly(assemblyName))
         {
@@ -68,35 +77,34 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         
         if (!hGetModuleMetadata.IsOK)
         {
-            Log($"Failed to get module metadata for module id {moduleId}");
+            Log($"Failed to get module metadata for module id {moduleId.Value}: {hGetModuleMetadata.Code}");
             return HResult.S_OK;
         }
         
         // Get method name
-        var methodNameSpan = TypeHelper.CreateSpanForName();
+        var methodNameSpan = UnsafeTypes.CreateSpanForName();
         var mdMethodToken = new MdMethodDef(methodToken);
-        
         var hGetMethodProps = metaDataImport.GetMethodProps(mdMethodToken, out var typeToken, methodNameSpan, out var cchMethod, out _, out _, out _, out _, out _);
 
         if (!hGetMethodProps.IsOK)
         {
-            Log($"Failed to get method props for method with token {methodToken.Value}");
+            Log($"Failed to get method props for method with token {methodToken.Value}: {hGetMethodProps.Code}");
             return HResult.S_OK;
         }
         
-        var methodName = TypeHelper.ConvertSpanToString(methodNameSpan, cchMethod);
+        var methodName = UnsafeTypes.ConvertSpanToString(methodNameSpan, cchMethod);
 
         // Get type name
-        var typeNameSpan = TypeHelper.CreateSpanForName();
+        var typeNameSpan = UnsafeTypes.CreateSpanForName();
         var hGetTypeProps = metaDataImport.GetTypeDefProps(typeToken, typeNameSpan, out var cchType, out var _, out var _);
 
         if (!hGetTypeProps.IsOK)
         {
-            Log($"Failed to get type props for type with token {typeToken.Value}");
+            Log($"Failed to get type props for type with token {typeToken.Value}: {hGetTypeProps.Code}");
             return HResult.S_OK;
         }
         
-        var typeName = TypeHelper.ConvertSpanToString(typeNameSpan, cchType);
+        var typeName = UnsafeTypes.ConvertSpanToString(typeNameSpan, cchType);
         
         if (!ShouldInterceptMethod(typeName, methodName)) return HResult.S_OK;
         
@@ -109,7 +117,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
             return HResult.S_OK;
         }
         
-        var stream = TypeHelper.GetStreamFromBytePointer(pMethodHeader, methodSize);
+        var stream = UnsafeTypes.GetStreamFromBytePtr(pMethodHeader, methodSize);
         var reader = new MethodReader(stream);
         var method = reader.ReadFromStream();
         
@@ -118,8 +126,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         
         var instrumentedMethod = InstrumentMethod(method, assemblyId, metaDataImport);
         var methodBytes = ConvertMethodToByteArray(instrumentedMethod);
-        var methodBytePointer = TypeHelper.GetBytePtr(methodBytes);
-        
+        var methodBytePointer = UnsafeTypes.GetBytePtr(methodBytes);
         var hSetBody = ICorProfilerInfo2.SetILFunctionBody(moduleId, mdMethodToken, methodBytePointer);
         
         if (!hSetBody.IsOK)
@@ -134,23 +141,26 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
 
     private Method InstrumentMethod(Method method, AssemblyId assemblyId, MetaDataImport metaDataImport)
     {
-        var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
-        //var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
-        Log($"System.Boolean type ref: {mdBoolRef.Value}");
-        //Log($"System.Diagnostics.Activity type ref: {mdActivityRef.Value}");
-            
-        // Get updated local signature
-        var localSignature = LocalVarVarSignatureReader.ReadLocalVarSignature(method.Header, metaDataImport);
-        localSignature = MethodFlowInstrumentation.PatchLocalVariableSignature(localSignature);
-        Log($"Local signature before: {BitConverter.ToString(localSignature.Data)}");
-        Log($"Local signature: {BitConverter.ToString(localSignature.Data)}");
+        // Update local var signature for instrumentation
+        var varSignature = LocalVarSignatureReader.ReadLocalVarSignature(method.Header, metaDataImport);
+        Log($"Local signature before: {BitConverter.ToString(varSignature.Data)}");
 
+        varSignature = MethodFlowInstrumentation.PatchLocalVarSignature(varSignature);
+        Log($"Local signature: {BitConverter.ToString(varSignature.Data)}");
+        
+        // Find bool type token
+        var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
+        Log($"System.Boolean type ref: {mdBoolRef.Value}");
+        //var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
+        //Log($"System.Diagnostics.Activity type ref: {mdActivityRef.Value}");
+        
+        // Get signature tokens
         var metaDataEmit = metaDataImport.GetMetadataEmit();
-        var mdLocalSignature = SignatureTokenCache.GetMdSignature(assemblyId, localSignature.Data, metaDataEmit);
+        var mdLocalSignature = SignatureTokenCache.GetMdSignature(assemblyId, varSignature.Data, metaDataEmit);
         var mdProbeSignature = SignatureTokenCache.GetMdSignature(assemblyId, MethodFlowInstrumentation.ProbeSignature, metaDataEmit);
-            
-        // Patch method
-        var localVarCount = localSignature.GetVarCount();
+        
+        // Instrument method
+        var localVarCount = varSignature.GetVarCount();
         var instrumentedMethod = MethodFlowInstrumentation.InstrumentMethod(method, localVarCount, mdBoolRef, mdLocalSignature, mdProbeSignature);
         return instrumentedMethod;
     }

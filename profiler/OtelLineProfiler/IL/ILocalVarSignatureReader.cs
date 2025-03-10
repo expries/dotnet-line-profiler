@@ -5,5 +5,5 @@ namespace OtelLineProfiler.IL;
 
 public interface ILocalVarSignatureReader
 {
-    public LocalSignature ReadLocalVarSignature(MethodHeader header, MetaDataImport metaDataImport);
+    public LocalVarSignature ReadLocalVarSignature(MethodHeader header, MetaDataImport metaDataImport);
 }

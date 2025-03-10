@@ -44,13 +44,13 @@ public class InMemoryTypeRefCache : ITypeRefCache
             for (uint i = 0; i < resultCount; i++)
             {
                 var typeRef = pTypeRefArray[i];
-                var typeNameBuffer = TypeHelper.CreateSpanForName();
+                var typeNameBuffer = UnsafeTypes.CreateSpanForName();
                 fixed (char* pTypeNameBuffer = typeNameBuffer)
                 {
                     var hGetRef = metaDataImport.GetTypeRefProps(typeRef, out _, pTypeNameBuffer, (uint) typeNameBuffer.Length, out var refTypeNameLength);
                     if (!hGetRef.IsOK) continue;
                 
-                    var refTypeName = TypeHelper.GetStringFromCharPointer(pTypeNameBuffer, refTypeNameLength);
+                    var refTypeName = UnsafeTypes.GetStringFromCharPtr(pTypeNameBuffer, refTypeNameLength);
                     if (refTypeName.Equals(typeName, StringComparison.InvariantCultureIgnoreCase)) return typeRef;
                 }
             }

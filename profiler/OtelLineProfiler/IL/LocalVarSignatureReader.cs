@@ -4,13 +4,13 @@ using Profiler.Core;
 
 namespace OtelLineProfiler.IL;
 
-public class LocalVarVarSignatureReader : ILocalVarSignatureReader
+public class LocalVarSignatureReader : ILocalVarSignatureReader
 {
-    private static readonly LocalSignature EmptyLocalVarSignature = new([0x7, 0x0]);
+    private static readonly LocalVarSignature EmptyLocalVarVarSignature = new([0x7, 0x0]);
 
-    public unsafe LocalSignature ReadLocalVarSignature(MethodHeader header, MetaDataImport metaDataImport)
+    public unsafe LocalVarSignature ReadLocalVarSignature(MethodHeader header, MetaDataImport metaDataImport)
     {
-        if (header.LocalVarSigToken <= 0) return EmptyLocalVarSignature;
+        if (header.LocalVarSigToken <= 0) return EmptyLocalVarVarSignature;
         
         var token = new MdSignature { Value = (int) header.LocalVarSigToken };
         var hResult = metaDataImport.GetSigFromToken(token, out var ppvSig, out var pcbSig);
@@ -20,13 +20,13 @@ public class LocalVarVarSignatureReader : ILocalVarSignatureReader
             throw new ArgumentException($"Failed to obtain local var signature from token '{token.Value}'");
         }
         
-        var signature = TypeHelper.GetByteArrayFromPointer(ppvSig, pcbSig);
+        var signature = UnsafeTypes.GetByteArrayFromPtr(ppvSig, pcbSig);
 
         if (signature[0] != 0x07)
         {
             throw new ArgumentException("Local var signature is invalid");
         }
 
-        return new LocalSignature(signature); 
+        return new LocalVarSignature(signature); 
     }
 }

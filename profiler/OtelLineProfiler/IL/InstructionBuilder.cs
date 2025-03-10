@@ -11,6 +11,84 @@ public class InstructionBuilder
 {
     private readonly List<Instruction> _instructions = new();
     
+    public InstructionBuilder CreateArray(MdTypeRef elementTypeRef, int size, uint localVarIndex)
+    {
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldc_I4,
+            Operand = new Int32Operand
+            {
+                Value = size
+            }
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Newarr,
+            Operand = new Int32Operand
+            {
+                Value = elementTypeRef.Value
+            }
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldc_I4_0,
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldelema,
+            Operand = new Int32Operand { Value = elementTypeRef.Value }
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Conv_U,
+        });
+
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Stloc,
+            Operand = new UInt32Operand() { Value = localVarIndex }
+        });
+
+        return this;
+    }
+    
+
+    public InstructionBuilder WriteTrueToArray(int index, uint localVarIndex)
+    {
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldloc,
+            Operand = new UInt32Operand { Value = localVarIndex}
+        });
+
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldc_I4,
+            Operand = new Int32Operand() { Value = index }
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Add,
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldc_I4_1,
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Stind_I1,
+        });
+
+        return this;
+    }
+    
     public InstructionBuilder AddMethodCall(UIntPtr methodPointer, MdSignature methodSignature, int arrayLength, uint localIndex)
     {
         _instructions.Add(new Instruction
@@ -40,115 +118,10 @@ public class InstructionBuilder
 
         return this;
     }
-    
-    public InstructionBuilder CreateArray(MdTypeRef typeRef, int size, uint localIndex)
-    {
-        return CreateNewArray(typeRef, size).InitializePointer(typeRef, localIndex);
-    }
-    
-
-    public InstructionBuilder WriteTrueToArray(int index, uint localIndex)
-    {
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Ldloc,
-            Operand = new UInt32Operand { Value = localIndex}
-        });
-
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Ldc_I4,
-            Operand = new Int32Operand() { Value = index }
-        });
-        
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Add,
-        });
-        
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Ldc_I4_1,
-        });
-        
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Stind_I1,
-        });
-
-        return this;
-    }
 
     public List<Instruction> Build()
     {
 
         return _instructions;
-    }
-
-
-    private InstructionBuilder CreateNewArray(MdTypeRef elementTypeRef, int size)
-    {
-
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Ldc_I4,
-            Operand = new Int32Operand
-            {
-                Value = size
-            }
-        });
-        
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Newarr,
-            Operand = new Int32Operand
-            {
-                Value = elementTypeRef.Value
-            }
-        });
-        
-        /*
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Stloc_0,
-        });
-        */
-
-        return this;
-    }
-
-    
-    private InstructionBuilder InitializePointer(MdTypeRef elementTypeRef, uint localIndex)
-    {
-        /*
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Ldloc_0,
-        });
-        */
-        
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Ldc_I4_0,
-        });
-        
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Ldelema,
-            Operand = new Int32Operand { Value = elementTypeRef.Value }
-        });
-        
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Conv_U,
-        });
-
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Stloc,
-            Operand = new UInt32Operand() { Value = localIndex }
-        });
-
-        return this;
     }
 } 

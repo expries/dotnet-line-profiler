@@ -21,7 +21,7 @@ public class InMemorySignatureTokenCache : ISignatureTokenCache
             return mdSignature;
         }
         
-        var signaturePtr = TypeHelper.GetBytePtr(signature);
+        var signaturePtr = UnsafeTypes.GetBytePtr(signature);
         var hGetToken = metadataEmit.GetTokenFromSig(signaturePtr, (uint) signature.Length, out var signatureToken);
 
         if (!hGetToken.IsOK)
