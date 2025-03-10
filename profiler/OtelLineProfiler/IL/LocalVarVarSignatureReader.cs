@@ -1,16 +1,16 @@
 ﻿using IlRewriter.Models;
+using OtelLineProfiler.Helpers;
 using Profiler.Core;
-using Profiler.Sample.IL.Interfaces;
 
-namespace Profiler.Sample.IL;
+namespace OtelLineProfiler.IL;
 
-public class LocalSignatureReader : ILocalSignatureReader
+public class LocalVarVarSignatureReader : ILocalVarSignatureReader
 {
-    private static readonly LocalSignature EmptyLocalSignature = new LocalSignature([0x7, 0x0]);
+    private static readonly LocalSignature EmptyLocalVarSignature = new([0x7, 0x0]);
 
-    public unsafe LocalSignature ReadLocalSignature(MethodHeader header, MetaDataImport metaDataImport)
+    public unsafe LocalSignature ReadLocalVarSignature(MethodHeader header, MetaDataImport metaDataImport)
     {
-        if (header.LocalVarSigToken <= 0) return EmptyLocalSignature;
+        if (header.LocalVarSigToken <= 0) return EmptyLocalVarSignature;
         
         var token = new MdSignature { Value = (int) header.LocalVarSigToken };
         var hResult = metaDataImport.GetSigFromToken(token, out var ppvSig, out var pcbSig);

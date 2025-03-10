@@ -3,14 +3,13 @@ using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
 using Profiler.Core;
 
-
-namespace Profiler.Sample.IL;
+namespace OtelLineProfiler.IL;
 
 
 
 public class InstructionBuilder
 {
-    private readonly List<Instruction> _instructions = new List<Instruction>();
+    private readonly List<Instruction> _instructions = new();
     
     public InstructionBuilder AddMethodCall(UIntPtr methodPointer, MdSignature methodSignature, int arrayLength, uint localIndex)
     {

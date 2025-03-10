@@ -1,7 +1,7 @@
-﻿using Profiler.Core;
-using Profiler.Sample.IL.Interfaces;
+﻿using OtelLineProfiler.Helpers;
+using Profiler.Core;
 
-namespace Profiler.Sample.IL;
+namespace OtelLineProfiler.Caches;
 
 public class InMemoryTypeRefCache : ITypeRefCache
 {

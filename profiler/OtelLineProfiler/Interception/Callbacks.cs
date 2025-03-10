@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Profiler.Sample.Interception;
+namespace OtelLineProfiler.Interception;
 
 public static class Callbacks
 {

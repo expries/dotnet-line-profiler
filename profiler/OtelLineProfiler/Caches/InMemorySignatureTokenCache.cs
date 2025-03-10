@@ -1,8 +1,8 @@
 ﻿using NativeObjects;
+using OtelLineProfiler.Helpers;
 using Profiler.Core;
-using Profiler.Sample.IL.Interfaces;
 
-namespace Profiler.Sample.IL;
+namespace OtelLineProfiler.Caches;
 
 public class InMemorySignatureTokenCache : ISignatureTokenCache
 {

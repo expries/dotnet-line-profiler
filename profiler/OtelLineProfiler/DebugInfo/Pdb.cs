@@ -1,6 +1,6 @@
 ﻿using SharpPdb.Managed;
 
-namespace Profiler.Sample.DebugInfo
+namespace OtelLineProfiler.DebugInfo
 {
     public record LineInfo
     {

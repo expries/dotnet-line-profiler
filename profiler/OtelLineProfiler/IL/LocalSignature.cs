@@ -1,4 +1,4 @@
-﻿namespace Profiler.Sample.IL;
+﻿namespace OtelLineProfiler.IL;
 
 public class LocalSignature
 {
@@ -11,20 +11,27 @@ public class LocalSignature
 
     public void AddLocalVariable(byte[] localVariableSignature)
     {
-        var newData = new byte[Data.Length + localVariableSignature.Length];
-        var localsCount = GetLocalsCount();
+        var newLength = Data.Length + localVariableSignature.Length;
+        var newData = new byte[newLength];
+        var localsCount = GetVarCount();
         var newLocalsCount = localsCount + 1;
+        
         newData[0] = 0x7;
         newData[1] = (byte) newLocalsCount;
         
         Array.Copy(Data, 2, newData, 2, Data.Length - 2);
         Array.Copy(localVariableSignature, 0, newData, Data.Length, localVariableSignature.Length);
+        
         Data = newData;
     }
 
-    public uint GetLocalsCount()
+    public uint GetVarCount()
     {
-        var index = 1;
+        return DecompressUnsignedIntAt(1);
+    }
+
+    private uint DecompressUnsignedIntAt(int index)
+    {
         var firstByte = Data[index++];
     
         if ((firstByte & 0x80) == 0) // 1-byte format (0xxxxxxx)

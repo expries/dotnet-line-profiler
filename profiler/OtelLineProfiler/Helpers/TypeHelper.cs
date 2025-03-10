@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Profiler.Sample;
+namespace OtelLineProfiler.Helpers;
 
 public static class TypeHelper
 {

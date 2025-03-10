@@ -1,29 +1,28 @@
 ﻿using System.Collections.Concurrent;
-using System.Net;
 using System.Text;
 using IlRewriter.Models;
 using IlRewriter.Readers.Method;
 using IlRewriter.Writers;
+using OtelLineProfiler.Caches;
+using OtelLineProfiler.Helpers;
+using OtelLineProfiler.IL;
 using Profiler.Core;
-using Profiler.Sample.IL;
-using Profiler.Sample.IL.Interfaces;
 
-namespace Profiler.Sample;
+namespace OtelLineProfiler;
 
 internal unsafe class CorProfiler : CorProfilerCallback10Base
 {
     private static ConcurrentQueue<string> Logs { get; } = new();
 
-    private InMemoryTypeRefCache TypeRefCache { get; } = new InMemoryTypeRefCache();
+    private InMemoryTypeRefCache TypeRefCache { get; } = new();
     
-    private InMemorySignatureTokenCache SignatureTokenCache { get; } = new InMemorySignatureTokenCache();
+    private InMemorySignatureTokenCache SignatureTokenCache { get; } = new();
     
-    private LocalSignatureReader LocalSignatureReader { get; } = new LocalSignatureReader();
+    private LocalVarVarSignatureReader LocalVarVarSignatureReader { get; } = new();
     
-    private readonly byte[] _probeSignature = MethodSignatureFactory.Create(
-        CorUnmanagedCallingConventionFlags.IMAGE_CEE_UNMANAGED_CALLCONV_STDCALL, CorElementTypeFlags.ELEMENT_TYPE_VOID, CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN, CorElementTypeFlags.ELEMENT_TYPE_I4);
+
     
-    private Dictionary<IntPtr, int> _probeSigTokens = new Dictionary<IntPtr, int>();
+    private Dictionary<IntPtr, int> _probeSigTokens = new();
 
     protected override HResult Initialize(int iCorProfilerInfoVersion)
     {
@@ -49,7 +48,14 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         
         // Check if assembly of method is the one we want to intercept
         var assemblyNameSpan = TypeHelper.CreateSpanForName();
-        ICorProfilerInfo2.GetAssemblyInfo(assemblyId, assemblyNameSpan, out var cchAssembly, out var _, out var _);
+        var hGetAssembly = ICorProfilerInfo2.GetAssemblyInfo(assemblyId, assemblyNameSpan, out var cchAssembly, out var _, out var _);
+
+        if (!hGetAssembly.IsOK)
+        {
+            Log($"Failed to get assembly info for assembly id {assemblyId}");
+            return HResult.S_OK;
+        }
+        
         var assemblyName = TypeHelper.ConvertSpanToString(assemblyNameSpan, cchAssembly);
 
         if (!ShouldInterceptAssembly(assemblyName))
@@ -58,18 +64,38 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         }
         
         // Get method name and type name
-        var (_, metaDataImport) = ICorProfilerInfo2.GetModuleMetaData(moduleId, CorOpenFlags.ofRead | CorOpenFlags.ofWrite, KnownGuids.IMetaDataImport);
+        var (hGetModuleMetadata, metaDataImport) = ICorProfilerInfo2.GetModuleMetaData(moduleId, CorOpenFlags.ofRead | CorOpenFlags.ofWrite, KnownGuids.IMetaDataImport);
+        
+        if (!hGetModuleMetadata.IsOK)
+        {
+            Log($"Failed to get module metadata for module id {moduleId}");
+            return HResult.S_OK;
+        }
         
         // Get method name
         var methodNameSpan = TypeHelper.CreateSpanForName();
         var mdMethodToken = new MdMethodDef(methodToken);
         
-        metaDataImport.GetMethodProps(mdMethodToken, out var typeToken, methodNameSpan, out var cchMethod, out _, out _, out _, out _, out _);
+        var hGetMethodProps = metaDataImport.GetMethodProps(mdMethodToken, out var typeToken, methodNameSpan, out var cchMethod, out _, out _, out _, out _, out _);
+
+        if (!hGetMethodProps.IsOK)
+        {
+            Log($"Failed to get method props for method with token {methodToken.Value}");
+            return HResult.S_OK;
+        }
+        
         var methodName = TypeHelper.ConvertSpanToString(methodNameSpan, cchMethod);
 
         // Get type name
         var typeNameSpan = TypeHelper.CreateSpanForName();
-        metaDataImport.GetTypeDefProps(typeToken, typeNameSpan, out var cchType, out var _, out var _);
+        var hGetTypeProps = metaDataImport.GetTypeDefProps(typeToken, typeNameSpan, out var cchType, out var _, out var _);
+
+        if (!hGetTypeProps.IsOK)
+        {
+            Log($"Failed to get type props for type with token {typeToken.Value}");
+            return HResult.S_OK;
+        }
+        
         var typeName = TypeHelper.ConvertSpanToString(typeNameSpan, cchType);
         
         if (!ShouldInterceptMethod(typeName, methodName)) return HResult.S_OK;
@@ -89,35 +115,12 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         
         // Instrument method
         Log($"Instrumenting {typeName}.{methodName} for interception");
-        Console.WriteLine($"Instrumenting {typeName}.{methodName} for interception");
-
-        var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
-        var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
-        Log($"System.Boolean type ref: {mdBoolRef.Value}");
-        Log($"System.Diagnostics.Activity type ref: {mdActivityRef.Value}");
         
-            
-        // Get updated local signature
-        var localSignature = LocalSignatureReader.ReadLocalSignature(method.Header, metaDataImport);
-        Log($"Local signature before: {BitConverter.ToString(localSignature.Data)}");
+        var instrumentedMethod = InstrumentMethod(method, assemblyId, metaDataImport);
+        var methodBytes = ConvertMethodToByteArray(instrumentedMethod);
+        var methodBytePointer = TypeHelper.GetBytePtr(methodBytes);
         
-        byte[] pinnedBoolArraySignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_SZARRAY, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
-        byte[] boolPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
-        localSignature.AddLocalVariable(pinnedBoolArraySignature);
-        localSignature.AddLocalVariable(boolPtrSignature);
-        Log($"Local signature: {BitConverter.ToString(localSignature.Data)}");
-        
-        var metaDataEmit = metaDataImport.GetMetadataEmit();
-        var mdLocalSignature = SignatureTokenCache.GetMdSignature(assemblyId, localSignature.Data, metaDataEmit);
-        var mdProbeSignature = SignatureTokenCache.GetMdSignature(assemblyId, _probeSignature, metaDataEmit);
-            
-        // Patch method
-        var localsCount = localSignature.GetLocalsCount();
-        var patchedMethod = MethodInstrumentation.PatchMethod(method, mdBoolRef, localsCount - 1, mdLocalSignature, mdProbeSignature);
-        var patchedMethodBytes = ConvertMethodToByteArray(patchedMethod);
-        var patchedMethodPointer = TypeHelper.GetBytePtr(patchedMethodBytes);
-        
-        var hSetBody = ICorProfilerInfo2.SetILFunctionBody(moduleId, mdMethodToken, patchedMethodPointer);
+        var hSetBody = ICorProfilerInfo2.SetILFunctionBody(moduleId, mdMethodToken, methodBytePointer);
         
         if (!hSetBody.IsOK)
         {
@@ -127,6 +130,29 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         
         Log("");
         return HResult.S_OK;
+    }
+
+    private Method InstrumentMethod(Method method, AssemblyId assemblyId, MetaDataImport metaDataImport)
+    {
+        var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
+        //var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
+        Log($"System.Boolean type ref: {mdBoolRef.Value}");
+        //Log($"System.Diagnostics.Activity type ref: {mdActivityRef.Value}");
+            
+        // Get updated local signature
+        var localSignature = LocalVarVarSignatureReader.ReadLocalVarSignature(method.Header, metaDataImport);
+        localSignature = MethodFlowInstrumentation.PatchLocalVariableSignature(localSignature);
+        Log($"Local signature before: {BitConverter.ToString(localSignature.Data)}");
+        Log($"Local signature: {BitConverter.ToString(localSignature.Data)}");
+
+        var metaDataEmit = metaDataImport.GetMetadataEmit();
+        var mdLocalSignature = SignatureTokenCache.GetMdSignature(assemblyId, localSignature.Data, metaDataEmit);
+        var mdProbeSignature = SignatureTokenCache.GetMdSignature(assemblyId, MethodFlowInstrumentation.ProbeSignature, metaDataEmit);
+            
+        // Patch method
+        var localVarCount = localSignature.GetVarCount();
+        var instrumentedMethod = MethodFlowInstrumentation.InstrumentMethod(method, localVarCount, mdBoolRef, mdLocalSignature, mdProbeSignature);
+        return instrumentedMethod;
     }
 
     protected override HResult Shutdown()
@@ -169,6 +195,6 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
     private static void Log(string line)
     {
         Console.WriteLine(line);
-        //Logs.Enqueue(line);
+        Logs.Enqueue(line);
     }
 }
