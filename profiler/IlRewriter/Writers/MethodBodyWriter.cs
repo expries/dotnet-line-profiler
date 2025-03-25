@@ -17,11 +17,17 @@ public class MethodBodyWriter
             instructionOffset += instruction.SizeInBytes;
             instruction.Offset = instructionOffset;
         }
+
+        var idx = 0;
         
         foreach (var instruction in body.Instructions)
         {
+            //Console.Write($"[{idx}]: ");
             _instructionWriter.WriteToStream(instruction, stream);
+            idx++;
         }
+
+        Console.WriteLine("");
 
         var instructionEndPosition = stream.Position;
         

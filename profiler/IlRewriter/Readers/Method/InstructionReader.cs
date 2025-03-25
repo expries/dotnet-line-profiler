@@ -87,15 +87,15 @@ public class InstructionReader : IlReader<Instruction>
         var baseOffset = Offset + 4 * length;
         var branchOffsets = new int[length];
 
-        var value = new byte[4 + length * 4];
-        Array.Copy(BitConverter.GetBytes(length), value, 4);
+        // TODO: check
+        // var value = new byte[4 + length * 4];
+        // Array.Copy(BitConverter.GetBytes(length), value, 4);
 
         for (var i = 0; i < length; i++)
         {
             var offset = ReadInt32();
-            
             branchOffsets[i] = baseOffset + offset;
-            Array.Copy(BitConverter.GetBytes(offset), 0, value, i * 4, 4);
+            // Array.Copy(BitConverter.GetBytes(offset), 0, value, i * 4, 4);
         }
 
         return new InlineSwitchOperand

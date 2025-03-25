@@ -19,11 +19,6 @@ public class MethodWriter : IlWriter<Method>
         _headerWriter.WriteToStream(method.Header, headerWriter);
 
         var bodyStreamArray = methodBodyStream.ToArray();
-
-        Console.WriteLine("BODY BYTES:");
-        methodBodyStream.ToArray().ToList().ForEach(b => Console.Write($"{b} "));
-        Console.WriteLine();
-
         stream.Write(bodyStreamArray, 0, bodyStreamArray.Length);
     }
 

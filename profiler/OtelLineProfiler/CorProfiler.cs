@@ -22,8 +22,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
 
     protected override HResult Initialize(int iCorProfilerInfoVersion)
     {
-        Log("Initialize");
-        Log($"Profiler version {iCorProfilerInfoVersion}");
+        Log($"Profiler version: {iCorProfilerInfoVersion}");
 
         if (iCorProfilerInfoVersion < 11)
         {
@@ -143,25 +142,21 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
     {
         // Update local var signature for instrumentation
         var varSignature = LocalVarSignatureReader.ReadLocalVarSignature(method.Header, metaDataImport);
-        Log($"Local signature before: {BitConverter.ToString(varSignature.Data)}");
-
-        varSignature = MethodFlowInstrumentation.PatchLocalVarSignature(varSignature);
-        Log($"Local signature: {BitConverter.ToString(varSignature.Data)}");
+        var patchedVarSignature = Instrumentation.CreateLocalVarSignature(varSignature);
         
         // Find bool type token
         var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
-        Log($"System.Boolean type ref: {mdBoolRef.Value}");
         //var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
         //Log($"System.Diagnostics.Activity type ref: {mdActivityRef.Value}");
         
         // Get signature tokens
         var metaDataEmit = metaDataImport.GetMetadataEmit();
-        var mdLocalSignature = SignatureTokenCache.GetMdSignature(assemblyId, varSignature.Data, metaDataEmit);
-        var mdProbeSignature = SignatureTokenCache.GetMdSignature(assemblyId, MethodFlowInstrumentation.ProbeSignature, metaDataEmit);
+        var mdLocalSignature = SignatureTokenCache.GetMdSignature(assemblyId, patchedVarSignature.Data, metaDataEmit);
+        var mdProbeSignature = SignatureTokenCache.GetMdSignature(assemblyId, Instrumentation.ProbeSignature, metaDataEmit);
         
         // Instrument method
-        var localVarCount = varSignature.GetVarCount();
-        var instrumentedMethod = MethodFlowInstrumentation.InstrumentMethod(method, localVarCount, mdBoolRef, mdLocalSignature, mdProbeSignature);
+        var localVarCount = patchedVarSignature.GetVarCount();
+        var instrumentedMethod = Instrumentation.InstrumentMethod(method, localVarCount, mdBoolRef, mdLocalSignature, mdProbeSignature);
         return instrumentedMethod;
     }
 

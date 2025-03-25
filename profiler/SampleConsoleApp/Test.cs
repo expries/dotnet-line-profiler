@@ -13,7 +13,7 @@ public class Test
     {
         var size = new Random(400).Next(0, 200);
 
-        if (size is > 50 and < 120)
+        if (size is > 50)
         {
             return;
         }
@@ -44,9 +44,64 @@ public class Test
 
 
 
-    public void Y()
+    public void If(int x)
     {
-        var x = 1;
+        if (x > 0)
+        {
+            Console.WriteLine("x > 0");
+        }
+        
+        Console.WriteLine("test");
+    }
+    
+    public void IfElse(int x)
+    {
+        if (x > 0)
+        {
+            Console.WriteLine("x > 0");
+        }
+        else
+        {
+            Console.WriteLine("x <= 0");
+        }
+        
+        Console.WriteLine("test");
+    }
+    
+    public void IfElseIfElse(int x)
+    {
+        if (x > 0)
+        {
+            Console.WriteLine("x > 0");
+        }
+        else if (x > -10)
+        {
+            Console.WriteLine("x < -10");
+        }
+        else
+        {
+            Console.WriteLine("-10 < x <= 0");
+        }
+        
+        Console.WriteLine("test");
+    }
+    
+    public void Switch(int x)
+    {
+        switch (x)
+        {
+            case 0:
+                Console.WriteLine("x == 0");
+                break;
+            case 1:
+                Console.WriteLine("x == 1");
+                break;
+            case 2:
+                Console.WriteLine("x == 1");
+                break;
+        }
+
+        Console.WriteLine("End");
     }
     
     public void X()

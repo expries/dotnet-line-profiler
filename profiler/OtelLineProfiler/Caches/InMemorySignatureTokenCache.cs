@@ -24,9 +24,9 @@ public class InMemorySignatureTokenCache : ISignatureTokenCache
         var signaturePtr = UnsafeTypes.GetBytePtr(signature);
         var hGetToken = metadataEmit.GetTokenFromSig(signaturePtr, (uint) signature.Length, out var signatureToken);
 
-        if (!hGetToken.IsOK)
+        if (hGetToken is { IsOK: false, IsDuplicate: false })
         {
-            throw new Exception($"Failed to get token for signature '{signature}'");
+            throw new Exception($"Failed to get token for signature '{BitConverter.ToString(signature)}': {hGetToken.Code}");
         }
         
         _cache[assemblyId.Value].Add(signature, signatureToken);

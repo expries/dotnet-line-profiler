@@ -23,15 +23,40 @@ switch (random)
         break;
     default:
         var test = new Test(1);
-        test.OneLocal();
-        test.OneLocal();
-        test.OneLocal();
-        test.OneLocal();
-        test.OneLocal();
-        test.OneLocal();
-        test.TwoLocals();
-        test.ThreeLocals();
-        test.X();
+        
+        test.If(-0);
+        test.If(1);
+        test.If(2);
+        test.If(3);
+        
+        
+        
+        test.IfElse(2);
+        test.IfElse(-1);
+        
+        
+        
+        
+        test.IfElseIfElse(4);
+        test.IfElseIfElse(-1);
+        test.IfElseIfElse(-11);
+        
+        
+        test.Switch(0);
+        test.Switch(1);
+        test.Switch(2);
+
+/*
+test.OneLocal();
+test.OneLocal();
+test.OneLocal();
+test.OneLocal();
+test.OneLocal();
+test.OneLocal();
+test.TwoLocals();
+test.ThreeLocals();
+test.X();
+*/
         break;
 }
 

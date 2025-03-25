@@ -59,6 +59,8 @@ public readonly struct HResult
         }
     }
     public bool IsOK => Code == S_OK;
+    
+    public bool IsDuplicate => Code == 1249687;
 
     public int Code { get; }
 
