@@ -60,8 +60,8 @@ public class MethodBodyReader : IlReader<MethodBody>
     {
         for (var j = 0; j < operand.BranchOffsets.Length; j++)
         {
-            var offset = operand.BranchOffsets[j];
-            operand.Branches[j] = Context.InstructionsByOffset[offset];
+            var instructionOffset = operand.BaseOffset + operand.BranchOffsets[j];
+            operand.Branches[j] = Context.InstructionsByOffset[instructionOffset];
         }
     }
 }

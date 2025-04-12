@@ -2,5 +2,5 @@
 
 public abstract class IlWriter<T>
 {
-    public abstract void WriteToStream(T item, Stream stream);
+    public abstract void WriteToStream(T instruction, Stream stream);
 }

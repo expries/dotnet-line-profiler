@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace OtelLineProfiler.Helpers;
+namespace LineProfiler.Helpers;
 
 public static class UnsafeTypes
 {

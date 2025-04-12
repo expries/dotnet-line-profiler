@@ -7,19 +7,6 @@ public class MethodHeaderWriter
 {
     public void WriteToStream(MethodHeader header, BinaryStreamWriter writer)
     {
-        Console.WriteLine();
-        Console.WriteLine("Method Header Information:");
-        Console.WriteLine($"Size: {header.Size}");
-        Console.WriteLine($"SizeInBytes: {header.SizeInBytes}");
-        Console.WriteLine($"MaxStack: {header.MaxStack}");
-        Console.WriteLine($"CodeSize: {header.CodeSize}");
-        Console.WriteLine($"LocalVarSigToken: {header.LocalVarSigToken}");
-        Console.WriteLine($"MoreSections: {header.MoreSections}");
-        Console.WriteLine($"InitLocals: {header.InitLocals}");
-        Console.WriteLine($"IsTiny: {header.IsTiny}");
-        Console.WriteLine($"IsFat: {header.IsFat}");
-        Console.WriteLine();
-        
         if (header.IsTiny)
         {
             

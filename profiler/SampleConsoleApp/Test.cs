@@ -46,16 +46,20 @@ public class Test
 
     public void If(int x)
     {
+        Console.WriteLine($"If: x={x}");
+        
         if (x > 0)
         {
             Console.WriteLine("x > 0");
         }
         
-        Console.WriteLine("test");
+        Console.WriteLine("Return");
     }
     
     public void IfElse(int x)
     {
+        Console.WriteLine($"IfElse: x={x}");
+        
         if (x > 0)
         {
             Console.WriteLine("x > 0");
@@ -65,29 +69,33 @@ public class Test
             Console.WriteLine("x <= 0");
         }
         
-        Console.WriteLine("test");
+        Console.WriteLine("Return");
     }
     
     public void IfElseIfElse(int x)
-    {
+    {      
+        Console.WriteLine($"IfElseIfElse: x={x}");
+        
         if (x > 0)
         {
             Console.WriteLine("x > 0");
         }
         else if (x > -10)
         {
-            Console.WriteLine("x < -10");
+            Console.WriteLine("x > -10");
         }
         else
         {
-            Console.WriteLine("-10 < x <= 0");
+            Console.WriteLine("x <= 0");
         }
         
-        Console.WriteLine("test");
+        Console.WriteLine("Return");
     }
     
     public void Switch(int x)
     {
+        Console.WriteLine($"Switch: x={x}");
+        
         switch (x)
         {
             case 0:
@@ -97,11 +105,11 @@ public class Test
                 Console.WriteLine("x == 1");
                 break;
             case 2:
-                Console.WriteLine("x == 1");
+                Console.WriteLine("x == 2");
                 break;
         }
 
-        Console.WriteLine("End");
+        Console.WriteLine("Return");
     }
     
     public void X()

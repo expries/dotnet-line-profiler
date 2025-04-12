@@ -3,12 +3,12 @@ using System.Text;
 using IlRewriter.Models;
 using IlRewriter.Readers.Method;
 using IlRewriter.Writers;
-using OtelLineProfiler.Caches;
-using OtelLineProfiler.Helpers;
-using OtelLineProfiler.IL;
+using LineProfiler.Caches;
+using LineProfiler.Helpers;
+using LineProfiler.IL;
 using Profiler.Core;
 
-namespace OtelLineProfiler;
+namespace LineProfiler;
 
 internal unsafe class CorProfiler : CorProfilerCallback10Base
 {

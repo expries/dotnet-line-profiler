@@ -1,8 +1,8 @@
 ﻿using IlRewriter.Models;
-using OtelLineProfiler.Helpers;
+using LineProfiler.Helpers;
 using Profiler.Core;
 
-namespace OtelLineProfiler.IL;
+namespace LineProfiler.IL;
 
 public class LocalVarSignatureReader : ILocalVarSignatureReader
 {
@@ -21,12 +21,6 @@ public class LocalVarSignatureReader : ILocalVarSignatureReader
         }
         
         var signature = UnsafeTypes.GetByteArrayFromPtr(ppvSig, pcbSig);
-
-        if (signature[0] != 0x07)
-        {
-            throw new ArgumentException("Local var signature is invalid");
-        }
-
         return new LocalVarSignature(signature); 
     }
 }

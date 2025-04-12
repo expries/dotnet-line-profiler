@@ -9,12 +9,11 @@ public class InstructionWriter : IlWriter<Instruction>
 {
     public override void WriteToStream(Instruction instruction, Stream stream)
     {
-        Console.Write($"{instruction.Offset}: {instruction.OpCode.Name}");
         WriteOpCode(instruction.OpCode, stream);
         
         if (instruction.Operand is not null)
         {
-            WriteOperand(instruction.Operand, stream);
+            WriteOperand(instruction.Operand, instruction.Offset, stream);
         }
         
         Console.Write(Environment.NewLine);
@@ -33,7 +32,7 @@ public class InstructionWriter : IlWriter<Instruction>
         }
     }
     
-    private static void WriteOperand(Operand operand, Stream stream)
+    private static void WriteOperand(Operand operand, int instructionOffset, Stream stream)
     {
         switch (operand)
         {
@@ -50,7 +49,7 @@ public class InstructionWriter : IlWriter<Instruction>
                 new InlineBrTargetOperandWriter().WriteToStream(inlineBrTargetOperand, stream);
                 break;
             case InlineSwitchOperand inlineSwitchOperand:
-                new InlineSwitchOperandWriter().WriteToStream(inlineSwitchOperand, stream);
+                new InlineSwitchOperandWriter().WriteToStream(inlineSwitchOperand, instructionOffset, stream);
                 break;
             case Int16Operand int16Operand:
                 Console.Write($" ({int16Operand.Value})");
@@ -95,8 +94,5 @@ public class InstructionWriter : IlWriter<Instruction>
             default:
                 throw new NotImplementedException();
         }
-        
     }
-    
-    
 }

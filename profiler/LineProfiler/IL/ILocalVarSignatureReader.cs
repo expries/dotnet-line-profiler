@@ -1,7 +1,7 @@
 ﻿using IlRewriter.Models;
 using Profiler.Core;
 
-namespace OtelLineProfiler.IL;
+namespace LineProfiler.IL;
 
 public interface ILocalVarSignatureReader
 {

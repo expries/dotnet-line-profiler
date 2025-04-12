@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace OtelLineProfiler.Interception;
+namespace LineProfiler.Interception;
 
 public static class Callbacks
 {
@@ -20,6 +20,8 @@ public static class Callbacks
             var value = ptr[i];
             Console.WriteLine($"Value at i={i}: {value}");
         }
+
+        Console.WriteLine("");
         
         
         /*

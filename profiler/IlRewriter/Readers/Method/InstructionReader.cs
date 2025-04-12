@@ -94,7 +94,7 @@ public class InstructionReader : IlReader<Instruction>
         for (var i = 0; i < length; i++)
         {
             var offset = ReadInt32();
-            branchOffsets[i] = baseOffset + offset;
+            branchOffsets[i] = offset;
             // Array.Copy(BitConverter.GetBytes(offset), 0, value, i * 4, 4);
         }
 
@@ -102,7 +102,7 @@ public class InstructionReader : IlReader<Instruction>
         {
             BaseOffset = baseOffset,
             BranchOffsets = branchOffsets,
-            Branches = new Instruction?[branchOffsets.Length],
+            Branches = new Instruction[branchOffsets.Length],
         };
     }
 

@@ -1,13 +1,18 @@
-﻿namespace OtelLineProfiler.IL;
+﻿namespace LineProfiler.IL;
 
 public class LocalVarSignature
 {
-    public byte[] Data { get; set; }
+    public byte[] Data { get; private set; }
 
     public LocalVarSignature(byte[] data)
     {
+        if (data[0] != 0x07)
+        {
+            throw new ArgumentException("Local var signature is invalid");
+        }
+
         Data = data;
-    }
+    }   
 
     public void AddLocalVariable(byte[] localVariableSignature)
     {
@@ -32,7 +37,7 @@ public class LocalVarSignature
 
     private uint DecompressUnsignedIntAt(int index)
     {
-        var firstByte = Data[index++];
+        var firstByte = Data[index];
     
         if ((firstByte & 0x80) == 0) // 1-byte format (0xxxxxxx)
         {
@@ -41,19 +46,18 @@ public class LocalVarSignature
     
         if ((firstByte & 0x40) == 0) // 2-byte format (10xxxxxx xxxxxxxx)
         {
-            var secondByte = Data[index++];
+            var secondByte = Data[index + 1];
             return ((uint) (firstByte & ~0x80) << 8) | secondByte;
         }
-    
     
         if ((firstByte & 0xE0) == 0xC0) // 4-byte format (110xxxxx xxxxxxxx xxxxxxxx xxxxxxxx)
         {
             if (index + 2 >= Data.Length)
                 throw new ArgumentException("Unexpected end of data while decoding compressed integer.");
         
-            var secondByte = Data[index++];
-            var thirdByte = Data[index++];
-            var fourthByte = Data[index++];
+            var secondByte = Data[index + 1];
+            var thirdByte = Data[index + 2];
+            var fourthByte = Data[index + 3];
         
             return ((uint) (firstByte & ~0xc0) << 24)
                    | (uint) secondByte << 16

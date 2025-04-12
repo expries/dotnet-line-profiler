@@ -1,4 +1,4 @@
-﻿namespace OtelLineProfiler.IL;
+﻿namespace LineProfiler.IL;
 
 
 public static class MethodSignatureFactory

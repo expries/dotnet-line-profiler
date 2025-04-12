@@ -40,8 +40,8 @@ switch (random)
         test.IfElseIfElse(4);
         test.IfElseIfElse(-1);
         test.IfElseIfElse(-11);
-        
-        
+
+
         test.Switch(0);
         test.Switch(1);
         test.Switch(2);

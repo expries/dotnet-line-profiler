@@ -1,7 +1,7 @@
 ﻿using NativeObjects;
 using Profiler.Core;
 
-namespace OtelLineProfiler.Caches;
+namespace LineProfiler.Caches;
 
 public interface ISignatureTokenCache
 {

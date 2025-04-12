@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleConsoleApp", "SampleC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler.Core.NativeStubGenerator", "Profiler.Core.NativeStubGenerator\Profiler.Core.NativeStubGenerator.csproj", "{08FF220B-5681-44C9-A8D9-4481B595C5FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OtelLineProfiler", "OtelLineProfiler\OtelLineProfiler.csproj", "{B00DB173-1D7C-4791-ACAD-005A3776AB17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineProfiler", "LineProfiler\LineProfiler.csproj", "{B00DB173-1D7C-4791-ACAD-005A3776AB17}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IlRewriter", "IlRewriter\IlRewriter.csproj", "{782947A6-E8D1-4EE4-9B57-DD88B3011FFD}"
 EndProject

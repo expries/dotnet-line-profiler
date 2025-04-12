@@ -1,6 +1,6 @@
 ﻿using Profiler.Core;
 
-namespace OtelLineProfiler.Caches;
+namespace LineProfiler.Caches;
 
 public interface ITypeRefCache
 {

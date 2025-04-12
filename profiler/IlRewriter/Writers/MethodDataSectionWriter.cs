@@ -7,11 +7,11 @@ public class MethodDataSectionWriter : IlWriter<MethodDataSection>
 {
     private BinaryStreamWriter _writer = new BinaryStreamWriter(new MemoryStream());
     
-    public override void WriteToStream(MethodDataSection dataSection, Stream stream)
+    public override void WriteToStream(MethodDataSection instruction, Stream stream)
     {
         _writer = new BinaryStreamWriter(stream);
         
-        foreach (var ehSection in dataSection.EhSections)
+        foreach (var ehSection in instruction.EhSections)
         {
             WriteEhSection(ehSection, stream);
         }

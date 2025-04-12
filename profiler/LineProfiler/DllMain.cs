@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Profiler.Core;
 
-namespace OtelLineProfiler;
+namespace LineProfiler;
 
 public class DllMain
 {

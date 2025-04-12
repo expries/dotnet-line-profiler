@@ -3,7 +3,7 @@ using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
 using Profiler.Core;
 
-namespace OtelLineProfiler.IL;
+namespace LineProfiler.IL;
 
 
 
