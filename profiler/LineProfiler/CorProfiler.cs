@@ -56,7 +56,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         
         // Check if assembly of method is the one we want to intercept
         var assemblyNameSpan = UnsafeTypes.CreateSpanForName();
-        var hGetAssembly = ICorProfilerInfo2.GetAssemblyInfo(assemblyId, assemblyNameSpan, out var cchAssembly, out var _, out var _);
+        var hGetAssembly = ICorProfilerInfo2.GetAssemblyInfo(assemblyId, assemblyNameSpan, out var cchAssembly, out _, out _);
 
         if (!hGetAssembly.IsOK)
         {
@@ -95,7 +95,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
 
         // Get type name
         var typeNameSpan = UnsafeTypes.CreateSpanForName();
-        var hGetTypeProps = metaDataImport.GetTypeDefProps(typeToken, typeNameSpan, out var cchType, out var _, out var _);
+        var hGetTypeProps = metaDataImport.GetTypeDefProps(typeToken, typeNameSpan, out var cchType, out _, out _);
 
         if (!hGetTypeProps.IsOK)
         {
@@ -146,8 +146,10 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         
         // Find bool type token
         var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
-        //var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
-        //Log($"System.Diagnostics.Activity type ref: {mdActivityRef.Value}");
+        
+        // For later
+        // var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
+        // Log($"System.Diagnostics.Activity type ref: {mdActivityRef.Value}");
         
         // Get signature tokens
         var metaDataEmit = metaDataImport.GetMetadataEmit();
