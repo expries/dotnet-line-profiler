@@ -3,6 +3,10 @@
 Console.WriteLine("Hello, World!");
 
 var random = new Random().Next(0, 100);
+var randomIsEven = random % 2 == 0;
+Console.WriteLine("Random is even: " + randomIsEven);
+
+
 switch (random)
 {
     case 1:
@@ -12,51 +16,24 @@ switch (random)
         Console.WriteLine("Two");
         break;
     case 3:
-        if (random == 2) 
-        {
-            Console.WriteLine("Three");
-        }
-        else
-        {
-            Console.WriteLine("Not three");
-        }
+        Console.WriteLine("Not three");
         break;
     default:
-        var test = new Test(1);
-        
-        test.If(-0);
-        test.If(1);
-        test.If(2);
-        test.If(3);
-        
-        
-        
-        test.IfElse(2);
-        test.IfElse(-1);
-        
-        
-        
-        
-        test.IfElseIfElse(4);
-        test.IfElseIfElse(-1);
-        test.IfElseIfElse(-11);
+        Test.If(-0);
+        Test.If(1);
+        Test.If(2);
+        Test.If(3);
 
-
-        test.Switch(0, 1);
-        test.Switch(1, 2);
-        test.Switch(2, 3);
-
-/*
-test.OneLocal();
-test.OneLocal();
-test.OneLocal();
-test.OneLocal();
-test.OneLocal();
-test.OneLocal();
-test.TwoLocals();
-test.ThreeLocals();
-test.X();
-*/
+        Test.IfElse(2);
+        Test.IfElse(-1);
+        
+        Test.IfElseIfElse(4);
+        Test.IfElseIfElse(-1);
+        Test.IfElseIfElse(-11);
+        
+        Test.Switch(0, 1);
+        Test.Switch(1, 2);
+        Test.Switch(2, 3);
         break;
 }
 

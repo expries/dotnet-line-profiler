@@ -27,7 +27,7 @@ public class InMemoryTypeRefCache : ITypeRefCache
 
     private unsafe MdTypeRef GetTypeRefForType(string typeName, MetaDataImport metaDataImport)
     {
-        const uint maxTypeRefs = 1024;
+        const uint maxTypeRefs = 4096;
         var pEnumerator = new HCORENUM();
         var typeRefArray = new MdTypeRef[maxTypeRefs];
         ulong resultCount = 0;

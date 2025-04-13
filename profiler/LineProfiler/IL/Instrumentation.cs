@@ -50,14 +50,8 @@ public static class Instrumentation
         MdSignature localSignature, 
         MdSignature probeSignature)
     {
-        Console.WriteLine("Collecting probes ...");
         var probes = CollectProbes(method, 0, method.Body.Instructions.Count);
-
-        Console.WriteLine("Method with probes ...");
-        PrintMethodWithProbes(method, probes);
-        
         var localVarIndex = localVarCount - 1;
-        Console.WriteLine("Adding probes ...");
         AddProbes(method, probes, localVarIndex, boolTypeRef, localSignature, probeSignature);
         return method;
     }
@@ -158,14 +152,12 @@ public static class Instrumentation
         // if branching instruction points to itself, ignore the branch
         if (branchingInstructionIndex == targetInstructionIndex)
         {
-            Console.WriteLine("Branching == Target");
             probesInBranch = new Dictionary<int, Probe>();
             return branchingInstructionIndex;
         }
         
         var branchStart = branchingInstructionIndex + 1;
 
-        Console.WriteLine($"Collecting probes in branch: ({branchStart}, {targetInstructionIndex})");
         probesInBranch = CollectProbes(method, branchStart, targetInstructionIndex);
         
         // Check if jump target is a return statement or a branch's end
@@ -224,7 +216,6 @@ public static class Instrumentation
             .Build();
             
         method.Body.Instructions.InsertRange(0, initArray);
-        Console.WriteLine($"p: 0 (length: {initArray.Count})");
         return initArray.Count;
     }
 
@@ -245,8 +236,6 @@ public static class Instrumentation
         
         var probeInstructionIndex = probeIndex + 1 + instructionOffset;
         method.Body.Instructions.InsertRange(probeInstructionIndex, probeInstructions);
-        
-        Console.WriteLine($"p: {probeInstructionIndex} (length: {probeInstructions.Count})");
         return probeInstructions.Count;
     }
     
@@ -271,8 +260,6 @@ public static class Instrumentation
         
         var beforeReturnIndex = probeIndex + instructionOffset;
         method.Body.Instructions.InsertRange(beforeReturnIndex, probeInstructions);
-        
-        Console.WriteLine($"p: {beforeReturnIndex} (length: {probeInstructions.Count})");
         return probeInstructions.Count;
     }
 

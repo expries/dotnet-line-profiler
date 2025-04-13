@@ -22,16 +22,5 @@ public static class Callbacks
         }
 
         Console.WriteLine("");
-        
-        
-        /*
-        Console.WriteLine($"123: {(int) data}");
-        var memoryStream = TypeHelper.GetStreamFromBytePointer(data, length);
-        memoryStream.ToArray().ToList().ForEach(b => Console.WriteLine(b));
-        
-        //Console.WriteLine($"Entering instruction {instructionOffset}");
-        var pdb = new Pdb(@"C:\Coding\CodeLevelTracing\SampleConsoleApp\obj\Debug\net8.0\SampleConsoleApp.pdb");
-        var x = pdb.GetLineInfoByAssemblyAndInstructionOffset();
-        */
     }
 }

@@ -122,19 +122,26 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         
         // Instrument method
         Log($"Instrumenting {typeName}.{methodName} for interception");
-        
-        var instrumentedMethod = InstrumentMethod(method, assemblyId, metaDataImport);
-        var methodBytes = ConvertMethodToByteArray(instrumentedMethod);
-        var methodBytePointer = UnsafeTypes.GetBytePtr(methodBytes);
-        var hSetBody = ICorProfilerInfo2.SetILFunctionBody(moduleId, mdMethodToken, methodBytePointer);
-        
-        if (!hSetBody.IsOK)
+
+        try
         {
-            Log($"Failed to instrument: Failed to set IL function body: {hSetBody.Code}");
+            var instrumentedMethod = InstrumentMethod(method, assemblyId, metaDataImport);
+            var methodBytes = ConvertMethodToByteArray(instrumentedMethod);
+            var methodBytePointer = UnsafeTypes.GetBytePtr(methodBytes);
+            var hSetBody = ICorProfilerInfo2.SetILFunctionBody(moduleId, mdMethodToken, methodBytePointer);
+
+            if (!hSetBody.IsOK)
+            {
+                Log($"Failed to instrument: Failed to set IL function body: {hSetBody.Code}");
+                return HResult.S_OK;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"Failed to instrument method: {ex.Message}");
             return HResult.S_OK;
         }
         
-        Log("");
         return HResult.S_OK;
     }
 
@@ -168,7 +175,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         Console.WriteLine("[Profiler] *** Shutting down, dumping remaining logs ***");
 
         while (Logs.TryDequeue(out var log))
-        {
+        { 
             Console.WriteLine($"[Profiler] {log}");
             logFile.Write(Encoding.UTF8.GetBytes($"[Profiler] {log}\n"));
         }

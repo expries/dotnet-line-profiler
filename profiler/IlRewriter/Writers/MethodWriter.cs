@@ -20,9 +20,6 @@ public class MethodWriter : IlWriter<Method>
 
         var bodyStreamArray = methodBodyStream.ToArray();
         stream.Write(bodyStreamArray, 0, bodyStreamArray.Length);
-
-        Console.WriteLine("Writing method:");
-        MethodPrinter.PrintMethodBody(instruction);
     }
 
     private static void PrepareHeader(Method method, long codeSize)
