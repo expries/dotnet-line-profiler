@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
+using IlRewriter;
 using IlRewriter.Models;
 using IlRewriter.Readers.Method;
 using IlRewriter.Writers;

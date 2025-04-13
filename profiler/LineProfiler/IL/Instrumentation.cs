@@ -108,11 +108,6 @@ public static class Instrumentation
             // treat loop as end of branch
             if (targetInstructionIndex < branchingInstructionIndex)
             {
-                probes[branchingInstructionIndex - 1] = new Probe
-                {
-                    Type = Probe.ProbeType.End,
-                    CoveredInstructionIndices = instructionsInBranch, 
-                };
                 return branchingInstructionIndex;
             }
             
@@ -333,18 +328,31 @@ public static class Instrumentation
         {
             return null;
         }
+
         
         var offset = 0;
+        var branchingOffset = -1;
+        var targetOffset = -1;
         
-        for (var j = startIndex  + 1; j < method.Body.Instructions.Count; j++)
+        for (var i = 0; i < method.Body.Instructions.Count; i++)
         {
-            var instruction = method.Body.Instructions[j];
+            var instruction = method.Body.Instructions[i];
             
             offset += instruction.SizeInBytes;
 
+            if (i == startIndex)
+            {
+                branchingOffset = offset;
+            }
+
             if (target == instruction)
             {
-                return offset;
+                targetOffset = offset;
+            }
+
+            if (branchingOffset > -1 && targetOffset > -1)
+            {
+                return targetOffset - branchingOffset;
             }
         }
         

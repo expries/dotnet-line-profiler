@@ -8,15 +8,15 @@ public class MethodWriter : IlWriter<Method>
     private readonly MethodHeaderWriter _headerWriter = new MethodHeaderWriter();
     private readonly MethodBodyWriter _bodyWriter = new MethodBodyWriter();
     
-    public override void WriteToStream(Method instruction, Stream stream)
+    public override void WriteToStream(Method method, Stream stream)
     {
         var methodBodyStream = new MemoryStream();
-        var codeSize = _bodyWriter.WriteToStream(instruction.Body, methodBodyStream);
+        var codeSize = _bodyWriter.WriteToStream(method.Body, methodBodyStream);
 
-        PrepareHeader(instruction, codeSize);
+        PrepareHeader(method, codeSize);
         
         var headerWriter = new BinaryStreamWriter(stream);
-        _headerWriter.WriteToStream(instruction.Header, headerWriter);
+        _headerWriter.WriteToStream(method.Header, headerWriter);
 
         var bodyStreamArray = methodBodyStream.ToArray();
         stream.Write(bodyStreamArray, 0, bodyStreamArray.Length);

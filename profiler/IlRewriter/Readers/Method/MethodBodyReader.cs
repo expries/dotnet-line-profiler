@@ -58,10 +58,10 @@ public class MethodBodyReader : IlReader<MethodBody>
 
     private void ResolveSwitchBranches(InlineSwitchOperand operand)
     {
-        for (var j = 0; j < operand.BranchOffsets.Length; j++)
+        for (var i = 0; i < operand.BranchOffsets.Length; i++)
         {
-            var instructionOffset = operand.BaseOffset + operand.BranchOffsets[j];
-            operand.Branches[j] = Context.InstructionsByOffset[instructionOffset];
+            var instructionOffset = operand.BaseOffset + operand.BranchOffsets[i];
+            operand.Branches[i] = Context.InstructionsByOffset[instructionOffset];
         }
     }
 }

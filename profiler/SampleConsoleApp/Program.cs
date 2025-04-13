@@ -10,6 +10,9 @@ Test.If(2);
 Test.If(3);
         
 Test.For(10);
+//Test.For(100);
+Test.For(30);
+Test.For(-1);
 
 Test.IfElse(2);
 Test.IfElse(-1);
