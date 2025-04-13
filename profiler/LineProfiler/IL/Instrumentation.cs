@@ -105,6 +105,17 @@ public static class Instrumentation
 
         int HandleBranch(int branchingInstructionIndex, int targetInstructionIndex)
         {
+            // treat loop as end of branch
+            if (targetInstructionIndex < branchingInstructionIndex)
+            {
+                probes[branchingInstructionIndex - 1] = new Probe
+                {
+                    Type = Probe.ProbeType.End,
+                    CoveredInstructionIndices = instructionsInBranch, 
+                };
+                return branchingInstructionIndex;
+            }
+            
             // jump to end of current branch
             if (targetInstructionIndex == endIndex)
             {
@@ -232,7 +243,7 @@ public static class Instrumentation
             .Build();
         
         var probe = probes[probeIndex];
-        CorrectJumpToProbe(method, probeInstructions, probe);
+        RewriteBranchIfSet(method, probeInstructions, probe);
         
         var probeInstructionIndex = probeIndex + 1 + instructionOffset;
         method.Body.Instructions.InsertRange(probeInstructionIndex, probeInstructions);
@@ -256,14 +267,14 @@ public static class Instrumentation
             .Build();
         
         var probe = probes[probeIndex];
-        CorrectJumpToProbe(method, probeInstructions, probe);
+        RewriteBranchIfSet(method, probeInstructions, probe);
         
         var beforeReturnIndex = probeIndex + instructionOffset;
         method.Body.Instructions.InsertRange(beforeReturnIndex, probeInstructions);
         return probeInstructions.Count;
     }
 
-    private static void CorrectJumpToProbe(Method method, List<Instruction> probeInstructions, Probe probe)
+    private static void RewriteBranchIfSet(Method method, List<Instruction> probeInstructions, Probe probe)
     {
         if (probe.BranchTargetToRewrite is null) return;
         

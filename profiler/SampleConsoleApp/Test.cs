@@ -2,6 +2,16 @@
 
 public class Test
 {
+    public static void For(int limit)
+    {
+        Console.WriteLine($"For: limit={limit}");
+        
+        for (var i = 0; i < limit; i++)
+        {
+            Console.WriteLine($"i={i + 1}/{limit}");
+        }
+    }
+    
     public static void If(int x)
     {
         Console.WriteLine($"If: x={x}");
