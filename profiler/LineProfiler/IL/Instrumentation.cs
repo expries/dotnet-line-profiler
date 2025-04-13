@@ -305,8 +305,6 @@ public static class Instrumentation
     
     private static void CorrectBranchingOffsets(Method method)
     {
-        MethodBodyWriter.PrepareInstruction(method.Body);
-        
         for (var i = 0; i < method.Body.Instructions.Count; i++)
         {
             var instruction = method.Body.Instructions[i];
@@ -315,7 +313,6 @@ public static class Instrumentation
             {
                 case InlineBrTargetOperand target:
                     var targetOffset = GetTargetOffset(i, method, target.Instruction) ?? 0;
-                    Console.WriteLine($"Found value at {target.Offset}: {targetOffset}");
                     target.Value = targetOffset;
                     continue;
                 case ShortInlineBrTargetOperand sTarget:
@@ -327,7 +324,6 @@ public static class Instrumentation
                     }
                     catch (OverflowException)
                     {
-                        Console.WriteLine("Converted sBr to br: " + sTargetOffset);
                         instruction.OpCode = OpCodes.Br;
                         instruction.Operand = new InlineBrTargetOperand { Instruction = instruction, Offset = sTarget.Offset, Value = sTargetOffset };
                     }

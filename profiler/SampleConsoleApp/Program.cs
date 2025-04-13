@@ -42,9 +42,9 @@ switch (random)
         test.IfElseIfElse(-11);
 
 
-        test.Switch(0);
-        test.Switch(1);
-        test.Switch(2);
+        test.Switch(0, 1);
+        test.Switch(1, 2);
+        test.Switch(2, 3);
 
 /*
 test.OneLocal();

@@ -92,13 +92,21 @@ public class Test
         Console.WriteLine("Return");
     }
     
-    public void Switch(int x)
+    public void Switch(int x, int y)
     {
         Console.WriteLine($"Switch: x={x}");
         
         switch (x)
         {
             case 0:
+                if (y > 0)
+                {
+                    Console.WriteLine("x > 0");
+                }
+                else
+                {
+                    Console.WriteLine("x <= 0");
+                }
                 Console.WriteLine("x == 0");
                 break;
             case 1:

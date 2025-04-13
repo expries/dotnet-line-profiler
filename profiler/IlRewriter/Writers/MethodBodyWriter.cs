@@ -9,7 +9,14 @@ public class MethodBodyWriter
     
     public long WriteToStream(MethodBody body, Stream stream)
     {
-        PrepareInstruction(body);
+        var instructionOffset = 0;
+
+        foreach (var instruction in body.Instructions)
+        {
+            instructionOffset += instruction.SizeInBytes;
+            instruction.Offset = instructionOffset;
+        }
+        
         var startPosition = stream.Position;
 
         foreach (var instruction in body.Instructions)
@@ -22,16 +29,5 @@ public class MethodBodyWriter
         _dataSectionWriter.WriteToStream(body.DataSection, stream);
 
         return instructionEndPosition - startPosition;
-    }
-
-    public static void PrepareInstruction(MethodBody body)
-    {
-        var instructionOffset = 0;
-
-        foreach (var instruction in body.Instructions)
-        {
-            instructionOffset += instruction.SizeInBytes;
-            instruction.Offset = instructionOffset;
-        }
     }
 }
