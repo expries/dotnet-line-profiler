@@ -1,11 +1,10 @@
 ﻿using IlRewriter.Models;
-using IlRewriter.Readers;
 
 namespace IlRewriter.Writers;
 
 public class MethodDataSectionWriter : IlWriter<MethodDataSection>
 {
-    private BinaryStreamWriter _writer = new BinaryStreamWriter(new MemoryStream());
+    private BinaryStreamWriter _writer = new(new MemoryStream());
     
     public override void WriteToStream(MethodDataSection instruction, Stream stream)
     {
@@ -94,10 +93,10 @@ public class MethodDataSectionWriter : IlWriter<MethodDataSection>
         writeEntry((int) handler.HandlerType);
      
         writeEntry(handler.TryStart?.Offset ?? 0);
-        writeLength(handler.TryEnd.Offset - (handler.TryStart?.Offset ?? 0));
+        writeLength((handler.TryEnd?.Offset ?? 0) - (handler.TryStart?.Offset ?? 0));
 
         writeEntry(handler.HandlerStart?.Offset ?? 0);
-        writeLength(handler.HandlerEnd.Offset - (handler.HandlerStart?.Offset ?? 0));
+        writeLength((handler.HandlerEnd?.Offset ?? 0) - (handler.HandlerStart?.Offset ?? 0));
         
         WriteExceptionHandlerSpecific(handler);
     }

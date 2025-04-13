@@ -6,12 +6,12 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PublishAot>true</PublishAot>
+        <NoWarn>LNK4104</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
       <Content Include="..\publish.bat" />
-        <Content Include="..\publish.sh" />
-        
+      <Content Include="..\publish.sh" />
     </ItemGroup>
 
     <ItemGroup>

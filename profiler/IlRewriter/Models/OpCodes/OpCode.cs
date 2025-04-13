@@ -6,18 +6,14 @@ public readonly struct OpCode
 {
     public byte Op1 { get; }
     public byte Op2 { get; }
-
-    private Code Code => (Code) _code;
-    //public short Value => Op1 == 0xff ? Op2 : (short) ((Op1 << 8) | Op2);
-    public string Name => OpCodeNames.Names [(int) Code];
-    public OperandType OperandType => (OperandType) _operandType;
     
+    public string Name => OpCodeNames.Names [_code];
+    public OperandType OperandType => (OperandType) _operandType;
+    public int SizeInBytes => Op1 == 0xff ? 1 : 2;
+
     private readonly byte _code;
     private readonly byte _operandType;
     
-    public int SizeInBytes => Op1 == 0xff ? 1 : 2;
-
-
     internal OpCode (int x, int y)
     {
         Op1 = (byte) ((x >> 0) & 0xff);

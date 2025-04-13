@@ -15,9 +15,4 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
     </ItemGroup>
-
-    <ItemGroup>
-      <Content Include="NativeStubSourceGenerator.csproj" />
-    </ItemGroup>
-
 </Project>

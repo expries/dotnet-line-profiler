@@ -2,14 +2,9 @@
 
 namespace IlRewriter.Readers.Method;
 
-public class MethodDataSectionReader : IlReader<MethodDataSection>
+public class MethodDataSectionReader(Stream stream, ReadContext context) 
+    : IlReader<MethodDataSection>(stream, context)
 {
-    private readonly List<ExceptionHandler> _exceptionHandlers = [];
-    
-    public MethodDataSectionReader(Stream stream, ReadContext context) : base(stream, context)
-    {
-    }
-    
     public override MethodDataSection ReadFromStream()
     {
         var ehSections = Context.Header.MoreSections ? ReadSection() : [];

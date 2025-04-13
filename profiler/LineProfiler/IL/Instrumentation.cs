@@ -2,7 +2,6 @@
 using IlRewriter.Models;
 using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
-using IlRewriter.Writers;
 using LineProfiler.Interception;
 using Profiler.Core;
 
@@ -10,15 +9,12 @@ namespace LineProfiler.IL;
 
 public static class Instrumentation
 {
-    private record InstructionRange(int StartIndex, int EndIndex);
-    
-    internal record Branch
+    internal class Probe
     {
-        public int InstructionIndex { get; set; }
-    }
-    
-    internal class ProbeMarker
-    {
+        internal record Branch
+        {
+            public int InstructionIndex { get; set; }
+        }
         public Branch? BranchTargetToRewrite { get; set; }
         public List<int> CoveredInstructionIndices { get; set; } = [];
         public ProbeType Type { get; set; }
@@ -29,6 +25,8 @@ public static class Instrumentation
             Return
         }
     }
+    
+
     
     public static readonly byte[] ProbeSignature = MethodSignatureFactory.Create(
         CorUnmanagedCallingConventionFlags.IMAGE_CEE_UNMANAGED_CALLCONV_STDCALL, 
@@ -45,7 +43,7 @@ public static class Instrumentation
         return signature;
     }
     
-    public static unsafe Method InstrumentMethod(
+    public static Method InstrumentMethod(
         Method method, 
         uint localVarCount, 
         MdTypeRef boolTypeRef, 
@@ -53,7 +51,7 @@ public static class Instrumentation
         MdSignature probeSignature)
     {
         Console.WriteLine("Collecting probes ...");
-        var probes = CollectProbes(method);
+        var probes = CollectProbes(method, 0, method.Body.Instructions.Count);
 
         Console.WriteLine("Method with probes ...");
         PrintMethodWithProbes(method, probes);
@@ -64,14 +62,13 @@ public static class Instrumentation
         return method;
     }
     
-    private static Dictionary<int, ProbeMarker> CollectProbes(Method method, InstructionRange? range = null)
+    private static Dictionary<int, Probe> CollectProbes(Method method, int startIndex, int endIndex)
     {
         // Default to method base branch
-        range ??= new InstructionRange(StartIndex:0, EndIndex:method.Body.Instructions.Count);
-        var probes = new Dictionary<int, ProbeMarker>();
+        var probes = new Dictionary<int, Probe>();
         var instructionsInBranch = new List<int>();
 
-        for (var i = range.StartIndex; i < range.EndIndex; i++)
+        for (var i = startIndex; i < endIndex; i++)
         {
             var instruction = method.Body.Instructions[i];
             var isBranchingInstruction = TryParseBranchingInstruction(method, instruction, out var targetIdx);
@@ -89,22 +86,22 @@ public static class Instrumentation
             var isReturnInstruction = instruction.OpCode == OpCodes.Ret;
             if (isReturnInstruction)
             {
-                probes[i] = new ProbeMarker
+                probes[i] = new Probe
                 {
                     CoveredInstructionIndices = instructionsInBranch, 
-                    Type = ProbeMarker.ProbeType.Return
+                    Type = Probe.ProbeType.Return
                 };
                 break;
             }
 
             // end of current branch
-            var isLastInstructionInBranch = i == range.EndIndex - 1;
+            var isLastInstructionInBranch = i == endIndex - 1;
             if (isLastInstructionInBranch)
             {
-                probes[i] = new ProbeMarker
+                probes[i] = new Probe
                 {
                     CoveredInstructionIndices = instructionsInBranch, 
-                    Type = ProbeMarker.ProbeType.End
+                    Type = Probe.ProbeType.End
                 };
                 break;
             }
@@ -115,11 +112,11 @@ public static class Instrumentation
         int HandleBranch(int branchingInstructionIndex, int targetInstructionIndex)
         {
             // jump to end of current branch
-            if (targetInstructionIndex == range.EndIndex)
+            if (targetInstructionIndex == endIndex)
             {
-                probes[branchingInstructionIndex - 1] = new ProbeMarker
+                probes[branchingInstructionIndex - 1] = new Probe
                 {
-                    Type = ProbeMarker.ProbeType.End,
+                    Type = Probe.ProbeType.End,
                     CoveredInstructionIndices = instructionsInBranch, 
                 };
             }
@@ -156,38 +153,37 @@ public static class Instrumentation
         Method method, 
         int branchingInstructionIndex, 
         int targetInstructionIndex, 
-        out Dictionary<int, ProbeMarker> probesInBranch)
+        out Dictionary<int, Probe> probesInBranch)
     {
         // if branching instruction points to itself, ignore the branch
         if (branchingInstructionIndex == targetInstructionIndex)
         {
             Console.WriteLine("Branching == Target");
-            probesInBranch = new Dictionary<int, ProbeMarker>();
+            probesInBranch = new Dictionary<int, Probe>();
             return branchingInstructionIndex;
         }
         
         var branchStart = branchingInstructionIndex + 1;
-        var range = new InstructionRange(StartIndex:branchStart, EndIndex:targetInstructionIndex);
 
-        Console.WriteLine($"Collecting probes in branch: ({range.StartIndex}, {range.EndIndex})");
-        probesInBranch = CollectProbes(method, range);
+        Console.WriteLine($"Collecting probes in branch: ({branchStart}, {targetInstructionIndex})");
+        probesInBranch = CollectProbes(method, branchStart, targetInstructionIndex);
         
         // Check if jump target is a return statement or a branch's end
         var targetHasProbe = probesInBranch.TryGetValue(targetInstructionIndex, out var targetProbe);
 
         if (targetHasProbe && targetProbe is not null)
         {
-            targetProbe.BranchTargetToRewrite = new Branch { InstructionIndex = branchingInstructionIndex};
+            targetProbe.BranchTargetToRewrite = new Probe.Branch { InstructionIndex = branchingInstructionIndex};
         }
         
-        if (range.EndIndex == range.StartIndex) return range.EndIndex;
-        return range.EndIndex - 1;
+        if (targetInstructionIndex == branchStart) return targetInstructionIndex;
+        return targetInstructionIndex - 1;
     }
     
     
     private static void AddProbes(
         Method method,
-        Dictionary<int, ProbeMarker> probes,
+        Dictionary<int, Probe> probes,
         uint localVarIndex, 
         MdTypeRef boolTypeRef,
         MdSignature localSignature, 
@@ -203,11 +199,11 @@ public static class Instrumentation
             
             switch (probe.Type)
             {
-                case ProbeMarker.ProbeType.End:
+                case Probe.ProbeType.End:
                     instructionOffset += AddProbeForBranchEnd(
                         method, probes,i,  probeIndex, localVarIndex, instructionOffset);
                     break;
-                case ProbeMarker.ProbeType.Return:
+                case Probe.ProbeType.Return:
                     instructionOffset += AddProbeForReturnStatement(
                         method, probes, i, probeIndex, localVarIndex, instructionOffset, probeSignature);
                     break;
@@ -234,7 +230,7 @@ public static class Instrumentation
 
     private static int AddProbeForBranchEnd(
         Method method,
-        Dictionary<int, ProbeMarker> probes,
+        Dictionary<int, Probe> probes,
         int arrayIndex, 
         int probeIndex,
         uint localVarIndex, 
@@ -256,7 +252,7 @@ public static class Instrumentation
     
     private static unsafe int AddProbeForReturnStatement(
         Method method,
-        Dictionary<int, ProbeMarker> probes,
+        Dictionary<int, Probe> probes,
         int arrayIndex,
         int probeIndex, 
         uint localVarIndex, 
@@ -280,7 +276,7 @@ public static class Instrumentation
         return probeInstructions.Count;
     }
 
-    private static void CorrectJumpToProbe(Method method, List<Instruction> probeInstructions, ProbeMarker probe)
+    private static void CorrectJumpToProbe(Method method, List<Instruction> probeInstructions, Probe probe)
     {
         if (probe.BranchTargetToRewrite is null) return;
         
@@ -338,7 +334,7 @@ public static class Instrumentation
         if (target is null)
         {
             return null;
-        };
+        }
         
         var offset = 0;
         
@@ -357,7 +353,7 @@ public static class Instrumentation
         return null;
     }
     
-    private static void PrintMethodWithProbes(Method method, Dictionary<int, ProbeMarker> probes)
+    private static void PrintMethodWithProbes(Method method, Dictionary<int, Probe> probes)
     {
         for (var i = 0; i < method.Body.Instructions.Count; i++)
         {

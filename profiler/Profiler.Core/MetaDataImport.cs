@@ -83,7 +83,7 @@ public struct MetaDataImport(IntPtr ptr)
 
         if (!result.IsOK)
         {
-            return (result, default, default, default);
+            return (result, string.Empty, 0, default);
         }
 
         Span<char> buffer = stackalloc char[(int)length];
@@ -202,11 +202,11 @@ public struct MetaDataImport(IntPtr ptr)
         return (result, new(@class, name.WithoutNullTerminator(), attributes, signature, (int)signatureLength, rva, implementationFlags));
     }
 
-    public unsafe HResult GetMethodProps(MdMethodDef mb, out MdTypeDef pClass, Span<char> name, out uint pchMethod, out int pdwAttr, out byte* ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRVA, out int pdwImplFlags)
+    public unsafe HResult GetMethodProps(MdMethodDef mb, out MdTypeDef pClass, Span<char> name, out uint pchMethod, out int pdwAttr, out byte* ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRva, out int pdwImplFlags)
     {
         fixed (char* c = name)
         {
-            return _impl.GetMethodProps(mb, out pClass, c, (uint)name.Length, out pchMethod, out pdwAttr, out ppvSigBlob, out pcbSigBlob, out pulCodeRVA, out pdwImplFlags);
+            return _impl.GetMethodProps(mb, out pClass, c, (uint)name.Length, out pchMethod, out pdwAttr, out ppvSigBlob, out pcbSigBlob, out pulCodeRva, out pdwImplFlags);
         }
     }
 
@@ -250,9 +250,9 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.GetFieldMarshal(tk, out ppvNativeType, out pcbNativeType);
     }
 
-    public unsafe HResult GetRVA(MdToken tk, uint* pulCodeRVA, int* pdwImplFlags)
+    public unsafe HResult GetRva(MdToken tk, uint* pulCodeRva, int* pdwImplFlags)
     {
-        return _impl.GetRVA(tk, pulCodeRVA, pdwImplFlags);
+        return _impl.GetRVA(tk, pulCodeRva, pdwImplFlags);
     }
 
     public unsafe HResult GetPermissionSetProps(MdPermission pm, out int pdwAction, out void* ppvPermission, out uint pcbPermission)
@@ -295,9 +295,9 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.GetUserString(stk, szString, cchString, out pchString);
     }
 
-    public unsafe HResult GetPinvokeMap(MdToken tk, out int pdwMappingFlags, char* szImportName, uint cchImportName, out uint pchImportName, out MdModuleRef pmrImportDLL)
+    public unsafe HResult GetPinvokeMap(MdToken tk, out int pdwMappingFlags, char* szImportName, uint cchImportName, out uint pchImportName, out MdModuleRef pmrImportDll)
     {
-        return _impl.GetPinvokeMap(tk, out pdwMappingFlags, szImportName, cchImportName, out pchImportName, out pmrImportDLL);
+        return _impl.GetPinvokeMap(tk, out pdwMappingFlags, szImportName, cchImportName, out pchImportName, out pmrImportDll);
     }
 
     public unsafe HResult EnumSignatures(HCORENUM* phEnum, MdSignature* rSignatures, uint cmax, out uint pcSignatures)
@@ -335,9 +335,9 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.FindTypeRef(tkResolutionScope, szName, out ptr);
     }
 
-    public unsafe HResult GetMemberProps(MdToken mb, MdTypeDef* pClass, char* szMember, uint cchMember, uint* pchMember, int* pdwAttr, out nint* ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRVA, int* pdwImplFlags, int* pdwCPlusTypeFlag, out byte ppValue, out uint pcchValue)
+    public unsafe HResult GetMemberProps(MdToken mb, MdTypeDef* pClass, char* szMember, uint cchMember, uint* pchMember, int* pdwAttr, out nint* ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRva, int* pdwImplFlags, int* pdwCPlusTypeFlag, out byte ppValue, out uint pcchValue)
     {
-        return _impl.GetMemberProps(mb, pClass, szMember, cchMember, pchMember, pdwAttr, out ppvSigBlob, out pcbSigBlob, out pulCodeRVA, pdwImplFlags, pdwCPlusTypeFlag, out ppValue, out pcchValue);
+        return _impl.GetMemberProps(mb, pClass, szMember, cchMember, pchMember, pdwAttr, out ppvSigBlob, out pcbSigBlob, out pulCodeRva, pdwImplFlags, pdwCPlusTypeFlag, out ppValue, out pcchValue);
     }
 
     public unsafe HResult GetFieldProps(MdFieldDef mb, MdTypeDef* pClass, char* szField, uint cchField, uint* pchField, int* pdwAttr, out nint* ppvSigBlob, out uint pcbSigBlob, out int pdwCPlusTypeFlag, out byte ppValue, out uint pcchValue)

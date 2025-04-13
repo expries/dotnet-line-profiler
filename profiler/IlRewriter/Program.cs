@@ -1,11 +1,9 @@
-﻿using IlRewriter.Models;
-using IlRewriter.Readers;
-using IlRewriter.Readers.Method;
+﻿using IlRewriter.Readers.Method;
 
 const string currentDirectory = @"C:\Users\Samuel\RiderProjects\CodeLevelTracing\ILRewriter.Tests\";
 var methodBodiesDirectory = Path.Combine(currentDirectory, "Assets", "ILMethodBodies");
 var allDirectory = Path.Combine(methodBodiesDirectory, "All");
-var withExceptionHandlersDirectory = Path.Combine(methodBodiesDirectory, "WithExceptionHandlers");
+Path.Combine(methodBodiesDirectory, "WithExceptionHandlers");
 
 for (var i = 0; i < 45; i++)
 {
@@ -19,10 +17,10 @@ for (var i = 0; i < 45; i++)
     foreach (var exceptionHandler in method.Body.DataSection.EhSections.SelectMany(ehSection => ehSection.Handlers))
     {
         Console.WriteLine($"HandlerType: {exceptionHandler.HandlerType}");
-        Console.WriteLine($"TryStart: {exceptionHandler.TryStart.Offset}: {exceptionHandler.TryStart.OpCode.Name}");
-        Console.WriteLine($"TryEnd: {exceptionHandler.TryEnd.Offset}: {exceptionHandler.TryStart.OpCode.Name}");
-        Console.WriteLine($"HandlerStart: {exceptionHandler.HandlerStart.Offset}: {exceptionHandler.HandlerStart.OpCode.Name}");
-        Console.WriteLine($"HandlerEnd: {exceptionHandler.HandlerEnd.Offset}: {exceptionHandler.HandlerEnd.OpCode.Name}");
+        Console.WriteLine($"TryStart: {exceptionHandler.TryStart?.Offset}: {exceptionHandler.TryStart?.OpCode.Name}");
+        Console.WriteLine($"TryEnd: {exceptionHandler.TryEnd?.Offset}: {exceptionHandler.TryStart?.OpCode.Name}");
+        Console.WriteLine($"HandlerStart: {exceptionHandler.HandlerStart?.Offset}: {exceptionHandler.HandlerStart?.OpCode.Name}");
+        Console.WriteLine($"HandlerEnd: {exceptionHandler.HandlerEnd?.Offset}: {exceptionHandler.HandlerEnd?.OpCode.Name}");
             
         if (exceptionHandler.FilterStart is not null)
         {

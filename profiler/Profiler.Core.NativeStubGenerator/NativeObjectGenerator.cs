@@ -26,6 +26,8 @@ using System;
 using System.Runtime.InteropServices;
 using Profiler.Core;
 
+#pragma warning disable CS8500
+
 namespace NativeObjects
 {
     {visibility} unsafe class {typeName} : IDisposable
