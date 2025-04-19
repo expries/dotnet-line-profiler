@@ -7,6 +7,19 @@ using Profiler.Core;
 
 namespace LineProfiler.IL;
 
+public record InstrumentationMetadata
+{
+    public AssemblyId AssemblyId { get; set; }
+    public FunctionId FunctionId { get; set; }
+    public MdTypeRef BoolType { get; set; }
+    public MdMemberRef GetCurrentActivity { get; set; }
+    public MdMemberRef GetTraceId { get; set; }
+    public MdMemberRef TraceIdToHexString { get; set; }
+    public MdSignature CallbackSignature { get; set; }
+    public MdSignature LocalVarSignature { get; set; }
+    public uint LocalVarCount { get; set; }
+}
+
 public static class Instrumentation
 {
     internal class Probe
@@ -26,33 +39,39 @@ public static class Instrumentation
         }
     }
     
-
-    
     public static readonly byte[] ProbeSignature = MethodSignatureFactory.Create(
-        CorUnmanagedCallingConventionFlags.IMAGE_CEE_UNMANAGED_CALLCONV_STDCALL, 
-        CorElementTypeFlags.ELEMENT_TYPE_VOID, 2, 
-        CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN, 
-        CorElementTypeFlags.ELEMENT_TYPE_I4);
+        CorUnmanagedCallingConventionFlags.IMAGE_CEE_UNMANAGED_CALLCONV_STDCALL,
+        // Number of arguments
+        CorElementTypeFlags.ELEMENT_TYPE_VOID, 5,
+        // Bool array pointer
+        CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN,
+        // Bool array length
+        CorElementTypeFlags.ELEMENT_TYPE_I4,
+        // Assembly id
+        CorElementTypeFlags.ELEMENT_TYPE_I4,
+        // Function id
+        CorElementTypeFlags.ELEMENT_TYPE_I4, 
+        // Trace id
+        CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR);
     
     public static LocalVarSignature CreateLocalVarSignature(LocalVarSignature signature)
     {
         byte[] arraySignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_SZARRAY, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
         byte[] arrayPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
+        byte[] traceIdPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR];
         signature.AddLocalVariable(arraySignature);
         signature.AddLocalVariable(arrayPtrSignature);
+        signature.AddLocalVariable(traceIdPtrSignature);
+
         return signature;
     }
     
     public static Method InstrumentMethod(
         Method method, 
-        uint localVarCount, 
-        MdTypeRef boolTypeRef, 
-        MdSignature localSignature, 
-        MdSignature probeSignature)
+        InstrumentationMetadata metadata)
     {
         var probes = CollectProbes(method, 0, method.Body.Instructions.Count);
-        var localVarIndex = localVarCount - 1;
-        AddProbes(method, probes, localVarIndex, boolTypeRef, localSignature, probeSignature);
+        AddProbes(method, probes, metadata);
         return method;
     }
     
@@ -182,12 +201,9 @@ public static class Instrumentation
     private static void AddProbes(
         Method method,
         Dictionary<int, Probe> probes,
-        uint localVarIndex, 
-        MdTypeRef boolTypeRef,
-        MdSignature localSignature, 
-        MdSignature probeSignature)
+        InstrumentationMetadata metadata)
     {
-        var instructionOffset = AddInitialization(method, probes.Count, localVarIndex, boolTypeRef);
+        var instructionOffset = AddInitialization(method, metadata.BoolType, probes.Count, metadata.LocalVarCount);
         var probeIndices = probes.Keys.ToList();
         
         for (var i = 0; i < probes.Count; i++)
@@ -199,26 +215,26 @@ public static class Instrumentation
             {
                 case Probe.ProbeType.End:
                     instructionOffset += AddProbeForBranchEnd(
-                        method, probes,i,  probeIndex, localVarIndex, instructionOffset);
+                        method, probes,i,  probeIndex, metadata.LocalVarCount, instructionOffset);
                     break;
                 case Probe.ProbeType.Return:
                     instructionOffset += AddProbeForReturnStatement(
-                        method, probes, i, probeIndex, localVarIndex, instructionOffset, probeSignature);
+                        method, probes, i, probeIndex, metadata.LocalVarCount, instructionOffset, metadata);
                     break;
             }
         }
 
         CorrectBranchingOffsets(method);
 
-        const int instrumentationStackSize = 3;
+        const int instrumentationStackSize = 10;
         method.Header.MaxStack = (ushort) (method.Header.MaxStack + instrumentationStackSize);
-        method.Header.LocalVarSigToken = (uint) localSignature.Value;
+        method.Header.LocalVarSigToken = (uint) metadata.LocalVarSignature.Value;
     }
 
-    private static int AddInitialization(Method method, int arrayLength, uint localVarIndex, MdTypeRef boolTypeRef)
+    private static int AddInitialization(Method method, MdTypeRef boolType, int arrayLength, uint localVarCount)
     {
         var initArray = new InstructionBuilder()
-            .CreateArray(boolTypeRef, arrayLength, localVarIndex)
+            .CreateArray(boolType, arrayLength, localVarCount)
             .Build();
             
         method.Body.Instructions.InsertRange(0, initArray);
@@ -230,11 +246,11 @@ public static class Instrumentation
         Dictionary<int, Probe> probes,
         int arrayIndex, 
         int probeIndex,
-        uint localVarIndex, 
+        uint localVarCount, 
         int instructionOffset)
     {
         var probeInstructions = new InstructionBuilder()
-            .WriteTrueToArray(arrayIndex, localVarIndex)
+            .WriteTrueToArray(arrayIndex, localVarCount)
             .Build();
         
         var probe = probes[probeIndex];
@@ -250,15 +266,20 @@ public static class Instrumentation
         Dictionary<int, Probe> probes,
         int arrayIndex,
         int probeIndex, 
-        uint localVarIndex, 
-        int instructionOffset, 
-        MdSignature probeSignature)
+        uint localVarCount, 
+        int instructionOffset,
+        InstrumentationMetadata metadata)
     {
         var probePointer = new UIntPtr(Callbacks.ProbePointer);
             
         var probeInstructions = new InstructionBuilder()
-            .WriteTrueToArray(arrayIndex, localVarIndex)
-            .AddMethodCall(probePointer, probeSignature, probes.Count, localVarIndex)
+            .WriteTrueToArray(arrayIndex, localVarCount)
+            .AddMethodCall(
+                probePointer, 
+                metadata,
+                localVarCount, 
+                probes.Count, 
+                10, 40)
             .Build();
         
         var probe = probes[probeIndex];
@@ -314,7 +335,12 @@ public static class Instrumentation
                     catch (OverflowException)
                     {
                         instruction.OpCode = OpCodes.Br;
-                        instruction.Operand = new InlineBrTargetOperand { Instruction = instruction, Offset = sTarget.Offset, Value = sTargetOffset };
+                        instruction.Operand = new InlineBrTargetOperand
+                        {
+                            Instruction = instruction, 
+                            Offset = sTarget.Offset, 
+                            Value = sTargetOffset
+                        };
                     }
 
                     continue;
@@ -328,7 +354,6 @@ public static class Instrumentation
         {
             return null;
         }
-
         
         var offset = 0;
         var branchingOffset = -1;
@@ -358,29 +383,4 @@ public static class Instrumentation
         
         return null;
     }
-    
-    private static void PrintMethodWithProbes(Method method, Dictionary<int, Probe> probes)
-    {
-        for (var i = 0; i < method.Body.Instructions.Count; i++)
-        {
-            var instruction = method.Body.Instructions[i];
-            Console.Write($"[{i}]: {instruction.Offset}: {instruction.OpCode.Name}");
-            
-            if (instruction.Operand is not null)
-            {
-                MethodPrinter.PrintOperand(instruction.Operand);
-            }
-
-            Console.WriteLine();
-
-            if (probes.TryGetValue(i, out var probe))
-            {
-                Console.WriteLine(" -> p: " + probe.Type );
-            }
-        }
-
-        Console.WriteLine("");
-        Console.WriteLine("");
-    }
 }
-

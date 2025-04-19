@@ -1,7 +1,28 @@
-﻿namespace SampleConsoleApp;
+﻿using System.Diagnostics;
+namespace SampleConsoleApp;
 
 public class Test
 {
+    public static void CallTrace()
+    {
+        Console.WriteLine("Test");
+        var activity = Activity.Current;
+        Console.WriteLine("Test");
+        var traceId = activity?.TraceId.ToHexString();
+        Console.WriteLine("Test");
+        UseTrace(traceId);
+    }
+
+    public static void UseTrace(string? traceId)
+    {
+        Console.WriteLine($"Trace id: {traceId}");
+        if (traceId is not null)
+        {
+            var myBool = traceId.StartsWith("test");
+            Console.WriteLine(myBool ? 'y' : 'n');
+        } 
+    }
+    
     public static void For(int limit)
     {
         Console.WriteLine($"For: limit={limit}");
@@ -10,6 +31,11 @@ public class Test
         {
             Console.WriteLine($"i={i + 1}/{limit}");
         }
+    }
+
+    public static void Linear()
+    {
+        Console.WriteLine("Linear");
     }
     
     public static void If(int x)

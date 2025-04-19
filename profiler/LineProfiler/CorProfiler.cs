@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Runtime.Serialization;
 using System.Text;
 using IlRewriter;
 using IlRewriter.Models;
@@ -7,7 +8,9 @@ using IlRewriter.Writers;
 using LineProfiler.Caches;
 using LineProfiler.Helpers;
 using LineProfiler.IL;
+using NativeObjects;
 using Profiler.Core;
+using Profiler.Core.Interfaces;
 
 namespace LineProfiler;
 
@@ -126,7 +129,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
 
         try
         {
-            var instrumentedMethod = InstrumentMethod(method, assemblyId, metaDataImport);
+            var instrumentedMethod = InstrumentMethod(method, assemblyId, functionId, metaDataImport);
             var methodBytes = ConvertMethodToByteArray(instrumentedMethod);
             var methodBytePointer = UnsafeTypes.GetBytePtr(methodBytes);
             var hSetBody = ICorProfilerInfo2.SetILFunctionBody(moduleId, mdMethodToken, methodBytePointer);
@@ -146,27 +149,55 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         return HResult.S_OK;
     }
 
-    private Method InstrumentMethod(Method method, AssemblyId assemblyId, MetaDataImport metaDataImport)
+    private Method InstrumentMethod(
+        Method method, 
+        AssemblyId assemblyId, 
+        FunctionId functionId, 
+        MetaDataImport metaDataImport)
     {
+        MethodPrinter.PrintMethodBody(method.Body);
+        
+        // Find bool and activity type ref token
+        var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
+        var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
+        
+        var (mdGetCurrentActivityRef, _) = InMemoryTypeRefCache.GetMemberRefForType(mdActivityRef, "get_Current", metaDataImport);
+        var (mdGetTraceIdRef, mdGetTraceIdSignature) = InMemoryTypeRefCache.GetMemberRefForType(mdActivityRef, "get_TraceId", metaDataImport);
+
+        Console.WriteLine($"System.Boolean type ref: {mdBoolRef.Value}");
+        Console.WriteLine($"System.Diagnostics.Activity.Current member ref: {mdGetCurrentActivityRef.Value}");
+        Console.WriteLine($"System.Diagnostics.Activity.TraceId member ref: {mdGetTraceIdRef.Value}");
+        
+        var (mdReturnType, _) =InMemoryTypeRefCache.ParseReturnType(mdGetTraceIdSignature ,metaDataImport);
+        var (mdToHexString, _) = InMemoryTypeRefCache.GetMemberRefForType(new MdTypeRef(mdReturnType.Value), "ToHexString", metaDataImport);
+        
+        Console.WriteLine($"System.Diagnostics.Activity.TraceId.ToHexString member ref: {mdToHexString.Value}");
+        
         // Update local var signature for instrumentation
         var varSignature = LocalVarSignatureReader.ReadLocalVarSignature(method.Header, metaDataImport);
         var patchedVarSignature = Instrumentation.CreateLocalVarSignature(varSignature);
         
-        // Find bool type token
-        var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
-        
-        // For later
-        // var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
-        // Log($"System.Diagnostics.Activity type ref: {mdActivityRef.Value}");
-        
         // Get signature tokens
         var metaDataEmit = metaDataImport.GetMetadataEmit();
-        var mdLocalSignature = SignatureTokenCache.GetMdSignature(assemblyId, patchedVarSignature.Data, metaDataEmit);
+        var mdLocalSignature = SignatureTokenCache.GetMdSignature(assemblyId, patchedVarSignature.BinaryData, metaDataEmit);
         var mdProbeSignature = SignatureTokenCache.GetMdSignature(assemblyId, Instrumentation.ProbeSignature, metaDataEmit);
         
         // Instrument method
         var localVarCount = patchedVarSignature.GetVarCount();
-        var instrumentedMethod = Instrumentation.InstrumentMethod(method, localVarCount, mdBoolRef, mdLocalSignature, mdProbeSignature);
+        var metadata = new InstrumentationMetadata
+        {
+            AssemblyId = assemblyId,
+            FunctionId = functionId,
+            BoolType = mdBoolRef,
+            GetCurrentActivity = mdGetCurrentActivityRef,
+            GetTraceId = mdGetTraceIdRef,
+            TraceIdToHexString = mdToHexString,
+            CallbackSignature = mdProbeSignature,
+            LocalVarCount = localVarCount,
+            LocalVarSignature = mdLocalSignature,
+        };
+        var instrumentedMethod = Instrumentation.InstrumentMethod(method, metadata);
+        Console.WriteLine("Instrumented:");
         return instrumentedMethod;
     }
 

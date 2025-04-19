@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using IlRewriter.Models;
 using IlRewriter.Models.Operands;
 
@@ -5,9 +6,9 @@ namespace IlRewriter;
 
 public static class MethodPrinter
 {
-    public static void PrintMethodBody(Method method)
+    public static void PrintMethodBody(MethodBody body)
     {
-        foreach (var instruction in method.Body.Instructions)
+        foreach (var instruction in body.Instructions)
         {
             PrintInstruction(instruction);
             Console.WriteLine();
