@@ -160,6 +160,12 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         // Find bool and activity type ref token
         var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
         var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
+        var x = metaDataImport.GetSigFromToken(new MdSignature()
+        {
+            Value = mdActivityRef.Value
+        }, out var ppvSig, out var pcbSig);
+
+        Console.WriteLine("Got ok? " + x.Code);
         
         var (mdGetCurrentActivityRef, _) = InMemoryTypeRefCache.GetMemberRefForType(mdActivityRef, "get_Current", metaDataImport);
         var (mdGetTraceIdRef, mdGetTraceIdSignature) = InMemoryTypeRefCache.GetMemberRefForType(mdActivityRef, "get_TraceId", metaDataImport);
@@ -168,14 +174,14 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         Console.WriteLine($"System.Diagnostics.Activity.Current member ref: {mdGetCurrentActivityRef.Value}");
         Console.WriteLine($"System.Diagnostics.Activity.TraceId member ref: {mdGetTraceIdRef.Value}");
         
-        var (mdReturnType, _) =InMemoryTypeRefCache.ParseReturnType(mdGetTraceIdSignature ,metaDataImport);
+        var (mdReturnType, _) =InMemoryTypeRefCache.ParseReturnType(mdGetTraceIdSignature);
         var (mdToHexString, _) = InMemoryTypeRefCache.GetMemberRefForType(new MdTypeRef(mdReturnType.Value), "ToHexString", metaDataImport);
         
         Console.WriteLine($"System.Diagnostics.Activity.TraceId.ToHexString member ref: {mdToHexString.Value}");
         
         // Update local var signature for instrumentation
         var varSignature = LocalVarSignatureReader.ReadLocalVarSignature(method.Header, metaDataImport);
-        var patchedVarSignature = Instrumentation.CreateLocalVarSignature(varSignature);
+        var patchedVarSignature = Instrumentation.CreateLocalVarSignature(varSignature, mdActivityRef);
         
         // Get signature tokens
         var metaDataEmit = metaDataImport.GetMetadataEmit();

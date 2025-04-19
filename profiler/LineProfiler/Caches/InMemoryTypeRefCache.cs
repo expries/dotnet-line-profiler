@@ -102,10 +102,11 @@ public class InMemoryTypeRefCache : ITypeRefCache
         throw new Exception($"Failed to get member ref for member '{memberName}' in type '{typeRef.Value}'");
     }
 
-    public static (MdToken, MemberRefSignature.RefType) ParseReturnType(byte[] signature, MetaDataImport metaDataImport)
+    public static (MdToken, MemberRefSignature.RefType) ParseReturnType(byte[] signature)
     {
         var isComplexType = MemberRefSignature
             .TryParseComplexReturnType(signature, out var refType, out var rid);
+        
 
         if (!isComplexType)
         {

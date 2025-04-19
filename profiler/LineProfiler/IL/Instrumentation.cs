@@ -1,4 +1,5 @@
-﻿using IlRewriter;
+﻿using System.Reflection.Metadata.Ecma335;
+using IlRewriter;
 using IlRewriter.Models;
 using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
@@ -54,13 +55,16 @@ public static class Instrumentation
         // Trace id
         CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR);
     
-    public static LocalVarSignature CreateLocalVarSignature(LocalVarSignature signature)
+    public static LocalVarSignature CreateLocalVarSignature(LocalVarSignature signature, MdTypeRef activityRef)
     {
+        cSig = (rid << 2) | 0x2;
         byte[] arraySignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_SZARRAY, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
         byte[] arrayPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
+        byte[] activitySignature = [CorElementTypeFlags.ELEMENT_TYPE_CLASS, 0x14, 0x00, 0x00, 0x0A];
         byte[] traceIdPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR];
         signature.AddLocalVariable(arraySignature);
         signature.AddLocalVariable(arrayPtrSignature);
+        signature.AddLocalVariable(activitySignature);
         signature.AddLocalVariable(traceIdPtrSignature);
 
         return signature;

@@ -13,7 +13,7 @@ public class InstructionBuilder
     
     public InstructionBuilder CreateArray(MdTypeRef elementTypeRef, int size, uint localVarCount)
     {
-        var arrayPtrLocalVarIndex = localVarCount - 2;
+        var arrayPtrLocalVarIndex = localVarCount - 3;
         
         _instructions.Add(new Instruction
         {
@@ -61,7 +61,7 @@ public class InstructionBuilder
 
     public InstructionBuilder WriteTrueToArray(int index, uint localVarCount)
     {
-        var arrayPtrLocalVarIndex = localVarCount - 2;
+        var arrayPtrLocalVarIndex = localVarCount - 3;
         
         _instructions.Add(new Instruction
         {
@@ -101,71 +101,112 @@ public class InstructionBuilder
         int assemblyId, 
         int functionId)
     {
-        var arrayPtrLocalVarIndex = localVarCount - 2;
+        var arrayPtrLocalVarIndex = localVarCount - 3;
+        var activityLocalVarIndex = localVarCount - 2;
         var traceIdPtrLocalVarIndex = localVarCount - 1;
-        /*
 
-
-var callGetTraceId = new Instruction
-{
-    OpCode = OpCodes.Call,
-    Operand = new Int32Operand() { Value = metadata.GetTraceId.Value }
-};
-
-var storeToTraceIdLocalVar = new Instruction
-{
-    OpCode = OpCodes.Stloc,
-    Operand = new UInt32Operand { Value = traceIdPtrLocalVarIndex }
-};
-
-
-// Get current activity
-_instructions.Add(new Instruction
-{
-    OpCode = OpCodes.Call,
-    Operand = new Int32Operand() { Value = metadata.GetCurrentActivity.Value }
-});
-
-// If activity is not null, get the trace id
-_instructions.Add(new Instruction
-{
-    OpCode = OpCodes.Brtrue,
-    Operand = new InlineBrTargetOperand { Value = 0, Instruction = callGetTraceId },
-});
-
-// Otherwise load null
-_instructions.Add(new Instruction
-{
-    OpCode = OpCodes.Ldnull,
-});
-
-// branch to store null in the trace id ptr variable
-_instructions.Add(new Instruction
-{
-    OpCode = OpCodes.Br,
-    Operand = new InlineBrTargetOperand { Value = 0, Instruction = storeToTraceIdLocalVar },
-});
-
-// Get trace id
-_instructions.Add(callGetTraceId);
-
-// Convert trace id to string
-_instructions.Add(new Instruction
-{
-    OpCode = OpCodes.Call,
-    Operand = new Int32Operand() { Value = metadata.TraceIdToHexString.Value }
-});
-
-// Get char pointer to trace id
-_instructions.Add(new Instruction
-{
-    OpCode = OpCodes.Conv_U,
-});
-
-// Store char pointer in trace id ptr variable
-_instructions.Add(storeToTraceIdLocalVar);
-*/
         
+        var activityNotNull = new Instruction()
+        {
+            OpCode = OpCodes.Nop
+        };
+
+
+        var end = new Instruction()
+        {
+            OpCode = OpCodes.Nop
+        };
+
+        // Get current activity
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Call,
+            Operand = new Int32Operand() { Value = metadata.GetCurrentActivity.Value }
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Stloc,
+            Operand = new UInt32Operand() { Value = activityLocalVarIndex }
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldloc,
+            Operand = new UInt32Operand() { Value = activityLocalVarIndex }
+        });
+
+        // If activity is not null, get the trace id
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Brtrue,
+            Operand = new InlineBrTargetOperand { Value = 0, Instruction = activityNotNull },
+        });
+
+        // Otherwise load null
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldnull,
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Conv_U,
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Stloc,
+            Operand = new UInt32Operand { Value = traceIdPtrLocalVarIndex }
+        });
+
+        // branch to store null in the trace id ptr variable
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Br,
+            Operand = new InlineBrTargetOperand { Value = 0, Instruction = end },
+        });
+        
+        _instructions.Add(activityNotNull);
+
+        // Get trace id
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldloc,
+            Operand = new UInt32Operand() { Value = activityLocalVarIndex }
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Call,
+            Operand = new Int32Operand() { Value = metadata.GetTraceId.Value }
+        });
+
+        // Convert trace id to string
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Call,
+            Operand = new Int32Operand() { Value = metadata.TraceIdToHexString.Value }
+        });
+
+        // Get char pointer to trace id
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Conv_U,
+        });
+
+        // Store char pointer in trace id ptr variable
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Stloc,
+            Operand = new UInt32Operand { Value = traceIdPtrLocalVarIndex }
+        });
+        
+        _instructions.Add(end);
+        
+        
+
+        /*
         _instructions.Add(new Instruction
         {
             OpCode = OpCodes.Ldnull,
@@ -181,6 +222,7 @@ _instructions.Add(storeToTraceIdLocalVar);
             OpCode = OpCodes.Stloc,
             Operand = new UInt32Operand() { Value = traceIdPtrLocalVarIndex }
         });
+        */
         
         
         // Call probe method
