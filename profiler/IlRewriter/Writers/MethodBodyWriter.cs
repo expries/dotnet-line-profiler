@@ -18,9 +18,6 @@ public class MethodBodyWriter
         }
         
         var startPosition = stream.Position;
-        
-        MethodPrinter.PrintMethodBody(body);
-
 
         foreach (var instruction in body.Instructions)
         {

@@ -42,6 +42,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
     
     protected override HResult JITCompilationStarted(FunctionId functionId, bool fIsSafeToBlock)
     {
+        // TODO: Wrap operations below
         var (hGetFunction, _, moduleId, methodToken) = ICorProfilerInfo2.GetFunctionInfo(functionId);
 
         if (!hGetFunction.IsOK)
@@ -155,33 +156,31 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         FunctionId functionId, 
         MetaDataImport metaDataImport)
     {
-        MethodPrinter.PrintMethodBody(method.Body);
-        
         // Find bool and activity type ref token
         var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
         var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
-        var x = metaDataImport.GetSigFromToken(new MdSignature()
-        {
-            Value = mdActivityRef.Value
-        }, out var ppvSig, out var pcbSig);
-
-        Console.WriteLine("Got ok? " + x.Code);
         
         var (mdGetCurrentActivityRef, _) = InMemoryTypeRefCache.GetMemberRefForType(mdActivityRef, "get_Current", metaDataImport);
         var (mdGetTraceIdRef, mdGetTraceIdSignature) = InMemoryTypeRefCache.GetMemberRefForType(mdActivityRef, "get_TraceId", metaDataImport);
-
+        
+        var (mdTraceIdRefToken, _) = InMemoryTypeRefCache.ParseReturnType(mdGetTraceIdSignature);
+        var mdTraceId = new MdTypeRef(mdTraceIdRefToken.Value);
+        
+        var (mdToHexString, _) = InMemoryTypeRefCache.GetMemberRefForType(mdTraceId, "ToHexString", metaDataImport);
+        
+        /*
+         TODO: Remove
         Console.WriteLine($"System.Boolean type ref: {mdBoolRef.Value}");
+        Console.WriteLine($"System.Diagnostics.Activity type ref: {(uint) mdActivityRef.Value}");
         Console.WriteLine($"System.Diagnostics.Activity.Current member ref: {mdGetCurrentActivityRef.Value}");
+        Console.WriteLine($"System.Diagnostics.Activity.TraceId type ref: {mdTraceId.Value}");
         Console.WriteLine($"System.Diagnostics.Activity.TraceId member ref: {mdGetTraceIdRef.Value}");
-        
-        var (mdReturnType, _) =InMemoryTypeRefCache.ParseReturnType(mdGetTraceIdSignature);
-        var (mdToHexString, _) = InMemoryTypeRefCache.GetMemberRefForType(new MdTypeRef(mdReturnType.Value), "ToHexString", metaDataImport);
-        
         Console.WriteLine($"System.Diagnostics.Activity.TraceId.ToHexString member ref: {mdToHexString.Value}");
+        */
         
         // Update local var signature for instrumentation
         var varSignature = LocalVarSignatureReader.ReadLocalVarSignature(method.Header, metaDataImport);
-        var patchedVarSignature = Instrumentation.CreateLocalVarSignature(varSignature, mdActivityRef);
+        var patchedVarSignature = Instrumentation.CreateLocalVarSignature(varSignature, mdActivityRef, mdTraceId);
         
         // Get signature tokens
         var metaDataEmit = metaDataImport.GetMetadataEmit();
@@ -197,6 +196,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
             BoolType = mdBoolRef,
             GetCurrentActivity = mdGetCurrentActivityRef,
             GetTraceId = mdGetTraceIdRef,
+            TraceIdRef = mdTraceId,
             TraceIdToHexString = mdToHexString,
             CallbackSignature = mdProbeSignature,
             LocalVarCount = localVarCount,
@@ -222,12 +222,14 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         return HResult.S_OK;
     }
 
+    // TODO: intercept only if pdb file is present (scan start up)
     private static bool ShouldInterceptAssembly(string assemblyName)
     {
         var isSampleAssembly = assemblyName.StartsWith("Sample", StringComparison.InvariantCultureIgnoreCase);
         return isSampleAssembly;
     }
 
+    // TODO: intercept only if pdb file is present (scan start up)
     private static bool ShouldInterceptMethod(string typeName, string methodName)
     {
         var isMain = methodName.Contains("<Main>", StringComparison.InvariantCultureIgnoreCase);
@@ -246,7 +248,6 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
 
     private static void Log(string line)
     {
-        Console.WriteLine(line);
         Logs.Enqueue(line);
     }
 }

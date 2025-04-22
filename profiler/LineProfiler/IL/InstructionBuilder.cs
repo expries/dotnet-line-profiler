@@ -1,4 +1,5 @@
-﻿using IlRewriter.Models;
+﻿using System.Diagnostics;
+using IlRewriter.Models;
 using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
 using Profiler.Core;
@@ -13,7 +14,7 @@ public class InstructionBuilder
     
     public InstructionBuilder CreateArray(MdTypeRef elementTypeRef, int size, uint localVarCount)
     {
-        var arrayPtrLocalVarIndex = localVarCount - 3;
+        var arrayPtrLocalVarIndex = localVarCount - 4;
         
         _instructions.Add(new Instruction
         {
@@ -61,7 +62,7 @@ public class InstructionBuilder
 
     public InstructionBuilder WriteTrueToArray(int index, uint localVarCount)
     {
-        var arrayPtrLocalVarIndex = localVarCount - 3;
+        var arrayPtrLocalVarIndex = localVarCount - 4;
         
         _instructions.Add(new Instruction
         {
@@ -97,12 +98,11 @@ public class InstructionBuilder
         UIntPtr methodPointer, 
         InstrumentationMetadata metadata,
         uint localVarCount,
-        int arrayLength, 
-        int assemblyId, 
-        int functionId)
+        int arrayLength)
     {
-        var arrayPtrLocalVarIndex = localVarCount - 3;
-        var activityLocalVarIndex = localVarCount - 2;
+        var arrayPtrLocalVarIndex = localVarCount - 4;
+        var activityLocalVarIndex = localVarCount - 3;
+        var traceIdLocalVarIndex = localVarCount - 2;
         var traceIdPtrLocalVarIndex = localVarCount - 1;
 
         
@@ -116,6 +116,7 @@ public class InstructionBuilder
         {
             OpCode = OpCodes.Nop
         };
+        
 
         // Get current activity
         _instructions.Add(new Instruction
@@ -130,6 +131,7 @@ public class InstructionBuilder
             Operand = new UInt32Operand() { Value = activityLocalVarIndex }
         });
         
+        
         _instructions.Add(new Instruction
         {
             OpCode = OpCodes.Ldloc,
@@ -142,71 +144,9 @@ public class InstructionBuilder
             OpCode = OpCodes.Brtrue,
             Operand = new InlineBrTargetOperand { Value = 0, Instruction = activityNotNull },
         });
-
-        // Otherwise load null
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Ldnull,
-        });
         
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Conv_U,
-        });
         
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Stloc,
-            Operand = new UInt32Operand { Value = traceIdPtrLocalVarIndex }
-        });
-
         // branch to store null in the trace id ptr variable
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Br,
-            Operand = new InlineBrTargetOperand { Value = 0, Instruction = end },
-        });
-        
-        _instructions.Add(activityNotNull);
-
-        // Get trace id
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Ldloc,
-            Operand = new UInt32Operand() { Value = activityLocalVarIndex }
-        });
-        
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Call,
-            Operand = new Int32Operand() { Value = metadata.GetTraceId.Value }
-        });
-
-        // Convert trace id to string
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Call,
-            Operand = new Int32Operand() { Value = metadata.TraceIdToHexString.Value }
-        });
-
-        // Get char pointer to trace id
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Conv_U,
-        });
-
-        // Store char pointer in trace id ptr variable
-        _instructions.Add(new Instruction
-        {
-            OpCode = OpCodes.Stloc,
-            Operand = new UInt32Operand { Value = traceIdPtrLocalVarIndex }
-        });
-        
-        _instructions.Add(end);
-        
-        
-
-        /*
         _instructions.Add(new Instruction
         {
             OpCode = OpCodes.Ldnull,
@@ -222,7 +162,83 @@ public class InstructionBuilder
             OpCode = OpCodes.Stloc,
             Operand = new UInt32Operand() { Value = traceIdPtrLocalVarIndex }
         });
-        */
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Br,
+            Operand = new InlineBrTargetOperand { Value = 0, Instruction = end },
+        });
+        
+
+        
+        
+        _instructions.Add(activityNotNull);
+        
+        
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldloc,
+            Operand = new UInt32Operand() { Value = activityLocalVarIndex }
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Call,
+            Operand = new Int32Operand() { Value = metadata.GetTraceId.Value }
+        });
+        
+
+        
+        _instructions.Add(new Instruction()
+        {
+            OpCode = OpCodes.Stloc,
+            Operand = new UInt32Operand() { Value = traceIdLocalVarIndex }
+        });
+        
+        // Convert trace id to string
+
+        _instructions.Add(new Instruction()
+        {
+            OpCode = OpCodes.Ldloca,
+            Operand = new UInt32Operand() { Value = traceIdLocalVarIndex }
+        });
+        
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Call,
+            Operand = new Int32Operand() { Value = metadata.TraceIdToHexString.Value }
+        });
+        
+        // Convert trace id string to char pointer
+
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Stloc,
+            Operand = new UInt32Operand() { Value = traceIdPtrLocalVarIndex }
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Ldloc,
+            Operand = new UInt32Operand() { Value = traceIdPtrLocalVarIndex }
+        });
+        
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Conv_U,
+        });
+        
+        _instructions.Add(new Instruction
+        {
+            OpCode = OpCodes.Stloc,
+            Operand = new UInt32Operand() { Value = traceIdPtrLocalVarIndex }
+        });
+        
+        
+        _instructions.Add(end);
         
         
         // Call probe method
@@ -240,14 +256,14 @@ public class InstructionBuilder
         
         _instructions.Add(new Instruction
         {
-            OpCode = OpCodes.Ldc_I4,
-            Operand = new Int32Operand { Value = assemblyId }
+            OpCode = OpCodes.Ldc_I8,
+            Operand = new Int64Operand() { Value = metadata.AssemblyId.Value }
         });
         
         _instructions.Add(new Instruction
         {
-            OpCode = OpCodes.Ldc_I4,
-            Operand = new Int32Operand { Value = functionId }
+            OpCode = OpCodes.Ldc_I8,
+            Operand = new Int64Operand { Value = metadata.FunctionId.Value }
         });
         
         _instructions.Add(new Instruction

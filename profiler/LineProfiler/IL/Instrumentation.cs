@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using IlRewriter;
-using IlRewriter.Models;
+﻿using IlRewriter.Models;
 using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
 using LineProfiler.Interception;
@@ -10,9 +8,11 @@ namespace LineProfiler.IL;
 
 public record InstrumentationMetadata
 {
+    // TODO: clean up
     public AssemblyId AssemblyId { get; set; }
     public FunctionId FunctionId { get; set; }
     public MdTypeRef BoolType { get; set; }
+    public MdTypeRef TraceIdRef { get; set; }
     public MdMemberRef GetCurrentActivity { get; set; }
     public MdMemberRef GetTraceId { get; set; }
     public MdMemberRef TraceIdToHexString { get; set; }
@@ -47,27 +47,39 @@ public static class Instrumentation
         // Bool array pointer
         CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN,
         // Bool array length
-        CorElementTypeFlags.ELEMENT_TYPE_I4,
+        CorElementTypeFlags.ELEMENT_TYPE_I,
         // Assembly id
-        CorElementTypeFlags.ELEMENT_TYPE_I4,
+        CorElementTypeFlags.ELEMENT_TYPE_I,
         // Function id
-        CorElementTypeFlags.ELEMENT_TYPE_I4, 
+        CorElementTypeFlags.ELEMENT_TYPE_I, 
         // Trace id
         CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR);
     
-    public static LocalVarSignature CreateLocalVarSignature(LocalVarSignature signature, MdTypeRef activityRef)
+    public static LocalVarSignature CreateLocalVarSignature(LocalVarSignature signature, MdTypeRef activityRef, MdTypeRef traceId)
     {
-        cSig = (rid << 2) | 0x2;
-        byte[] arraySignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_SZARRAY, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
+        // TODO: wrap compression into this class
         byte[] arrayPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
-        byte[] activitySignature = [CorElementTypeFlags.ELEMENT_TYPE_CLASS, 0x14, 0x00, 0x00, 0x0A];
-        byte[] traceIdPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR];
-        signature.AddLocalVariable(arraySignature);
         signature.AddLocalVariable(arrayPtrSignature);
+        
+        var activityRid = TypeRefToRid(activityRef);
+        var activityTypeToken = SignatureCompressor.CompressUnsignedInt(activityRid);
+        var activitySignature = activityTypeToken.Prepend(CorElementTypeFlags.ELEMENT_TYPE_CLASS).ToArray();
         signature.AddLocalVariable(activitySignature);
-        signature.AddLocalVariable(traceIdPtrSignature);
+        
+        var traceIdRid = TypeRefToRid(traceId);
+        var traceIdTypeToken = SignatureCompressor.CompressUnsignedInt(traceIdRid);
+        var traceIdSignature = traceIdTypeToken.Prepend(CorElementTypeFlags.ELEMENT_TYPE_VALUETYPE).ToArray();
+        signature.AddLocalVariable(traceIdSignature);
 
+        byte[] traceIdCPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR];
+        signature.AddLocalVariable(traceIdCPtrSignature);
         return signature;
+    }
+
+    private static uint TypeRefToRid(MdTypeRef typeRef)
+    {
+        // TODO: Consolidate rid conversion
+        return (uint) ((typeRef.Value << 2) | 0x1);
     }
     
     public static Method InstrumentMethod(
@@ -88,9 +100,10 @@ public static class Instrumentation
         for (var i = startIndex; i < endIndex; i++)
         {
             var instruction = method.Body.Instructions[i];
+            
+            // branching (jumps/if/if-else,switch,etc.)
             var isBranchingInstruction = TryParseBranchingInstruction(method, instruction, out var targetIdx);
 
-            // branching (jumps/if/if-else,switch,etc.)
             if (isBranchingInstruction)
             {
                 i = HandleBranch(i, targetIdx);
@@ -100,8 +113,7 @@ public static class Instrumentation
             instructionsInBranch.Add(i);
 
             // return of current branch
-            var isReturnInstruction = instruction.OpCode == OpCodes.Ret;
-            if (isReturnInstruction)
+            if (instruction.OpCode == OpCodes.Ret)
             {
                 probes[i] = new Probe
                 {
@@ -112,8 +124,7 @@ public static class Instrumentation
             }
 
             // end of current branch
-            var isLastInstructionInBranch = i == endIndex - 1;
-            if (isLastInstructionInBranch)
+            if (i == endIndex - 1)
             {
                 probes[i] = new Probe
                 {
@@ -207,7 +218,9 @@ public static class Instrumentation
         Dictionary<int, Probe> probes,
         InstrumentationMetadata metadata)
     {
-        var instructionOffset = AddInitialization(method, metadata.BoolType, probes.Count, metadata.LocalVarCount);
+        var instructionOffset = 0;
+        instructionOffset += AddInitialization(method, metadata.BoolType, probes.Count, metadata.LocalVarCount);
+        
         var probeIndices = probes.Keys.ToList();
         
         for (var i = 0; i < probes.Count; i++)
@@ -230,7 +243,7 @@ public static class Instrumentation
 
         CorrectBranchingOffsets(method);
 
-        const int instrumentationStackSize = 10;
+        const int instrumentationStackSize = 6;
         method.Header.MaxStack = (ushort) (method.Header.MaxStack + instrumentationStackSize);
         method.Header.LocalVarSigToken = (uint) metadata.LocalVarSignature.Value;
     }
@@ -282,8 +295,7 @@ public static class Instrumentation
                 probePointer, 
                 metadata,
                 localVarCount, 
-                probes.Count, 
-                10, 40)
+                probes.Count)
             .Build();
         
         var probe = probes[probeIndex];

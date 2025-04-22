@@ -5,31 +5,43 @@ namespace LineProfiler.Interception;
 
 public static class Callbacks
 {
-    public static unsafe delegate* unmanaged<bool*, int, int, int, char*, void> ProbePointer { get; } = &Probe;
+    public static unsafe delegate* unmanaged<bool*, int, nint, nint, IntPtr, void> ProbePointer { get; } = &Probe;
 
     [UnmanagedCallersOnly]
     public static unsafe void Probe(
         bool* pArray, 
         int length, 
-        int assemblyId, 
-        int functionId, 
-        char* ptraceId)
+        nint assemblyId, 
+        nint functionId, 
+        IntPtr ptraceId)
     {
-        Console.WriteLine("Probe called!");
-        Console.WriteLine("Length: " + length);
-        Console.WriteLine("AssemblyId: " + assemblyId);
-        Console.WriteLine("FunctionId: " + functionId);
-        
-        var traceId = ptraceId is null ? null : new string(ptraceId);
+        var traceId = RawStringPointerToString(ptraceId);
+        Console.WriteLine();
 
-        Console.WriteLine("Profiler Trace id: " + traceId);
+        if (string.IsNullOrEmpty(traceId))
+        {
+            Console.WriteLine("Empty or invalid trace id ...");
+            return;
+        }
+
+        Console.WriteLine($"AssemblyId: {assemblyId}");
+        Console.WriteLine($"FunctionId: {functionId}");
+        Console.WriteLine($"Trace id: {traceId}");
 
         for (var i = 0; i < length; i++)
         {
             var value = pArray[i];
-            Console.WriteLine($"Value at i={i}: {value}");
+            Console.WriteLine($"[{i}]: {value}");
         }
 
-        Console.WriteLine("");
+        Console.WriteLine();
+    }
+
+    private static string? RawStringPointerToString(IntPtr stringPointer)
+    {
+        var headerOffset = IntPtr.Size;
+        var length = Marshal.ReadInt32(stringPointer, headerOffset);
+        var offset = headerOffset + sizeof(int);
+        return Marshal.PtrToStringAuto(stringPointer + offset, length);
     }
 }
