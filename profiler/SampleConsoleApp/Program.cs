@@ -1,6 +1,9 @@
 ﻿using System.Diagnostics;
-using System.Text.Unicode;
+using System.Text.Json;
+using LineProfiler.DebugInfo;
 using SampleConsoleApp;
+
+
 
 var test = bool.Parse("true");
 Console.WriteLine(test);
@@ -8,7 +11,11 @@ var activity = new Activity("SampleConsoleApp");
 Activity.Current = activity;
 activity.Start();
 
-;
+const string pdbPath = @"C:\Coding\profiler\SampleConsoleApp\bin\Debug\net8.0\SampleConsoleApp.pdb";
+var functions = PdbParser.ParsePdbFunctions(pdbPath);
+
+var json = JsonSerializer.Serialize(functions, new JsonSerializerOptions { WriteIndented = true });
+Console.WriteLine(json);
 
 Console.WriteLine("TraceID Length: " +  System.Text.Encoding.Unicode.GetBytes(Activity.Current.TraceId.ToHexString()).Length);
 Console.WriteLine("TraceID: " + Activity.Current.TraceId);

@@ -7,7 +7,7 @@ using IlRewriter.Readers.Method;
 using IlRewriter.Writers;
 using LineProfiler.Caches;
 using LineProfiler.Helpers;
-using LineProfiler.IL;
+using LineProfiler.Instrumentation;
 using NativeObjects;
 using Profiler.Core;
 using Profiler.Core.Interfaces;
@@ -180,12 +180,12 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         
         // Update local var signature for instrumentation
         var varSignature = LocalVarSignatureReader.ReadLocalVarSignature(method.Header, metaDataImport);
-        var patchedVarSignature = Instrumentation.CreateLocalVarSignature(varSignature, mdActivityRef, mdTraceId);
+        var patchedVarSignature = Instrumentation.Instrumentation.CreateLocalVarSignature(varSignature, mdActivityRef, mdTraceId);
         
         // Get signature tokens
         var metaDataEmit = metaDataImport.GetMetadataEmit();
         var mdLocalSignature = SignatureTokenCache.GetMdSignature(assemblyId, patchedVarSignature.BinaryData, metaDataEmit);
-        var mdProbeSignature = SignatureTokenCache.GetMdSignature(assemblyId, Instrumentation.ProbeSignature, metaDataEmit);
+        var mdProbeSignature = SignatureTokenCache.GetMdSignature(assemblyId, Callbacks.Signature.BinaryData, metaDataEmit);
         
         // Instrument method
         var localVarCount = patchedVarSignature.GetVarCount();
@@ -202,7 +202,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
             LocalVarCount = localVarCount,
             LocalVarSignature = mdLocalSignature,
         };
-        var instrumentedMethod = Instrumentation.InstrumentMethod(method, metadata);
+        var instrumentedMethod = Instrumentation.Instrumentation.InstrumentMethod(method, metadata);
         Console.WriteLine("Instrumented:");
         return instrumentedMethod;
     }

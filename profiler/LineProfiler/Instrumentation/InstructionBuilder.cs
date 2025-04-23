@@ -1,10 +1,9 @@
-﻿using System.Diagnostics;
-using IlRewriter.Models;
+﻿using IlRewriter.Models;
 using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
 using Profiler.Core;
 
-namespace LineProfiler.IL;
+namespace LineProfiler.Instrumentation;
 
 
 

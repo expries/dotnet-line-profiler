@@ -1,9 +1,10 @@
-﻿namespace LineProfiler.IL;
+﻿namespace IlRewriter.Models.Signatures;
 
-
-public static class MethodSignatureFactory
+public class MethodSignature
 {
-    public static byte[] Create(byte callingConvention, byte returnType, int parameterCount, params byte[] parameters)
+    public byte[] BinaryData { get; set; }
+    
+    public MethodSignature(byte callingConvention, byte returnType, int parameterCount, params byte[] parameters)
     {
         var stream = new MemoryStream();
         stream.WriteByte(callingConvention);
@@ -15,7 +16,6 @@ public static class MethodSignatureFactory
             stream.WriteByte(parameter);
         }
 
-        var signature = stream.ToArray();
-        return signature;
+        BinaryData = stream.ToArray();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using IlRewriter.Models;
+using IlRewriter.Models.Signatures;
 using LineProfiler.Helpers;
 using Profiler.Core;
 

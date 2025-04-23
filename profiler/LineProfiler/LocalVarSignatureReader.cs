@@ -1,14 +1,15 @@
 ﻿using IlRewriter.Models;
+using IlRewriter.Models.Signatures;
 using LineProfiler.Helpers;
 using Profiler.Core;
 
-namespace LineProfiler.IL;
+namespace LineProfiler;
 
-public class LocalVarSignatureReader : ILocalVarSignatureReader
+public class LocalVarSignatureReader
 {
     private static readonly LocalVarSignature EmptyLocalVarVarSignature = new([0x7, 0x0]);
 
-    public unsafe LocalVarSignature ReadLocalVarSignature(MethodHeader header, MetaDataImport metaDataImport)
+    public static unsafe LocalVarSignature ReadLocalVarSignature(MethodHeader header, MetaDataImport metaDataImport)
     {
         if (header.LocalVarSigToken <= 0) return EmptyLocalVarVarSignature;
         

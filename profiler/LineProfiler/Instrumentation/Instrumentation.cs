@@ -1,10 +1,10 @@
 ﻿using IlRewriter.Models;
 using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
-using LineProfiler.Interception;
+using IlRewriter.Models.Signatures;
 using Profiler.Core;
 
-namespace LineProfiler.IL;
+namespace LineProfiler.Instrumentation;
 
 public record InstrumentationMetadata
 {
@@ -40,20 +40,7 @@ public static class Instrumentation
         }
     }
     
-    public static readonly byte[] ProbeSignature = MethodSignatureFactory.Create(
-        CorUnmanagedCallingConventionFlags.IMAGE_CEE_UNMANAGED_CALLCONV_STDCALL,
-        // Number of arguments
-        CorElementTypeFlags.ELEMENT_TYPE_VOID, 5,
-        // Bool array pointer
-        CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN,
-        // Bool array length
-        CorElementTypeFlags.ELEMENT_TYPE_I,
-        // Assembly id
-        CorElementTypeFlags.ELEMENT_TYPE_I,
-        // Function id
-        CorElementTypeFlags.ELEMENT_TYPE_I, 
-        // Trace id
-        CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR);
+
     
     public static LocalVarSignature CreateLocalVarSignature(LocalVarSignature signature, MdTypeRef activityRef, MdTypeRef traceId)
     {

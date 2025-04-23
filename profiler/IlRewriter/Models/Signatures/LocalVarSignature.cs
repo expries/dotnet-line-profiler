@@ -1,4 +1,4 @@
-﻿namespace IlRewriter.Models;
+﻿namespace IlRewriter.Models.Signatures;
 
 public static class SignatureCompressor
 {
