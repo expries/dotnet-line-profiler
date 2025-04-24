@@ -1,11 +1,11 @@
-﻿using IlRewriter.Models;
-using IlRewriter.Models.Signatures;
+﻿using IlRewriter.Models.Signatures;
+using LineProfiler.Caches.Interfaces;
 using LineProfiler.Helpers;
 using Profiler.Core;
 
 namespace LineProfiler.Caches;
 
-public class InMemoryTypeRefCache : ITypeRefCache
+public class TypeRefCache : ITypeRefCache
 {
     private readonly Dictionary<IntPtr, Dictionary<string, MdTypeRef>> _cache = new();
     
@@ -26,6 +26,8 @@ public class InMemoryTypeRefCache : ITypeRefCache
         // e.g. System.Boolean
         return typeRef;
     }
+    
+
 
     private static unsafe MdTypeRef GetTypeRefForType(string typeName, MetaDataImport metaDataImport)
     {
@@ -61,8 +63,8 @@ public class InMemoryTypeRefCache : ITypeRefCache
         throw new Exception($"Failed to get type ref for type '{typeName}'");
     }
 
-    public static unsafe (MdMemberRef, byte[] signature) GetMemberRefForType(
-        MdTypeRef typeRef, 
+    public static unsafe (MdMemberRef, byte[] signature) GetMemberRef(
+        MdTypeRef parentTypeRef, 
         string memberName, 
         MetaDataImport metaDataImport)
     {
@@ -72,7 +74,7 @@ public class InMemoryTypeRefCache : ITypeRefCache
             
         fixed (MdMemberRef* pMember = memberArray)
         {
-            var mdToken = new MdToken(typeRef.Value);
+            var mdToken = new MdToken(parentTypeRef.Value);
 
             var hEnumMemberRefs = metaDataImport.EnumMemberRefs(
                 &pEnumerator, mdToken, pMember, maxProperties, out var resultCount);
@@ -80,7 +82,7 @@ public class InMemoryTypeRefCache : ITypeRefCache
             if (!hEnumMemberRefs.IsOK)
             {
                 throw new Exception(
-                    $"Enum member refs for type {typeRef.Value} failed with code {hEnumMemberRefs.Code} " +
+                    $"Enum member refs for type {parentTypeRef.Value} failed with code {hEnumMemberRefs.Code} " +
                     $"({hEnumMemberRefs.ToString()})");
             }
             
@@ -100,28 +102,10 @@ public class InMemoryTypeRefCache : ITypeRefCache
             }
         }
         
-        throw new Exception($"Failed to get member ref for member '{memberName}' in type '{typeRef.Value}'");
+        throw new Exception($"Failed to get member ref for member '{memberName}' in type '{parentTypeRef.Value}'");
     }
 
-    public static (MdToken, MemberRefSignature.RefType) ParseReturnType(byte[] signature)
-    {
-        var isComplexType = MemberRefSignature
-            .TryParseComplexReturnType(signature, out var refType, out var rid);
-        
 
-        if (!isComplexType)
-        {
-            throw new Exception($"Failed to parse complex return type for signature '{signature}'");
-        }
-        
-        return refType switch
-        {
-            MemberRefSignature.RefType.TypeDef => (new MdToken(0x02000000  | rid), refType),
-            MemberRefSignature.RefType.TypeRef => (new MdToken(0x01000000 | rid), refType),
-            MemberRefSignature.RefType.TypeSpec => (new MdToken(0x1B000000  | rid), refType),
-            _ => throw new Exception($"Unsupported return type signature type: {refType}")
-        };
-    }
 
     private static unsafe bool TryGetTypeRefName(MdTypeRef typeRef, MetaDataImport metaDataImport, out string typeName)
     {
@@ -130,14 +114,16 @@ public class InMemoryTypeRefCache : ITypeRefCache
         
         fixed (char* pTypeNameBuffer = typeNameBuffer)
         {
-            var hGetRef = metaDataImport.GetTypeRefProps(typeRef, out _, pTypeNameBuffer, (uint) typeNameBuffer.Length, out var refTypeNameLength);
-            if (!hGetRef.IsOK) return false;
+            var hGetRefProps = metaDataImport.GetTypeRefProps(
+                typeRef, out _, pTypeNameBuffer, (uint) typeNameBuffer.Length, out var refTypeNameLength);
+            
+            if (!hGetRefProps.IsOK) return false;
             typeName = UnsafeTypes.GetStringFromCharPtr(pTypeNameBuffer, refTypeNameLength);
             return true;
         }
     }
 
-    public static unsafe bool TryGetMemberRefProps(
+    private static unsafe bool TryGetMemberRefProps(
         MdMemberRef memberRef, 
         MetaDataImport metaDataImport, 
         out string memberName, 

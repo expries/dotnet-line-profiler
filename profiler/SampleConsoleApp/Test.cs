@@ -31,6 +31,11 @@ public class Test
         {
             Console.WriteLine($"i={i + 1}/{limit}");
         }
+
+        var x = limit + 12;
+        Console.WriteLine("LOL1");
+        Console.WriteLine("LOL2: " + x);
+        Console.WriteLine("LOL3");
     }
 
     public static void Linear()

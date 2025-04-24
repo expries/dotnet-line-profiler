@@ -6,60 +6,67 @@ public static class PdbParser
 {
     private static readonly Dictionary<string, string[]> SourceCodeLinesByPath = new();
     
-    public static Dictionary<int, Dictionary<int, List<SourceCodeLine>>> ParsePdbFunctions(string pdbPath)
+    public static PdbModule ParsePdbModule(string pdbPath)
     {
         var pdb = PdbFileReader.OpenPdb(pdbPath);
-        var functions = new Dictionary<int, Dictionary<int, List<SourceCodeLine>>>();
+        var module = new PdbModule();
         
         pdb.Functions.ToList().ForEach(function =>
         {
-            functions[function.Token] = ParseSourceCodeLinesByOffset(function);
+            var parsedFunction = ParsePdbFunction(function);
+            module.AddFunction(function.Token, parsedFunction);
         });
 
-        return functions;
+        return module;
     }
 
-    private static Dictionary<int, List<SourceCodeLine>> ParseSourceCodeLinesByOffset(IPdbFunction function)
+    private static PdbFunction ParsePdbFunction(IPdbFunction function)
     {
-        var linesByOffset = new Dictionary<int, List<SourceCodeLine>>();
         var sequencePoints= function.SequencePoints.ToList();
-        
+        var parsedFunction = new PdbFunction();
+
         sequencePoints.ForEach(sequencePoint =>
         {
-            linesByOffset[sequencePoint.Offset] = ParseSourceCodeLines(sequencePoint);
+            var sequence = ParsePdbSequence(sequencePoint);
+            parsedFunction.AddSequence(sequencePoint.Offset, sequence);
         });
         
-        return linesByOffset;
+        return parsedFunction;
     }
     
-    private static List<SourceCodeLine> ParseSourceCodeLines(IPdbSequencePoint sequencePoint)
+    private static PdbSequence ParsePdbSequence(IPdbSequencePoint sequencePoint)
     {
         var lineStartIdx = sequencePoint.StartLine;
         var lineEndIdx = Math.Max(sequencePoint.EndLine, sequencePoint.StartLine + 1);
         
         var sourceCodeFilePath = sequencePoint.Source.Name;
-        var sourceCode  = GetSourceCodeLinesByPath(sourceCodeFilePath);
-        var sourceCodeLines = new List<SourceCodeLine>();
+        var sourceCode  = ReadSourceCodeFromFile(sourceCodeFilePath);
+        var sequence = new PdbSequence(sequencePoint.Source.Name);
 
+        //Console.WriteLine(sequencePoint.Source.Name);
+        
         for (var lineNumber = lineStartIdx; lineNumber < lineEndIdx; lineNumber++)
         {
+            //Console.WriteLine("offset: " + sequencePoint.Offset + ", line: " + lineNumber);
             if (lineNumber < 0 || lineNumber >= sourceCode.Length) continue;
             var text = sourceCode[lineNumber - 1];
-            var sourceCodeLine = new SourceCodeLine(lineNumber, text);
-            sourceCodeLines.Add(sourceCodeLine);
+            var sourceCodeLine = new SourceLine(lineNumber, text);
+            sequence.Lines.Add(sourceCodeLine);
         }
+
+        //Console.WriteLine();
         
-        return sourceCodeLines;
+        return sequence;
     }
     
-    private static string[] GetSourceCodeLinesByPath(string path)
+    private static string[] ReadSourceCodeFromFile(string sourcePath)
     {
-        SourceCodeLinesByPath.TryGetValue(path, out var sourceCode);
+        SourceCodeLinesByPath.TryGetValue(sourcePath, out var sourceCode);
 
         if (sourceCode is null)
         {
-            sourceCode = File.ReadAllLines(path);
-            SourceCodeLinesByPath.Add(path, sourceCode);
+            sourceCode = File.ReadAllLines(sourcePath);
+            SourceCodeLinesByPath.Add(sourcePath, sourceCode);
         }
         
         return sourceCode;

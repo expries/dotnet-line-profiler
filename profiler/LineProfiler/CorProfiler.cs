@@ -1,16 +1,14 @@
 ﻿using System.Collections.Concurrent;
-using System.Runtime.Serialization;
 using System.Text;
-using IlRewriter;
 using IlRewriter.Models;
+using IlRewriter.Models.Signatures;
 using IlRewriter.Readers.Method;
 using IlRewriter.Writers;
 using LineProfiler.Caches;
 using LineProfiler.Helpers;
 using LineProfiler.Instrumentation;
-using NativeObjects;
+using LineProfiler.Models;
 using Profiler.Core;
-using Profiler.Core.Interfaces;
 
 namespace LineProfiler;
 
@@ -18,11 +16,9 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
 {
     private static ConcurrentQueue<string> Logs { get; } = new();
 
-    private InMemoryTypeRefCache TypeRefCache { get; } = new();
+    private TypeRefCache TypeRefCache { get; } = new();
     
-    private InMemorySignatureTokenCache SignatureTokenCache { get; } = new();
-    
-    private LocalVarSignatureReader LocalVarSignatureReader { get; } = new();
+    private SignatureTokenCache SignatureTokenCache { get; } = new();
 
     protected override HResult Initialize(int iCorProfilerInfoVersion)
     {
@@ -37,7 +33,22 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
                                         CorPrfMonitor.COR_PRF_DISABLE_TRANSPARENCY_CHECKS_UNDER_FULL_TRUST |
                                         CorPrfMonitor.COR_PRF_DISABLE_INLINING;
 
-        return ICorProfilerInfo11.SetEventMask(eventMask);
+        var hSetEventMask = ICorProfilerInfo11.SetEventMask(eventMask);
+        
+        const string directoryWithPdbFiles = "C:\\Coding\\profiler\\SampleConsoleApp\\obj\\Debug\\net8.0";
+        var pdbFiles = ScanDirectoryForPdbFiles(directoryWithPdbFiles);
+        PdbCache.Initialize(pdbFiles);
+        
+        return hSetEventMask;
+    }
+
+    private static string[] ScanDirectoryForPdbFiles(string directory)
+    {
+        var pdbDirFiles = Directory.GetFiles(directory);
+        var pdbFiles = pdbDirFiles
+            .Where(file => Path.GetExtension(file).Equals(".pdb"))
+            .ToArray();
+        return pdbFiles;
     }
     
     protected override HResult JITCompilationStarted(FunctionId functionId, bool fIsSafeToBlock)
@@ -51,13 +62,14 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
             return HResult.S_OK;
         }
         
-        var (hGetModule, _, _, assemblyId) = ICorProfilerInfo2.GetModuleInfo(moduleId);
+        var (hGetModule, modulePath, _, assemblyId) = ICorProfilerInfo2.GetModuleInfo(moduleId);
 
         if (!hGetModule.IsOK)
         {
             Log($"Failed to get module info for moduleId id {moduleId.Value}: {hGetModule.Code}");
             return HResult.S_OK;
         }
+        /*
         
         // Check if assembly of method is the one we want to intercept
         var assemblyNameSpan = UnsafeTypes.CreateSpanForName();
@@ -70,14 +82,22 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         }
         
         var assemblyName = UnsafeTypes.ConvertSpanToString(assemblyNameSpan, cchAssembly);
+        */
+        
+        var moduleName = Path.GetFileNameWithoutExtension(modulePath);
+        var pdbExistsForModule = PdbCache.TryGetModule(moduleName, out var module);
 
-        if (!ShouldInterceptAssembly(assemblyName))
+        if (!pdbExistsForModule || module is null)
         {
             return HResult.S_OK;
         }
         
+        PdbCache.AddModuleAlias(assemblyId, moduleName);
+        module.AddFunctionAlias(methodToken.Value, functionId.Value);
+        
         // Get method name and type name
-        var (hGetModuleMetadata, metaDataImport) = ICorProfilerInfo2.GetModuleMetaData(moduleId, CorOpenFlags.ofRead | CorOpenFlags.ofWrite, KnownGuids.IMetaDataImport);
+        var (hGetModuleMetadata, metaDataImport) = ICorProfilerInfo2.GetModuleMetaData(
+            moduleId, CorOpenFlags.ofRead | CorOpenFlags.ofWrite, KnownGuids.IMetaDataImport);
         
         if (!hGetModuleMetadata.IsOK)
         {
@@ -88,7 +108,10 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         // Get method name
         var methodNameSpan = UnsafeTypes.CreateSpanForName();
         var mdMethodToken = new MdMethodDef(methodToken);
-        var hGetMethodProps = metaDataImport.GetMethodProps(mdMethodToken, out var typeToken, methodNameSpan, out var cchMethod, out _, out _, out _, out _, out _);
+        
+        var hGetMethodProps = metaDataImport.GetMethodProps(
+            mdMethodToken, out var typeToken, methodNameSpan, out var cchMethod, 
+            out _, out _, out _, out _, out _);
 
         if (!hGetMethodProps.IsOK)
         {
@@ -140,6 +163,8 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
                 Log($"Failed to instrument: Failed to set IL function body: {hSetBody.Code}");
                 return HResult.S_OK;
             }
+            
+            Log("Instrumentation done!");
         }
         catch (Exception ex)
         {
@@ -157,16 +182,22 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         MetaDataImport metaDataImport)
     {
         // Find bool and activity type ref token
-        var mdBoolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
-        var mdActivityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
+        var boolRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Boolean", metaDataImport);
+        var activityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
         
-        var (mdGetCurrentActivityRef, _) = InMemoryTypeRefCache.GetMemberRefForType(mdActivityRef, "get_Current", metaDataImport);
-        var (mdGetTraceIdRef, mdGetTraceIdSignature) = InMemoryTypeRefCache.GetMemberRefForType(mdActivityRef, "get_TraceId", metaDataImport);
+        var (mCurrentActivity, _) = TypeRefCache.GetMemberRef(activityRef, "get_Current", metaDataImport);
+        var (mTraceId, mTraceIdSignatureData) = TypeRefCache.GetMemberRef(activityRef, "get_TraceId", metaDataImport);
         
-        var (mdTraceIdRefToken, _) = InMemoryTypeRefCache.ParseReturnType(mdGetTraceIdSignature);
-        var mdTraceId = new MdTypeRef(mdTraceIdRefToken.Value);
+        var mTraceIdSignature = new MemberRefSignature(mTraceIdSignatureData);
+        var isValidReturnType = mTraceIdSignature.TryParseReturnType(out var traceIdRid);
         
-        var (mdToHexString, _) = InMemoryTypeRefCache.GetMemberRefForType(mdTraceId, "ToHexString", metaDataImport);
+        if (!isValidReturnType)
+        {
+            throw new Exception($"Failed to parse member's return type '{mTraceIdSignatureData}'");
+        }
+        
+        var traceIdRef = new MdTypeRef(traceIdRid.ToTypeRefToken());
+        var (mToHexString, _) = TypeRefCache.GetMemberRef(traceIdRef, "ToHexString", metaDataImport);
         
         /*
          TODO: Remove
@@ -180,7 +211,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         
         // Update local var signature for instrumentation
         var varSignature = LocalVarSignatureReader.ReadLocalVarSignature(method.Header, metaDataImport);
-        var patchedVarSignature = Instrumentation.Instrumentation.CreateLocalVarSignature(varSignature, mdActivityRef, mdTraceId);
+        var patchedVarSignature = Instrumentation.Instrumentation.CreateLocalVarSignature(varSignature, activityRef, traceIdRef);
         
         // Get signature tokens
         var metaDataEmit = metaDataImport.GetMetadataEmit();
@@ -193,17 +224,23 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         {
             AssemblyId = assemblyId,
             FunctionId = functionId,
-            BoolType = mdBoolRef,
-            GetCurrentActivity = mdGetCurrentActivityRef,
-            GetTraceId = mdGetTraceIdRef,
-            TraceIdRef = mdTraceId,
-            TraceIdToHexString = mdToHexString,
+            BoolType = boolRef,
+            GetCurrentActivity = mCurrentActivity,
+            GetTraceId = mTraceId,
+            TraceIdRef = traceIdRef,
+            TraceIdToHexString = mToHexString,
             CallbackSignature = mdProbeSignature,
             LocalVarCount = localVarCount,
             LocalVarSignature = mdLocalSignature,
         };
-        var instrumentedMethod = Instrumentation.Instrumentation.InstrumentMethod(method, metadata);
-        Console.WriteLine("Instrumented:");
+
+        var probes = ProbeCache.AddMethodProbes(assemblyId, functionId, method);
+        
+        var probeTypes = probes.Values.Select(p => p.Type.ToString()).ToArray();
+        Log($"Adding {probes.Count} probes to method: " + string.Join(',', probeTypes));
+        var originalInstructionCount = method.Body.Instructions.Count;
+        var instrumentedMethod = Instrumentation.Instrumentation.InstrumentMethod(method, probes, metadata);
+        Log($"Instrumented method instruction count: {instrumentedMethod.Body.Instructions.Count} (originally: {originalInstructionCount})");
         return instrumentedMethod;
     }
 

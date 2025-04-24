@@ -1,41 +1,27 @@
 namespace IlRewriter.Models.Signatures;
 
-public class MemberRefSignature
+public class MemberRefSignature(byte[] binaryData)
 {
-    public enum RefType
+    public bool TryParseReturnType(out Rid rid)
     {
-        TypeDef = 0,
-        TypeRef = 1,
-        TypeSpec = 2
-    }
-    
-    public static bool TryParseComplexReturnType(byte[] binarySignature, out RefType refType, out int rid)
-    {
-        refType = default;
-        rid = -1;
+        rid = new Rid(0, RefType.TypeSpec);
 
-        if (binarySignature[2] != 0x11)
+        // Note: only supports complex types
+        if (binaryData[2] != 0x11)
         {
             return false;
         }
         
-        var encoded = binarySignature[3];
-        var tag = encoded & 0x03;
-        rid = encoded >> 2;
+        var encodedTypeToken = binaryData[3];
 
-        switch (tag)
+        try
         {
-            case 0: 
-                refType = RefType.TypeDef; 
-                return true;
-            case 1: 
-                refType = RefType.TypeRef; 
-                return true;
-            case 2: 
-                refType = RefType.TypeSpec; 
-                return true;
+            rid = new Rid(encodedTypeToken);
+            return true;
         }
-
-        return false;
+        catch
+        {
+            return false;
+        }
     }
 }

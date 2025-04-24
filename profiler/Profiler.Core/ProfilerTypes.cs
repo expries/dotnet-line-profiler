@@ -22,9 +22,9 @@ public readonly struct AppDomainId
     public readonly nint Value;
 }
 
-public readonly struct AssemblyId
+public readonly record struct AssemblyId(IntPtr Value)
 {
-    public readonly nint Value;
+    public readonly nint Value = Value;
 }
 
 public readonly struct ClassId
@@ -34,9 +34,9 @@ public readonly struct ClassId
     public override string ToString() => Value.ToString("x2");
 }
 
-public readonly struct FunctionId
+public readonly record struct FunctionId(IntPtr Value)
 {
-    public readonly nint Value;
+    public readonly nint Value = Value;
 }
 
 public readonly struct ReJITId

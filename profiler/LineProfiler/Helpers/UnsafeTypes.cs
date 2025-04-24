@@ -49,9 +49,4 @@ public static class UnsafeTypes
     }
     
     public static Span<char> CreateSpanForName() => new(new char[1024]);
-    
-    public static Span<char> CreateSpanForString(string str)
-    {
-        return new Span<char>(str.ToCharArray());
-    }
 }

@@ -1,6 +1,7 @@
 ﻿using IlRewriter.Models;
 using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
+using LineProfiler.Models;
 using Profiler.Core;
 
 namespace LineProfiler.Instrumentation;
@@ -129,7 +130,6 @@ public class InstructionBuilder
             OpCode = OpCodes.Stloc,
             Operand = new UInt32Operand() { Value = activityLocalVarIndex }
         });
-        
         
         _instructions.Add(new Instruction
         {

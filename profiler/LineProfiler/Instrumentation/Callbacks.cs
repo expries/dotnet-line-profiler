@@ -1,6 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 using IlRewriter.Models;
 using IlRewriter.Models.Signatures;
+using LineProfiler.Caches;
+using LineProfiler.DebugInfo;
 using Profiler.Core;
 
 namespace LineProfiler.Instrumentation;
@@ -28,8 +30,8 @@ public static class Callbacks
     public static unsafe void Probe(
         bool* pArray, 
         int length, 
-        nint assemblyId, 
-        nint functionId, 
+        nint nAssemblyId, 
+        nint nFunctionId, 
         IntPtr ptraceId)
     {
         var traceId = RawStringPointerToString(ptraceId);
@@ -40,15 +42,82 @@ public static class Callbacks
             Console.WriteLine("Empty or invalid trace id ...");
             return;
         }
-
-        Console.WriteLine($"AssemblyId: {assemblyId}");
-        Console.WriteLine($"FunctionId: {functionId}");
+        
+        Console.WriteLine($"AssemblyId: {nAssemblyId}");
+        Console.WriteLine($"FunctionId: {nFunctionId}");
         Console.WriteLine($"Trace id: {traceId}");
+
+        var assemblyId = new AssemblyId(nAssemblyId);
+        var functionId = new FunctionId(nFunctionId);
+        
+        var pdbExists = PdbCache.TryGetModule(assemblyId, out var pdbModule);
+
+        if (!pdbExists || pdbModule is null)
+        {
+            Console.WriteLine($"No pdb module found for assembly id '{assemblyId.Value}'");
+            return;
+        }
+        
+        var functionExists = pdbModule.TryGetFunctionById(functionId.Value, out var pdbFunction);
+
+        if (!functionExists || pdbFunction is null)
+        {
+            Console.WriteLine($"No pdb function found for function id '{functionId.Value}' in assembly id '{assemblyId.Value}'");
+            return;
+        }
+        
+        var probesExist = ProbeCache.TryGetProbes(assemblyId, functionId, out var probes);
+
+        if (!probesExist || probes is null || probes.Count == 0)
+        {
+            Console.WriteLine($"No probes found for method assembly id '{assemblyId.Value}' and function id '{functionId.Value}'");
+            return;
+        }
+        
+        var linesByOffset = new Dictionary<int, List<SourceLine>>();
+
 
         for (var i = 0; i < length; i++)
         {
-            var value = pArray[i];
-            Console.WriteLine($"[{i}]: {value}");
+            var probeWasVisited = pArray[i];
+            Console.WriteLine($"[{i}]: {probeWasVisited}");
+
+            if (!probeWasVisited)
+            {
+                continue;
+            }
+            
+            var probe = probes.Values.ToArray()[i];
+            var coveredOffsets = probe.CoveredInstructionOffsets;
+
+            foreach (var offset in coveredOffsets)
+            {
+                /*
+                Console.WriteLine("Offset: " + offset);
+                foreach (var (sequenceOffset, sequenceIterator) in pdbFunction.SequencesByOffset)
+                {
+                    var lineNumbersConcatenated = string.Join(',', sequenceIterator.Lines.Select(l => l.LineNumber));
+                    Console.WriteLine($"{sequenceOffset}: {lineNumbersConcatenated}");
+                }
+                */
+                
+                var sequenceFound = pdbFunction.TryGetSequenceByOffset(offset, out var sequence);
+
+                if (!sequenceFound || sequence is null)
+                {
+                    //Console.WriteLine($"No sequence found for sequence offset {offset}");
+                    continue;
+                }
+                
+                linesByOffset[offset] = sequence.Lines;
+            }
+        }
+
+        var x = linesByOffset.OrderBy(kv => kv.Key).DistinctBy(x => x.Key).ToDictionary();
+
+        foreach (var line in x.Values.SelectMany(v => v))
+        {
+            Console.WriteLine($"[{line.LineNumber}]: {string.Join(", ", line.Text)}");
         }
 
         Console.WriteLine();

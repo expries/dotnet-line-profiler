@@ -1,8 +1,45 @@
 ﻿namespace IlRewriter.Models.Signatures;
 
-public static class SignatureCompressor
+public class LocalVarSignature
 {
-    public static uint DecompressUnsignedIntAt(byte[] bytes, int index)
+    public byte[] BinaryData { get; private set; }
+
+    public LocalVarSignature(byte[] binaryData)
+    {
+        if (binaryData[0] != 0x07)
+        {
+            throw new ArgumentException("Local var signature is invalid");
+        }
+
+        BinaryData = binaryData;
+    }
+    
+    public void AddInstanceVariable(Rid typeToken, byte classOrValueTypeToken)
+    {
+        var compressedToken = CompressUnsignedInt(typeToken.Value);
+        var variableSignature = compressedToken.Prepend(classOrValueTypeToken).ToArray();
+        AddLocalVariable(variableSignature);
+    }
+
+    public void AddLocalVariable(byte[] localVariableSignature)
+    {
+        var newLength = BinaryData.Length + localVariableSignature.Length;
+        var newData = new byte[newLength];
+        var localsCount = GetVarCount();
+        var newLocalsCount = localsCount + 1;
+        
+        newData[0] = 0x7;
+        newData[1] = (byte) newLocalsCount;
+        
+        Array.Copy(BinaryData, 2, newData, 2, BinaryData.Length - 2);
+        Array.Copy(localVariableSignature, 0, newData, BinaryData.Length, localVariableSignature.Length);
+        
+        BinaryData = newData;
+    }
+
+    public uint GetVarCount() => DecompressUnsignedIntAt(BinaryData, 1);
+    
+    private static uint DecompressUnsignedIntAt(byte[] bytes, int index)
     {
         var firstByte = bytes[index];
     
@@ -34,8 +71,8 @@ public static class SignatureCompressor
 
         throw new ArgumentException("Unexpected end of data while decoding compressed integer.");
     }
-
-    public static IEnumerable<byte> CompressUnsignedInt(uint value)
+    
+    private static IEnumerable<byte> CompressUnsignedInt(uint value)
     {
         switch (value)
         {
@@ -59,37 +96,4 @@ public static class SignatureCompressor
                 throw new ArgumentOutOfRangeException(nameof(value), "Cannot compress > 0x1FFFFFFF");
         }
     }
-}
-
-public class LocalVarSignature
-{
-    public byte[] BinaryData { get; private set; }
-
-    public LocalVarSignature(byte[] binaryData)
-    {
-        if (binaryData[0] != 0x07)
-        {
-            throw new ArgumentException("Local var signature is invalid");
-        }
-
-        BinaryData = binaryData;
-    }   
-
-    public void AddLocalVariable(byte[] localVariableSignature)
-    {
-        var newLength = BinaryData.Length + localVariableSignature.Length;
-        var newData = new byte[newLength];
-        var localsCount = GetVarCount();
-        var newLocalsCount = localsCount + 1;
-        
-        newData[0] = 0x7;
-        newData[1] = (byte) newLocalsCount;
-        
-        Array.Copy(BinaryData, 2, newData, 2, BinaryData.Length - 2);
-        Array.Copy(localVariableSignature, 0, newData, BinaryData.Length, localVariableSignature.Length);
-        
-        BinaryData = newData;
-    }
-
-    public uint GetVarCount() => SignatureCompressor.DecompressUnsignedIntAt(BinaryData, 1);
 }

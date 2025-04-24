@@ -2,206 +2,38 @@
 using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
 using IlRewriter.Models.Signatures;
+using LineProfiler.Caches;
+using LineProfiler.Models;
 using Profiler.Core;
 
 namespace LineProfiler.Instrumentation;
 
-public record InstrumentationMetadata
-{
-    // TODO: clean up
-    public AssemblyId AssemblyId { get; set; }
-    public FunctionId FunctionId { get; set; }
-    public MdTypeRef BoolType { get; set; }
-    public MdTypeRef TraceIdRef { get; set; }
-    public MdMemberRef GetCurrentActivity { get; set; }
-    public MdMemberRef GetTraceId { get; set; }
-    public MdMemberRef TraceIdToHexString { get; set; }
-    public MdSignature CallbackSignature { get; set; }
-    public MdSignature LocalVarSignature { get; set; }
-    public uint LocalVarCount { get; set; }
-}
+
 
 public static class Instrumentation
 {
-    internal class Probe
+    public static LocalVarSignature CreateLocalVarSignature(
+        LocalVarSignature signature, 
+        MdTypeRef activityRef, 
+        MdTypeRef traceId)
     {
-        internal record Branch
-        {
-            public int InstructionIndex { get; set; }
-        }
-        public Branch? BranchTargetToRewrite { get; set; }
-        public List<int> CoveredInstructionIndices { get; set; } = [];
-        public ProbeType Type { get; set; }
-
-        internal enum ProbeType
-        {
-            End,
-            Return
-        }
-    }
-    
-
-    
-    public static LocalVarSignature CreateLocalVarSignature(LocalVarSignature signature, MdTypeRef activityRef, MdTypeRef traceId)
-    {
-        // TODO: wrap compression into this class
+        // TODO: modify signature in one iteration
         byte[] arrayPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
         signature.AddLocalVariable(arrayPtrSignature);
         
-        var activityRid = TypeRefToRid(activityRef);
-        var activityTypeToken = SignatureCompressor.CompressUnsignedInt(activityRid);
-        var activitySignature = activityTypeToken.Prepend(CorElementTypeFlags.ELEMENT_TYPE_CLASS).ToArray();
-        signature.AddLocalVariable(activitySignature);
-        
-        var traceIdRid = TypeRefToRid(traceId);
-        var traceIdTypeToken = SignatureCompressor.CompressUnsignedInt(traceIdRid);
-        var traceIdSignature = traceIdTypeToken.Prepend(CorElementTypeFlags.ELEMENT_TYPE_VALUETYPE).ToArray();
-        signature.AddLocalVariable(traceIdSignature);
+        var activityRid = Rid.FromTypeRef(activityRef.Value);
+        signature.AddInstanceVariable(activityRid, CorElementTypeFlags.ELEMENT_TYPE_CLASS);
+
+        var traceIdRid = Rid.FromTypeRef(traceId.Value);
+        signature.AddInstanceVariable(traceIdRid, CorElementTypeFlags.ELEMENT_TYPE_VALUETYPE);
 
         byte[] traceIdCPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR];
         signature.AddLocalVariable(traceIdCPtrSignature);
         return signature;
     }
-
-    private static uint TypeRefToRid(MdTypeRef typeRef)
-    {
-        // TODO: Consolidate rid conversion
-        return (uint) ((typeRef.Value << 2) | 0x1);
-    }
     
     public static Method InstrumentMethod(
         Method method, 
-        InstrumentationMetadata metadata)
-    {
-        var probes = CollectProbes(method, 0, method.Body.Instructions.Count);
-        AddProbes(method, probes, metadata);
-        return method;
-    }
-    
-    private static Dictionary<int, Probe> CollectProbes(Method method, int startIndex, int endIndex)
-    {
-        // Default to method base branch
-        var probes = new Dictionary<int, Probe>();
-        var instructionsInBranch = new List<int>();
-
-        for (var i = startIndex; i < endIndex; i++)
-        {
-            var instruction = method.Body.Instructions[i];
-            
-            // branching (jumps/if/if-else,switch,etc.)
-            var isBranchingInstruction = TryParseBranchingInstruction(method, instruction, out var targetIdx);
-
-            if (isBranchingInstruction)
-            {
-                i = HandleBranch(i, targetIdx);
-                continue;
-            }
-            
-            instructionsInBranch.Add(i);
-
-            // return of current branch
-            if (instruction.OpCode == OpCodes.Ret)
-            {
-                probes[i] = new Probe
-                {
-                    CoveredInstructionIndices = instructionsInBranch, 
-                    Type = Probe.ProbeType.Return
-                };
-                break;
-            }
-
-            // end of current branch
-            if (i == endIndex - 1)
-            {
-                probes[i] = new Probe
-                {
-                    CoveredInstructionIndices = instructionsInBranch, 
-                    Type = Probe.ProbeType.End
-                };
-                break;
-            }
-        }
-
-        return probes;
-
-        int HandleBranch(int branchingInstructionIndex, int targetInstructionIndex)
-        {
-            // treat loop as end of branch
-            if (targetInstructionIndex < branchingInstructionIndex)
-            {
-                return branchingInstructionIndex;
-            }
-            
-            // jump to end of current branch
-            if (targetInstructionIndex == endIndex)
-            {
-                probes[branchingInstructionIndex - 1] = new Probe
-                {
-                    Type = Probe.ProbeType.End,
-                    CoveredInstructionIndices = instructionsInBranch, 
-                };
-            }
-
-            var i = CollectProbesInBranch(
-                method,  branchingInstructionIndex, targetInstructionIndex, out var probesInBranch);
-            
-            probesInBranch.ToList().ForEach(kv => probes[kv.Key] = kv.Value);
-            return i;
-        }
-    }
-    
-    private static bool TryParseBranchingInstruction(Method method, Instruction instruction, out int targetIdx)
-    {
-        targetIdx = -1;
-        
-        switch (instruction.Operand)
-        {
-            case InlineBrTargetOperand targetOperand:
-                targetIdx = method.Body.Instructions.FindIndex(instr => instr.Offset == targetOperand.Offset);
-                targetOperand.Instruction = method.Body.Instructions[targetIdx];
-                return true;
-            case ShortInlineBrTargetOperand sTargetOperand:
-                targetIdx = method.Body.Instructions.FindIndex(instr => instr.Offset == sTargetOperand.Offset);
-                sTargetOperand.Instruction = method.Body.Instructions[targetIdx];
-                return true;
-            default:
-                return false;
-        }
-    }
-
-
-    private static int CollectProbesInBranch(
-        Method method, 
-        int branchingInstructionIndex, 
-        int targetInstructionIndex, 
-        out Dictionary<int, Probe> probesInBranch)
-    {
-        // if branching instruction points to itself, ignore the branch
-        if (branchingInstructionIndex == targetInstructionIndex)
-        {
-            probesInBranch = new Dictionary<int, Probe>();
-            return branchingInstructionIndex;
-        }
-        
-        var branchStart = branchingInstructionIndex + 1;
-
-        probesInBranch = CollectProbes(method, branchStart, targetInstructionIndex);
-        
-        // Check if jump target is a return statement or a branch's end
-        var targetHasProbe = probesInBranch.TryGetValue(targetInstructionIndex, out var targetProbe);
-
-        if (targetHasProbe && targetProbe is not null)
-        {
-            targetProbe.BranchTargetToRewrite = new Probe.Branch { InstructionIndex = branchingInstructionIndex};
-        }
-        
-        if (targetInstructionIndex == branchStart) return targetInstructionIndex;
-        return targetInstructionIndex - 1;
-    }
-    
-    
-    private static void AddProbes(
-        Method method,
         Dictionary<int, Probe> probes,
         InstrumentationMetadata metadata)
     {
@@ -217,11 +49,11 @@ public static class Instrumentation
             
             switch (probe.Type)
             {
-                case Probe.ProbeType.End:
+                case ProbeType.End:
                     instructionOffset += AddProbeForBranchEnd(
                         method, probes,i,  probeIndex, metadata.LocalVarCount, instructionOffset);
                     break;
-                case Probe.ProbeType.Return:
+                case ProbeType.Return:
                     instructionOffset += AddProbeForReturnStatement(
                         method, probes, i, probeIndex, metadata.LocalVarCount, instructionOffset, metadata);
                     break;
@@ -233,6 +65,7 @@ public static class Instrumentation
         const int instrumentationStackSize = 6;
         method.Header.MaxStack = (ushort) (method.Header.MaxStack + instrumentationStackSize);
         method.Header.LocalVarSigToken = (uint) metadata.LocalVarSignature.Value;
+        return method;
     }
 
     private static int AddInitialization(Method method, MdTypeRef boolType, int arrayLength, uint localVarCount)
@@ -295,9 +128,9 @@ public static class Instrumentation
 
     private static void RewriteBranchIfSet(Method method, List<Instruction> probeInstructions, Probe probe)
     {
-        if (probe.BranchTargetToRewrite is null) return;
+        if (probe.BranchToRewrite is null) return;
         
-        var branchingInstructionIndex = probe.BranchTargetToRewrite.InstructionIndex;
+        var branchingInstructionIndex = probe.BranchToRewrite.InstructionIndex;
         var branchingInstruction = method.Body.Instructions[branchingInstructionIndex];
         var startOfProbe = probeInstructions[0];
         ChangeTarget(branchingInstruction, startOfProbe);

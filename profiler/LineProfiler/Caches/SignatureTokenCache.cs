@@ -1,10 +1,11 @@
-﻿using LineProfiler.Helpers;
+﻿using LineProfiler.Caches.Interfaces;
+using LineProfiler.Helpers;
 using NativeObjects;
 using Profiler.Core;
 
 namespace LineProfiler.Caches;
 
-public class InMemorySignatureTokenCache : ISignatureTokenCache
+public class SignatureTokenCache : ISignatureTokenCache
 {
     private readonly Dictionary<IntPtr, Dictionary<byte[], MdSignature>> _cache = new();
     
