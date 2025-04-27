@@ -13,7 +13,7 @@ public class InstructionWriter : IlWriter<Instruction>
         
         if (instruction.Operand is not null)
         {
-            WriteOperand(instruction.Operand, instruction.Offset, stream);
+            WriteOperand(instruction, stream);
         }
     }
     
@@ -30,9 +30,9 @@ public class InstructionWriter : IlWriter<Instruction>
         }
     }
     
-    private static void WriteOperand(Operand operand, int instructionOffset, Stream stream)
+    private static void WriteOperand(Instruction instruction, Stream stream)
     {
-        switch (operand)
+        switch (instruction.Operand)
         {
             case ByteOperand byteOperand:
                 new ByteOperandWriter().WriteToStream(byteOperand, stream);
@@ -43,8 +43,11 @@ public class InstructionWriter : IlWriter<Instruction>
             case InlineBrTargetOperand inlineBrTargetOperand:
                 new InlineBrTargetOperandWriter().WriteToStream(inlineBrTargetOperand, stream);
                 break;
+            case ShortInlineBrTargetOperand shortInlineBrTargetOperand:
+                new ShortInlineBrTargetOperandWriter().WriteToStream(shortInlineBrTargetOperand, stream);
+                break;
             case InlineSwitchOperand inlineSwitchOperand:
-                new InlineSwitchOperandWriter().WriteToStream(inlineSwitchOperand, instructionOffset, stream);
+                new InlineSwitchOperandWriter().WriteToStream(inlineSwitchOperand, instruction, stream);
                 break;
             case Int16Operand int16Operand:
                 new Int16OperandWriter().WriteToStream(int16Operand, stream);
@@ -57,9 +60,6 @@ public class InstructionWriter : IlWriter<Instruction>
                 break;
             case SByteOperand sByteOperand:
                 new SByteOperandWriter().WriteToStream(sByteOperand, stream);
-                break;
-            case ShortInlineBrTargetOperand shortInlineBrTargetOperand:
-                new ShortInlineBrTargetOperandWriter().WriteToStream(shortInlineBrTargetOperand, stream);
                 break;
             case ShortInlineIOperand shortInlineIOperand:
                 new ShortInlineIOperandWriter().WriteToStream(shortInlineIOperand, stream);

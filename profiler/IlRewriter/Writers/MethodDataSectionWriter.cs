@@ -92,11 +92,11 @@ public class MethodDataSectionWriter : IlWriter<MethodDataSection>
     {
         writeEntry((int) handler.HandlerType);
      
-        writeEntry(handler.TryStart?.Offset ?? 0);
-        writeLength((handler.TryEnd?.Offset ?? 0) - (handler.TryStart?.Offset ?? 0));
+        writeEntry(handler.TryStart.EndOffset);
+        writeLength(handler.TryEnd.EndOffset - handler.TryStart.EndOffset);
 
-        writeEntry(handler.HandlerStart?.Offset ?? 0);
-        writeLength((handler.HandlerEnd?.Offset ?? 0) - (handler.HandlerStart?.Offset ?? 0));
+        writeEntry(handler.HandlerStart.EndOffset);
+        writeLength(handler.HandlerEnd.EndOffset - handler.HandlerStart.EndOffset);
         
         WriteExceptionHandlerSpecific(handler);
     }

@@ -1,6 +1,4 @@
-﻿using NativeObjects;
-
-namespace Profiler.Core;
+﻿namespace Profiler.Core;
 
 public class ICorProfilerInfo
 {

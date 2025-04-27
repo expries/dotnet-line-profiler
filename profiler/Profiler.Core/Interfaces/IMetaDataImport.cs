@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-namespace Profiler.Core.Interfaces;
+﻿namespace Profiler.Core.Interfaces;
 
 [NativeObject]
 public unsafe interface IMetaDataImport : IUnknown

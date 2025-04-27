@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using IlRewriter.Models;
 using IlRewriter.Models.Operands;
 
@@ -14,8 +13,7 @@ public static class MethodPrinter
             Console.WriteLine();
         }
     }
-
-
+    
     public static void PrintHeader(MethodHeader header)
     {
         Console.WriteLine();
@@ -41,7 +39,7 @@ public static class MethodPrinter
         }
     }
 
-    public static void PrintOperand(Operand operand)
+    private static void PrintOperand(Operand operand)
     {
         switch (operand)
         {
@@ -52,10 +50,10 @@ public static class MethodPrinter
                 Console.Write($" ({doubleOperand.Value})");
                 break;
             case InlineBrTargetOperand inlineBrTargetOperand:
-                Console.Write($" ({inlineBrTargetOperand.Value})");
+                Console.Write($" ({inlineBrTargetOperand.Value} -> {inlineBrTargetOperand.Instruction?.Offset})");
                 break;
             case InlineSwitchOperand switchOperand:
-                Console.Write($" ({switchOperand.BaseOffset}: {string.Join(',',switchOperand.BranchOffsets)})");
+                Console.Write($" ({string.Join(',',switchOperand.Branches.Select(i => i.Offset))})");
                 break;
             case Int16Operand int16Operand:
                 Console.Write($" ({int16Operand.Value})");
@@ -70,7 +68,7 @@ public static class MethodPrinter
                 Console.Write($" ({sByteOperand.Value})");
                 break;
             case ShortInlineBrTargetOperand shortInlineBrTargetOperand:
-                Console.Write($" ({shortInlineBrTargetOperand.Value})");
+                Console.Write($" ({shortInlineBrTargetOperand.Value} -> {shortInlineBrTargetOperand.Instruction?.Offset})");
                 break;
             case ShortInlineIOperand shortInlineIOperand:
                 Console.Write($" ({shortInlineIOperand.Value})");

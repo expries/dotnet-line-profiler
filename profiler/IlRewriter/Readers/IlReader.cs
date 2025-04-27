@@ -16,9 +16,9 @@ public abstract class IlReader<T> : BinaryStreamReader
         Context = context;
     }
 
-    protected Instruction? GetInstructionAtOffset(int offset)
+    protected Instruction? GetInstructionAtEndOffset(int offset)
     {
-        Context.InstructionsByOffset.TryGetValue(offset, out var instruction);
+        Context.InstructionsByEndOffset.TryGetValue(offset, out var instruction);
         return instruction;
     }
 }

@@ -1,8 +1,6 @@
 ﻿using IlRewriter.Models;
-using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
 using IlRewriter.Models.Signatures;
-using LineProfiler.Caches;
 using LineProfiler.Models;
 using Profiler.Core;
 
@@ -60,11 +58,10 @@ public static class Instrumentation
             }
         }
 
-        CorrectBranchingOffsets(method);
-
         const int instrumentationStackSize = 6;
         method.Header.MaxStack = (ushort) (method.Header.MaxStack + instrumentationStackSize);
         method.Header.LocalVarSigToken = (uint) metadata.LocalVarSignature.Value;
+        
         return method;
     }
 
@@ -91,10 +88,10 @@ public static class Instrumentation
             .Build();
         
         var probe = probes[probeIndex];
-        RewriteBranchIfSet(method, probeInstructions, probe);
+        RewriteBranchesIfSet(probe, probeInstructions);
         
-        var probeInstructionIndex = probeIndex + 1 + instructionOffset;
-        method.Body.Instructions.InsertRange(probeInstructionIndex, probeInstructions);
+        var beforeBranchEndIndex = probeIndex + instructionOffset;
+        method.Body.Instructions.InsertRange(beforeBranchEndIndex, probeInstructions);
         return probeInstructions.Count;
     }
     
@@ -119,21 +116,21 @@ public static class Instrumentation
             .Build();
         
         var probe = probes[probeIndex];
-        RewriteBranchIfSet(method, probeInstructions, probe);
+        RewriteBranchesIfSet(probe, probeInstructions);
         
         var beforeReturnIndex = probeIndex + instructionOffset;
         method.Body.Instructions.InsertRange(beforeReturnIndex, probeInstructions);
         return probeInstructions.Count;
     }
 
-    private static void RewriteBranchIfSet(Method method, List<Instruction> probeInstructions, Probe probe)
+    private static void RewriteBranchesIfSet(Probe probe, List<Instruction> probeInstructions)
     {
-        if (probe.BranchToRewrite is null) return;
-        
-        var branchingInstructionIndex = probe.BranchToRewrite.InstructionIndex;
-        var branchingInstruction = method.Body.Instructions[branchingInstructionIndex];
         var startOfProbe = probeInstructions[0];
-        ChangeTarget(branchingInstruction, startOfProbe);
+
+        foreach (var instruction in probe.BranchesToRewrite)
+        {
+            ChangeTarget(instruction, startOfProbe);
+        }   
     }
     
     private static void ChangeTarget(Instruction from, Instruction to)
@@ -146,77 +143,9 @@ public static class Instrumentation
             case ShortInlineBrTargetOperand:
                 from.Operand = new ShortInlineBrTargetOperand { Instruction = to };
                 return;
+            case InlineSwitchOperand:
+                throw new NotImplementedException("Switch rewriting not implemented");
+                return;
         }
-    }
-    
-    private static void CorrectBranchingOffsets(Method method)
-    {
-        for (var i = 0; i < method.Body.Instructions.Count; i++)
-        {
-            var instruction = method.Body.Instructions[i];
-                
-            switch (instruction.Operand)
-            {
-                case InlineBrTargetOperand target:
-                    var targetOffset = GetTargetOffset(i, method, target.Instruction) ?? 0;
-                    target.Value = targetOffset;
-                    continue;
-                case ShortInlineBrTargetOperand sTarget:
-                    var sTargetOffset = GetTargetOffset(i, method, sTarget.Instruction) ?? 0;
-
-                    try
-                    {
-                        sTarget.Value = Convert.ToSByte(sTargetOffset);
-                    }
-                    catch (OverflowException)
-                    {
-                        instruction.OpCode = OpCodes.Br;
-                        instruction.Operand = new InlineBrTargetOperand
-                        {
-                            Instruction = instruction, 
-                            Offset = sTarget.Offset, 
-                            Value = sTargetOffset
-                        };
-                    }
-
-                    continue;
-            }
-        }
-    }
-    
-    private static int? GetTargetOffset(int startIndex, Method method, Instruction? target)
-    {
-        if (target is null)
-        {
-            return null;
-        }
-        
-        var offset = 0;
-        var branchingOffset = -1;
-        var targetOffset = -1;
-        
-        for (var i = 0; i < method.Body.Instructions.Count; i++)
-        {
-            var instruction = method.Body.Instructions[i];
-            
-            offset += instruction.SizeInBytes;
-
-            if (i == startIndex)
-            {
-                branchingOffset = offset;
-            }
-
-            if (target == instruction)
-            {
-                targetOffset = offset;
-            }
-
-            if (branchingOffset > -1 && targetOffset > -1)
-            {
-                return targetOffset - branchingOffset;
-            }
-        }
-        
-        return null;
     }
 }

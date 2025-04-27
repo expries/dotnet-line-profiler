@@ -2,7 +2,7 @@
 
 namespace IlRewriter.Models.OpCodes;
 
-public readonly struct OpCode 
+public readonly struct OpCode
 {
     public byte Op1 { get; }
     public byte Op2 { get; }

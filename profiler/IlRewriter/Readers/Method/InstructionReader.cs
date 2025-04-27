@@ -83,8 +83,7 @@ public class InstructionReader : IlReader<Instruction>
 
     private InlineSwitchOperand ReadSwitchOperand()
     {
-        var length = ReadInt32();
-        var baseOffset = Offset + 4 * length;
+        var length = ReadUInt32();
         var branchOffsets = new int[length];
         
         for (var i = 0; i < length; i++)
@@ -95,7 +94,6 @@ public class InstructionReader : IlReader<Instruction>
 
         return new InlineSwitchOperand
         {
-            BaseOffset = baseOffset,
             BranchOffsets = branchOffsets,
             Branches = new Instruction[branchOffsets.Length],
         };
@@ -103,19 +101,18 @@ public class InstructionReader : IlReader<Instruction>
 
     private ShortInlineBrTargetOperand ReadShortInlineBrTargetOperand()
     {
-        var position = ReadSByte();
-        var offset = position + Offset;
+        var value = ReadSByte();
+        var offset = value + Offset;
         return new ShortInlineBrTargetOperand
         {
             Offset = offset,
-            Value = position,
+            Value = value,
         };
     }
     
     private ShortInlineIOperand ReadShortInlineIOperand(OpCode opCode)
     {
         int value = opCode == OpCodes.Ldc_I4_S ? ReadSByte() : ReadByte();
-        
         return new ShortInlineIOperand
         {
             Value = value,

@@ -1,4 +1,6 @@
 ﻿using IlRewriter.Models;
+using IlRewriter.Models.OpCodes;
+using IlRewriter.Models.Operands;
 
 namespace IlRewriter.Writers;
 
@@ -13,9 +15,13 @@ public class MethodBodyWriter
 
         foreach (var instruction in body.Instructions)
         {
-            instructionOffset += instruction.SizeInBytes;
             instruction.Offset = instructionOffset;
+            instructionOffset += instruction.SizeInBytes;
         }
+        
+        CorrectBranchingOffsets(body);
+        
+        MethodPrinter.PrintMethodBody(body);
         
         var startPosition = stream.Position;
 
@@ -29,5 +35,39 @@ public class MethodBodyWriter
         _dataSectionWriter.WriteToStream(body.DataSection, stream);
 
         return instructionEndPosition - startPosition;
+    }
+    
+    private static void CorrectBranchingOffsets(MethodBody body)
+    {
+        foreach (var instruction in body.Instructions)
+        {
+            switch (instruction.Operand)
+            {
+                case InlineBrTargetOperand operand:
+                    if (operand.Instruction is null) continue;
+                    operand.Value = operand.Instruction.Offset - instruction.EndOffset;
+                    continue;
+                case ShortInlineBrTargetOperand operand:
+                    if (operand.Instruction is null) continue;
+                    var offset = operand.Instruction.Offset - instruction.EndOffset;
+                    
+                    try
+                    {
+                        operand.Value = Convert.ToSByte(offset);
+                    }
+                    catch (OverflowException)
+                    {
+                        instruction.OpCode = OpCodes.Br;
+                        instruction.Operand = new InlineBrTargetOperand
+                        {
+                            Instruction = instruction, 
+                            Offset = operand.Offset, 
+                            Value = offset
+                        };
+                    }
+
+                    continue;
+            }
+        }
     }
 }

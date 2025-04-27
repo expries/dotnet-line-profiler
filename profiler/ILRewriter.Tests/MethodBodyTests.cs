@@ -62,7 +62,7 @@ public class MethodBodyTests : MethodTest
         if (pass) return;
         _testOutputHelper.WriteLine(name);
         _testOutputHelper.WriteLine($"Original: {BitConverter.ToString(input)}");
-        _testOutputHelper.WriteLine($"Written:     {BitConverter.ToString(output)}");
+        _testOutputHelper.WriteLine($"Written:  {BitConverter.ToString(output)}");
     }
 
     [Theory]

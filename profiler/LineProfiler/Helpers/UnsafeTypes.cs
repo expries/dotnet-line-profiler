@@ -42,6 +42,16 @@ public static class UnsafeTypes
         return new MemoryStream(data);
     }
     
+    public static unsafe byte[] GetByteArrayFromBytePtr(byte* pData, uint size)
+    {
+        var array = new byte[size];
+        for (var i = 0; i < size; i++)
+        {
+            array[i] = pData[i];
+        }
+        return array;
+    }
+    
     public static string ConvertSpanToString(Span<char> span, uint length)
     {
         var lengthAsInt32 = Convert.ToInt32(length);

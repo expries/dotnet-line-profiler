@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
+using IlRewriter;
 using IlRewriter.Models;
 using IlRewriter.Models.Signatures;
 using IlRewriter.Readers.Method;
@@ -153,9 +154,12 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
 
         try
         {
+            MethodPrinter.PrintMethodBody(method.Body);
+            
             var instrumentedMethod = InstrumentMethod(method, assemblyId, functionId, metaDataImport);
             var methodBytes = ConvertMethodToByteArray(instrumentedMethod);
             var methodBytePointer = UnsafeTypes.GetBytePtr(methodBytes);
+
             var hSetBody = ICorProfilerInfo2.SetILFunctionBody(moduleId, mdMethodToken, methodBytePointer);
 
             if (!hSetBody.IsOK)
@@ -164,7 +168,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
                 return HResult.S_OK;
             }
             
-            Log("Instrumentation done!");
+
         }
         catch (Exception ex)
         {
@@ -199,16 +203,6 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         var traceIdRef = new MdTypeRef(traceIdRid.ToTypeRefToken());
         var (mToHexString, _) = TypeRefCache.GetMemberRef(traceIdRef, "ToHexString", metaDataImport);
         
-        /*
-         TODO: Remove
-        Console.WriteLine($"System.Boolean type ref: {mdBoolRef.Value}");
-        Console.WriteLine($"System.Diagnostics.Activity type ref: {(uint) mdActivityRef.Value}");
-        Console.WriteLine($"System.Diagnostics.Activity.Current member ref: {mdGetCurrentActivityRef.Value}");
-        Console.WriteLine($"System.Diagnostics.Activity.TraceId type ref: {mdTraceId.Value}");
-        Console.WriteLine($"System.Diagnostics.Activity.TraceId member ref: {mdGetTraceIdRef.Value}");
-        Console.WriteLine($"System.Diagnostics.Activity.TraceId.ToHexString member ref: {mdToHexString.Value}");
-        */
-        
         // Update local var signature for instrumentation
         var varSignature = LocalVarSignatureReader.ReadLocalVarSignature(method.Header, metaDataImport);
         var patchedVarSignature = Instrumentation.Instrumentation.CreateLocalVarSignature(varSignature, activityRef, traceIdRef);
@@ -234,13 +228,14 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
             LocalVarSignature = mdLocalSignature,
         };
 
-        var probes = ProbeCache.AddMethodProbes(assemblyId, functionId, method);
+        var cfg = new ControlFlowGraph(method.Body.Instructions);
+        ProbeCache.AddMethodProbes(assemblyId, functionId, cfg.Probes);
         
-        var probeTypes = probes.Values.Select(p => p.Type.ToString()).ToArray();
-        Log($"Adding {probes.Count} probes to method: " + string.Join(',', probeTypes));
+        var probeTypes = cfg.Probes.Values.Select(p => p.Type.ToString()).ToArray();
+        Console.WriteLine($"Adding {probeTypes.Length} probes to method: " + string.Join(',', probeTypes));
         var originalInstructionCount = method.Body.Instructions.Count;
-        var instrumentedMethod = Instrumentation.Instrumentation.InstrumentMethod(method, probes, metadata);
-        Log($"Instrumented method instruction count: {instrumentedMethod.Body.Instructions.Count} (originally: {originalInstructionCount})");
+        var instrumentedMethod = Instrumentation.Instrumentation.InstrumentMethod(method, cfg.Probes, metadata);
+        Console.WriteLine($"Instrumented method instruction count: {instrumentedMethod.Body.Instructions.Count} (originally: {originalInstructionCount})");
         return instrumentedMethod;
     }
 

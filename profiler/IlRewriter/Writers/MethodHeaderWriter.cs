@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using IlRewriter.Models;
+﻿using IlRewriter.Models;
 
 namespace IlRewriter.Writers;
 

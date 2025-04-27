@@ -100,11 +100,14 @@ public class Test
             case 0:
                 if (y > 0)
                 {
-                    Console.WriteLine("x > 0");
+                    Console.WriteLine("y > 0");
+                    Console.WriteLine("y > 0");
                 }
                 else
                 {
-                    Console.WriteLine("x <= 0");
+                    Console.WriteLine("y <= 0");
+                    Console.WriteLine("y <= 0");
+                    Console.WriteLine("y <= 0");
                 }
                 Console.WriteLine("x == 0");
                 break;

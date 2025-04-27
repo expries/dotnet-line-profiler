@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using IlRewriter.Models;
 using IlRewriter.Models.Signatures;
 using LineProfiler.Caches;
 using LineProfiler.DebugInfo;

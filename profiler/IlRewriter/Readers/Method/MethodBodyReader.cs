@@ -21,9 +21,12 @@ public class MethodBodyReader : IlReader<MethodBody>
 		
         while (Position < EndPosition)
         {
+            var offset = Offset;
             var instruction = _instructionReader.ReadFromStream();
-            instruction.Offset = Offset;
-            Context.InstructionsByOffset[Offset] = instruction;
+            instruction.Offset = offset;
+            
+            Context.InstructionsByOffset[offset] = instruction;
+            Context.InstructionsByEndOffset[Offset] = instruction;
         }
 		
         ResolveBranches();
@@ -44,23 +47,25 @@ public class MethodBodyReader : IlReader<MethodBody>
             switch (instruction.Operand)
             {
                 case InlineSwitchOperand switchOperand:
-                    ResolveSwitchBranches(switchOperand);
+                    ResolveSwitchBranches(instruction, switchOperand);
                     break;
                 case ShortInlineBrTargetOperand shortInlineOperand:
-                    shortInlineOperand.Instruction = Context.InstructionsByOffset[Offset];
+                    shortInlineOperand.Instruction = 
+                        Context.InstructionsByOffset[instruction.EndOffset + shortInlineOperand.Value];
                     break;
                 case InlineBrTargetOperand inlineOperand:
-                    inlineOperand.Instruction = Context.InstructionsByOffset[Offset];
+                    inlineOperand.Instruction = 
+                        Context.InstructionsByOffset[instruction.EndOffset + inlineOperand.Value];
                     break;
             }   
         }
     }
 
-    private void ResolveSwitchBranches(InlineSwitchOperand operand)
+    private void ResolveSwitchBranches(Instruction switchInstruction, InlineSwitchOperand operand)
     {
         for (var i = 0; i < operand.BranchOffsets.Length; i++)
         {
-            var instructionOffset = operand.BaseOffset + operand.BranchOffsets[i];
+            var instructionOffset = switchInstruction.EndOffset + operand.BranchOffsets[i];
             operand.Branches[i] = Context.InstructionsByOffset[instructionOffset];
         }
     }
