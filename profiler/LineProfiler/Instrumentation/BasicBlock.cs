@@ -18,19 +18,25 @@ public class BasicBlock
     public List<int> GetCoveredInstructionOffsets()
     {
         var instructions = GetCoveredInstructions();
-        var offsets = instructions.Select(instruction => instruction.Offset);
-        return offsets.ToList();
+        var offsets = instructions
+            .Select(instruction => instruction.Offset)
+            .OrderBy(offset => offset)
+            .ToList();
+        
+        return offsets;
     }
 
-    public List<Instruction> GetCoveredInstructions()
+    private List<Instruction> GetCoveredInstructions()
     {
-        var instructions = Instructions;
-        var block = this;
+        var instructions = Instructions.ToList();
 
-        while (block.Predecessors.Count == 1)
+        foreach (var block in Predecessors)
         {
-            block = block.Predecessors[0];
-            instructions.AddRange(block.Instructions);
+            if (block.StartOffset == 0 || Predecessors.Count == 1)
+            {
+                var blockInstructions = block.GetCoveredInstructions();
+                instructions.AddRange(blockInstructions);
+            }
         }
 
         return instructions;

@@ -25,42 +25,7 @@ public class TypeRefCache : ITypeRefCache
         // e.g. System.Boolean
         return typeRef;
     }
-    
 
-
-    private static unsafe MdTypeRef GetTypeRefForType(string typeName, MetaDataImport metaDataImport)
-    {
-        const uint maxTypeRefs = 4096;
-        var pEnumerator = new HCORENUM();
-        var typeRefArray = new MdTypeRef[maxTypeRefs];
-        ulong resultCount = 0;
-            
-        fixed (MdTypeRef* pTypeRefArray = typeRefArray)
-        {
-            var hEnumTypeRefs = metaDataImport.EnumTypeRefs(&pEnumerator, pTypeRefArray, maxTypeRefs, &resultCount);
-
-            if (!hEnumTypeRefs.IsOK)
-            {
-                throw new Exception("Enum type refs failed");
-            }
-        
-            for (uint i = 0; i < resultCount; i++)
-            {
-                var typeRef = pTypeRefArray[i];
-                if (!TryGetTypeRefName(typeRef, metaDataImport, out var refTypeName))
-                {
-                    continue;
-                } 
-                
-                if (refTypeName.Equals(typeName, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return typeRef;
-                }
-            }
-        }
-
-        throw new Exception($"Failed to get type ref for type '{typeName}'");
-    }
 
     public static unsafe (MdMemberRef, byte[] signature) GetMemberRef(
         MdTypeRef parentTypeRef, 
@@ -104,7 +69,40 @@ public class TypeRefCache : ITypeRefCache
         throw new Exception($"Failed to get member ref for member '{memberName}' in type '{parentTypeRef.Value}'");
     }
 
+    
+    private static unsafe MdTypeRef GetTypeRefForType(string typeName, MetaDataImport metaDataImport)
+    {
+        const uint maxTypeRefs = 4096;
+        var pEnumerator = new HCORENUM();
+        var typeRefArray = new MdTypeRef[maxTypeRefs];
+        ulong resultCount = 0;
+            
+        fixed (MdTypeRef* pTypeRefArray = typeRefArray)
+        {
+            var hEnumTypeRefs = metaDataImport.EnumTypeRefs(&pEnumerator, pTypeRefArray, maxTypeRefs, &resultCount);
 
+            if (!hEnumTypeRefs.IsOK)
+            {
+                throw new Exception("Enum type refs failed");
+            }
+        
+            for (uint i = 0; i < resultCount; i++)
+            {
+                var typeRef = pTypeRefArray[i];
+                if (!TryGetTypeRefName(typeRef, metaDataImport, out var refTypeName))
+                {
+                    continue;
+                } 
+                
+                if (refTypeName.Equals(typeName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return typeRef;
+                }
+            }
+        }
+
+        throw new Exception($"Failed to get type ref for type '{typeName}'");
+    }
 
     private static unsafe bool TryGetTypeRefName(MdTypeRef typeRef, MetaDataImport metaDataImport, out string typeName)
     {

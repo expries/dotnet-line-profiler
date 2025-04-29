@@ -13,26 +13,43 @@ public class LocalVarSignature
 
         BinaryData = binaryData;
     }
-    
-    public void AddInstanceVariable(Rid typeToken, byte classOrValueTypeToken)
+
+    public static byte[] CreateClassInstanceVariable(Rid classTypeToken)
     {
-        var compressedToken = CompressUnsignedInt(typeToken.Value);
-        var variableSignature = compressedToken.Prepend(classOrValueTypeToken).ToArray();
-        AddLocalVariable(variableSignature);
+        const byte classTypePrefix = 0x12;
+        var compressedToken = CompressUnsignedInt(classTypeToken.Value);
+        return compressedToken.Prepend(classTypePrefix).ToArray();
+    }
+    
+    public static byte[] CreateValueTypeVariable(Rid valueTypeToken)
+    {
+        const byte valueTypePrefix = 0x11;
+        var compressedToken = CompressUnsignedInt(valueTypeToken.Value);
+        return compressedToken.Prepend(valueTypePrefix).ToArray();
     }
 
-    public void AddLocalVariable(byte[] localVariableSignature)
+    public void AddLocalVariables(byte[][] localVariableSignatures)
     {
-        var newLength = BinaryData.Length + localVariableSignature.Length;
+        var byteCountToAdd = localVariableSignatures.Sum(variableSignature => variableSignature.Length);
+        var newLength = BinaryData.Length + byteCountToAdd;
         var newData = new byte[newLength];
+        
         var localsCount = GetVarCount();
-        var newLocalsCount = localsCount + 1;
+        var newLocalsCount = localsCount + localVariableSignatures.Length;
         
         newData[0] = 0x7;
         newData[1] = (byte) newLocalsCount;
         
         Array.Copy(BinaryData, 2, newData, 2, BinaryData.Length - 2);
-        Array.Copy(localVariableSignature, 0, newData, BinaryData.Length, localVariableSignature.Length);
+        var addedBytes = 0;
+        
+        foreach (var localVariableSignature in localVariableSignatures)
+        {
+            var length = localVariableSignature.Length;
+            var destinationIndex = BinaryData.Length + addedBytes;
+            Array.Copy(localVariableSignature, 0, newData, destinationIndex, length);
+            addedBytes += length;
+        }
         
         BinaryData = newData;
     }

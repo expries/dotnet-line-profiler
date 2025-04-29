@@ -2,6 +2,7 @@
 using IlRewriter.Models.Signatures;
 using LineProfiler.Caches;
 using LineProfiler.DebugInfo;
+using LineProfiler.Models;
 using Profiler.Core;
 
 namespace LineProfiler.Instrumentation;
@@ -48,8 +49,7 @@ public static class Callbacks
 
         var assemblyId = new AssemblyId(nAssemblyId);
         var functionId = new FunctionId(nFunctionId);
-        
-        var pdbExists = PdbCache.TryGetModule(assemblyId, out var pdbModule);
+        var pdbExists = PdbCache.TryGetModuleByAssemblyId(assemblyId, out var pdbModule);
 
         if (!pdbExists || pdbModule is null)
         {
@@ -72,49 +72,10 @@ public static class Callbacks
             Console.WriteLine($"No probes found for method assembly id '{assemblyId.Value}' and function id '{functionId.Value}'");
             return;
         }
-        
-        var linesByOffset = new Dictionary<int, List<SourceLine>>();
 
+        var coveredLines = GetCoveredLines(pdbFunction, probes, pArray, length);
 
-        for (var i = 0; i < length; i++)
-        {
-            var probeWasVisited = pArray[i];
-            Console.WriteLine($"[{i}]: {probeWasVisited}");
-
-            if (!probeWasVisited)
-            {
-                continue;
-            }
-            
-            var probe = probes.Values.ToArray()[i];
-            var coveredOffsets = probe.CoveredInstructionOffsets;
-
-            foreach (var offset in coveredOffsets)
-            {
-                /*
-                Console.WriteLine("Offset: " + offset);
-                foreach (var (sequenceOffset, sequenceIterator) in pdbFunction.SequencesByOffset)
-                {
-                    var lineNumbersConcatenated = string.Join(',', sequenceIterator.Lines.Select(l => l.LineNumber));
-                    Console.WriteLine($"{sequenceOffset}: {lineNumbersConcatenated}");
-                }
-                */
-                
-                var sequenceFound = pdbFunction.TryGetSequenceByOffset(offset, out var sequence);
-
-                if (!sequenceFound || sequence is null)
-                {
-                    //Console.WriteLine($"No sequence found for sequence offset {offset}");
-                    continue;
-                }
-                
-                linesByOffset[offset] = sequence.Lines;
-            }
-        }
-
-        var x = linesByOffset.OrderBy(kv => kv.Key).DistinctBy(x => x.Key).ToDictionary();
-
-        foreach (var line in x.Values.SelectMany(v => v))
+        foreach (var line in coveredLines)
         {
             Console.WriteLine($"[{line.LineNumber}]: {string.Join(", ", line.Text)}");
         }
@@ -130,5 +91,32 @@ public static class Callbacks
         if (stringLength < 0) return null;
         var offset = headerOffset + sizeof(int);
         return Marshal.PtrToStringAuto(stringPointer + offset, stringLength);
+    }
+
+    private static unsafe List<SourceLine> GetCoveredLines(
+        PdbFunction pdbFunction, 
+        Dictionary<int, Probe> probes, 
+        bool* visitedProbes, 
+        int length)
+    {
+        var coveredLines = new List<SourceLine>();
+        
+        for (var i = 0; i < length; i++)
+        {
+            var probeWasVisited = visitedProbes[i];
+            Console.WriteLine($"[{i}]: {probeWasVisited}");
+
+            if (!probeWasVisited)
+            {
+                continue;
+            }
+            
+            var probe = probes.Values.ToArray()[i];
+            var offsets = probe.CoveredInstructionOffsets;
+            var lines = pdbFunction.GetSourceLinesByOffsets(offsets);
+            coveredLines.AddRange(lines);
+        }
+        
+        return coveredLines;
     }
 }

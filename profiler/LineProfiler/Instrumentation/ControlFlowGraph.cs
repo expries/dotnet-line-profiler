@@ -17,9 +17,8 @@ public class ControlFlowGraph
         _instructionByOffset = BuildInstructionLookup();
         Blocks = GetBlocks();
         _blockByInstructionOffset = BuildBlockLookup();
-        
+
         PopulatePredecessors();
-        PrintGraph();
     }
 
     private void PrintGraph()
@@ -37,6 +36,7 @@ public class ControlFlowGraph
             var formattedOffsets = string.Join(' ', offsets);
             Console.WriteLine($"{block.StartOffset}: {formattedOffsets}");
         }
+        Console.WriteLine();
     }
 
     private void PrintBlockLinks()
@@ -48,6 +48,7 @@ public class ControlFlowGraph
             var formattedPredecessors = string.Join(' ', predecessorOffsets);
             Console.WriteLine($"{block.StartOffset}: {formattedPredecessors}");
         }
+        Console.WriteLine();
     }
 
     private Dictionary<int, (int Index, Instruction Instruction)> BuildInstructionLookup()
@@ -67,6 +68,7 @@ public class ControlFlowGraph
                 blockByInstructionOffset[instruction.Offset] = block;
             }
         }
+
         return blockByInstructionOffset;
     }
 
@@ -126,8 +128,8 @@ public class ControlFlowGraph
             var block = Blocks[i];
             var successors = new List<BasicBlock>();
             var branchTargets = GetBranchTargets(block.LastInstruction);
-            
-            // Branches
+
+            // Branches;
             foreach (var target in branchTargets)
             {
                 var targetBlock = _blockByInstructionOffset[target.Instruction.Offset];
@@ -161,10 +163,6 @@ public class ControlFlowGraph
         }
     }
 
-
-
-
-
     /// <summary>
     /// Returns all true branch targets for this instruction, with any jump→jump chains collapsed.
     /// </summary>
@@ -174,19 +172,20 @@ public class ControlFlowGraph
         {
             InlineBrTargetOperand ib => [GetInstructionByOffset(instruction.EndOffset + ib.Value)],
             ShortInlineBrTargetOperand sb => [GetInstructionByOffset(instruction.EndOffset + sb.Value)],
-            InlineSwitchOperand sw => ResolveSwitchTargets(sw),
+            InlineSwitchOperand sw => ResolveSwitchTargets(instruction, sw),
             _ => []
         };
     }
 
-    private List<(int Index, Instruction Instruction)> ResolveSwitchTargets(InlineSwitchOperand operand)
+    private List<(int Index, Instruction Instruction)> ResolveSwitchTargets(Instruction instruction,
+        InlineSwitchOperand operand)
     {
         var targets = new List<(int, Instruction)>();
 
         for (var i = 0; i < operand.BranchOffsets.Length; i++)
         {
-            var targetInstruction = operand.Branches[i];
-            var target = GetInstructionByOffset(targetInstruction.Offset);
+            var relativeOffset = operand.BranchOffsets[i];
+            var target = GetInstructionByOffset(instruction.EndOffset + relativeOffset);
             targets.Add(target);
         }
 

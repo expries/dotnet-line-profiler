@@ -13,4 +13,23 @@ public class PdbFunction
     {
         SequencesByOffset[instructionOffset] = sequence;
     }
+
+    public List<SourceLine> GetSourceLinesByOffsets(List<int> offsets)
+    {
+        var coveredLines = new List<SourceLine>();
+
+        foreach (var offset in offsets)
+        {
+            var sequenceFound = TryGetSequenceByOffset(offset, out var sequence);
+
+            if (!sequenceFound || sequence is null)
+            {
+                continue;
+            }
+                
+            coveredLines.AddRange(sequence.Lines);
+        }
+
+        return coveredLines;
+    }
 }

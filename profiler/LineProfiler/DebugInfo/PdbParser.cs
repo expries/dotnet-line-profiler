@@ -43,18 +43,14 @@ public static class PdbParser
         var sourceCode  = ReadSourceCodeFromFile(sourceCodeFilePath);
         var sequence = new PdbSequence(sequencePoint.Source.Name);
 
-        //Console.WriteLine(sequencePoint.Source.Name);
         
         for (var lineNumber = lineStartIdx; lineNumber < lineEndIdx; lineNumber++)
         {
-            //Console.WriteLine("offset: " + sequencePoint.Offset + ", line: " + lineNumber);
             if (lineNumber < 0 || lineNumber >= sourceCode.Length) continue;
             var text = sourceCode[lineNumber - 1];
             var sourceCodeLine = new SourceLine(lineNumber, text);
             sequence.Lines.Add(sourceCodeLine);
         }
-
-        //Console.WriteLine();
         
         return sequence;
     }

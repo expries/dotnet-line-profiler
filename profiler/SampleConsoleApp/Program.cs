@@ -8,13 +8,23 @@ Console.WriteLine(test);
 var activity = new Activity("SampleConsoleApp");
 Activity.Current = activity;
 activity.Start();
+/*
+var methodBytes = File.ReadAllBytes("C:\\Coding\\otel-line-profiler\\profiler\\Release\\2759490519408_140729133787632");
+var methodStream = new MemoryStream(methodBytes);
+var methodReader = new MethodReader(methodStream);
+
+var method = methodReader.ReadFromStream();
+var cfg = new ControlFlowGraph(method.Body.Instructions);
+var cfgParser = new ControlFlowGraphParser(cfg);
+var probes = cfgParser.LocateProbes();
+*/
 
 //Test.IfElseIfElse(0);
 Test.Switch(0, -1);
-Test.Switch(0, 1);
-Test.Switch(1, 1);
-Test.Switch(2, 1);
-Test.Switch(3, 1);
+//Test.Switch(0, 1);
+//Test.Switch(1, 1);
+//Test.Switch(2, 1);
+//Test.Switch(3, 1);
 
 
 /*

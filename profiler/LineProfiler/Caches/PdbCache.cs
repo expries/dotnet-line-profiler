@@ -24,12 +24,12 @@ public static class PdbCache
         }
     }
 
-    public static bool TryGetModule(string moduleName, out PdbModule? module)
+    public static bool TryGetModuleByName(string moduleName, out PdbModule? module)
     {
         return ModulesByName.TryGetValue(moduleName, out module);
     }
     
-    public static bool TryGetModule(AssemblyId assemblyId, out PdbModule? module)
+    public static bool TryGetModuleByAssemblyId(AssemblyId assemblyId, out PdbModule? module)
     {
         return ModulesByAssemblyId.TryGetValue(assemblyId, out module);
     }
@@ -38,6 +38,5 @@ public static class PdbCache
     {
         var moduleName = Path.GetFileNameWithoutExtension(pdbPath);
         ModulesByName[moduleName] = PdbParser.ParsePdbModule(pdbPath);
-        Console.WriteLine($"Caching module {moduleName}");
     }
 }
