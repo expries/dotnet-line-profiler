@@ -2,6 +2,7 @@
 using IlRewriter.Models.Operands;
 using IlRewriter.Models.Signatures;
 using LineProfiler.Caches;
+using LineProfiler.Instrumentation.Metadata;
 using LineProfiler.Models;
 using Profiler.Core;
 
@@ -14,7 +15,7 @@ public static class MethodInstrumentation
         MdTypeRef activityRef,
         MdTypeRef traceId)
     {
-        // variable: 'bool*': which probes have been visited
+        // variable: 'bool*': visited probes
         byte[] arrayPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
 
         // variable 'Activity' (class-instance): current Activity
@@ -61,26 +62,22 @@ public static class MethodInstrumentation
         var instructionOffset = 0;
         instructionOffset += AddInitialization(method, metadata.BoolType, probes.Count, metadata.LocalVarCount);
 
-        var orderedProbes = probes
-            .OrderBy(probe => probe.Key)
-            .ToDictionary();
+        var probeIndices = probes.Keys.ToList();
 
-        var probeIndices = orderedProbes.Keys.ToList();
-
-        for (var i = 0; i < orderedProbes.Count; i++)
+        for (var i = 0; i < probes.Count; i++)
         {
             var probeIndex = probeIndices[i];
-            var probe = orderedProbes[probeIndex];
+            var probe = probes[probeIndex];
 
             switch (probe.Type)
             {
                 case ProbeType.End:
                     instructionOffset += AddProbeForBranchEnd(
-                        method, orderedProbes, i, probeIndex, metadata.LocalVarCount, instructionOffset);
+                        method, probes, i, probeIndex, metadata.LocalVarCount, instructionOffset);
                     break;
                 case ProbeType.Return:
-                    instructionOffset += AddProbeForReturnStatement(method, orderedProbes, i, probeIndex,
-                        instructionOffset, metadata);
+                    instructionOffset += AddProbeForReturnStatement(
+                        method, probes, i, probeIndex, instructionOffset, metadata);
                     break;
             }
         }
@@ -129,11 +126,11 @@ public static class MethodInstrumentation
         int instructionOffset,
         InstrumentationMetadata metadata)
     {
-        var probePointer = new UIntPtr(Callbacks.ProbePointer);
+        var processProbesPointer = new UIntPtr(Callbacks.ProcessProbesPointer);
 
         var probeInstructions = new InstructionBuilder()
             .WriteTrueToArray(arrayIndex, metadata.LocalVarCount)
-            .AddMethodCall(probePointer, metadata, probes.Count)
+            .AddMethodCall(processProbesPointer, metadata, probes.Count)
             .Build();
 
         var probe = probes[probeIndex];
@@ -147,8 +144,10 @@ public static class MethodInstrumentation
     private static void RewriteBranchesIfSet(Probe probe, List<Instruction> probeInstructions)
     {
         var startOfProbe = probeInstructions[0];
-
-        foreach (var branch in probe.BranchesToRewrite) RewriteTarget(branch, startOfProbe);
+        foreach (var branch in probe.BranchesToRewrite)
+        {
+            RewriteTarget(branch, startOfProbe);
+        }
     }
 
     private static void RewriteTarget(Probe.BranchToRewrite branch, Instruction target)

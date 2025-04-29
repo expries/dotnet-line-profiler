@@ -24,10 +24,10 @@ public static class Callbacks
         // Trace id
         CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR);
 
-    public static unsafe delegate* unmanaged<bool*, int, nint, nint, IntPtr, void> ProbePointer { get; } = &Probe;
+    public static unsafe delegate* unmanaged<bool*, int, nint, nint, IntPtr, void> ProcessProbesPointer { get; } = &ProcessProbes;
 
     [UnmanagedCallersOnly]
-    public static unsafe void Probe(
+    public static unsafe void ProcessProbes(
         bool* pArray,
         int length,
         nint nAssemblyId,

@@ -7,6 +7,7 @@ using IlRewriter.Writers;
 using LineProfiler.Caches;
 using LineProfiler.Helpers;
 using LineProfiler.Instrumentation;
+using LineProfiler.Instrumentation.Metadata;
 using NativeObjects;
 using Profiler.Core;
 

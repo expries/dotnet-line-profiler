@@ -9,6 +9,7 @@ public class Instruction
     public int EndOffset => Offset + SizeInBytes;
     public OpCode OpCode { get; set; }
     public Operand? Operand { get; set; }
+    public bool IsReturn => OpCode == OpCodes.OpCodes.Ret;
 
     public bool IsUnconditionalJump => OpCode == OpCodes.OpCodes.Br ||
                                        OpCode == OpCodes.OpCodes.Br_S ||

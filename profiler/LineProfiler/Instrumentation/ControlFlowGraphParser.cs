@@ -1,5 +1,4 @@
 using IlRewriter.Models;
-using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
 using LineProfiler.Models;
 
@@ -28,39 +27,51 @@ public class ControlFlowGraphParser
         var probes = new Dictionary<int, Probe>();
         foreach (var block in _graph.Blocks)
         {
-            if (block.LastInstruction.OpCode == OpCodes.Ret)
-            {
-                var returnInstruction = GetInstructionByOffset(block.LastInstruction.Offset);
-                var targetsToRewrite = GetJumpsTargetingLastInstruction(block);
-
-                probes[returnInstruction.Index] = new Probe
-                {
-                    Type = ProbeType.Return,
-                    BranchesToRewrite = targetsToRewrite,
-                    CoveredInstructionOffsets = block.GetCoveredInstructionOffsets()
-                };
-            }
-
-            if (block.Predecessors.Count <= 1) continue;
-
-            foreach (var predecessor in block.Predecessors)
-            {
-                if (predecessor.StartOffset == 0) continue;
-
-                var last = GetInstructionByOffset(predecessor.LastInstruction.Offset);
-                var targetsToRewrite = GetJumpsTargetingLastInstruction(predecessor);
-                var coveredOffsets = predecessor.GetCoveredInstructionOffsets();
-                probes[last.Index] = new Probe
-                {
-                    Type = ProbeType.End,
-                    BranchesToRewrite = targetsToRewrite,
-                    CoveredInstructionOffsets = coveredOffsets
-                };
-            }
+            LocateProbesInBlock(block, probes);
         }
 
-        var orderedProbes = probes.OrderBy(p => p.Key).ToDictionary();
-        return orderedProbes;
+        return probes
+            .OrderBy(p => p.Key)
+            .ToDictionary();
+    }
+
+    private void LocateProbesInBlock(BasicBlock block, Dictionary<int, Probe> probes)
+    {
+        if (block.LastInstruction.IsReturn)
+        {
+            var returnInstruction = GetInstructionByOffset(block.LastInstruction.Offset);
+            var targetsToRewrite = GetJumpsTargetingLastInstruction(block);
+
+            probes[returnInstruction.Index] = new Probe
+            {
+                Type = ProbeType.Return,
+                BranchesToRewrite = targetsToRewrite,
+                CoveredInstructionOffsets = block.GetCoveredInstructionOffsets()
+            };
+        }
+
+        if (block.Predecessors.Count <= 1) return;
+
+        foreach (var predecessor in block.Predecessors)
+        {
+            LocateProbesInPredecessor(predecessor, probes);
+        }
+    }
+
+    private void LocateProbesInPredecessor(BasicBlock predecessor, Dictionary<int, Probe> probes)
+    {
+        if (predecessor.StartOffset == 0) return;
+
+        var last = GetInstructionByOffset(predecessor.LastInstruction.Offset);
+        var targetsToRewrite = GetJumpsTargetingLastInstruction(predecessor);
+        var coveredOffsets = predecessor.GetCoveredInstructionOffsets();
+
+        probes[last.Index] = new Probe
+        {
+            Type = ProbeType.End,
+            BranchesToRewrite = targetsToRewrite,
+            CoveredInstructionOffsets = coveredOffsets
+        };
     }
 
     private (int Index, Instruction Instruction) GetInstructionByOffset(int targetOffset)
@@ -72,23 +83,32 @@ public class ControlFlowGraphParser
     private static List<Probe.BranchToRewrite> GetJumpsTargetingLastInstruction(BasicBlock block)
     {
         if (block.Instructions.Count > 1) return [];
-
-        var previousInstructions = block.Predecessors.Select(preBlock => preBlock.LastInstruction);
-        var previousJumps = previousInstructions.Where(instruction => instruction.IsJump);
-
-        return previousJumps.Select(instruction =>
-            {
-                if (instruction.Operand is not InlineSwitchOperand switchOperand)
-                    return new Probe.BranchToRewrite(instruction);
-
-                var switchIndex = switchOperand.Branches
-                    .ToList()
-                    .FindIndex(b => b.Offset == block.LastInstruction.Offset);
-
-                return switchIndex < 0
-                    ? new Probe.BranchToRewrite(instruction)
-                    : new Probe.BranchToRewrite(instruction, switchIndex);
-            })
+        
+        return block.Predecessors
+            .Select(predecessor => predecessor.LastInstruction)
+            .Where(instruction => instruction.IsJump)
+            .Select(instruction => CreateBranchToRewrite(instruction, block.LastInstruction))
             .ToList();
+    }
+
+    private static Probe.BranchToRewrite CreateBranchToRewrite(Instruction from, Instruction to)
+    {
+        // Simple branch: rewrite one target
+        if (from.Operand is not InlineSwitchOperand switchOperand)
+        {
+            return new Probe.BranchToRewrite(from);
+        }
+
+        // For switches: find branch of switch statement to rewrite
+        var switchIndex = switchOperand.Branches
+            .ToList()
+            .FindIndex(instruction => instruction.Offset == to.Offset);
+
+        if (switchIndex < 0)
+        {
+            return new Probe.BranchToRewrite(from);
+        }
+
+        return new Probe.BranchToRewrite(from, switchIndex);
     }
 }

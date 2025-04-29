@@ -1,11 +1,12 @@
 using IlRewriter.Models;
-using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
 
 namespace LineProfiler.Instrumentation;
 
 public class ControlFlowGraph
 {
+    public List<BasicBlock> Blocks { get; set; }
+    public List<Instruction> Instructions { get; set; }
     private readonly Dictionary<int, BasicBlock> _blockByInstructionOffset;
     private readonly Dictionary<int, (int Index, Instruction Instruction)> _instructionByOffset;
 
@@ -15,12 +16,8 @@ public class ControlFlowGraph
         _instructionByOffset = BuildInstructionLookup();
         Blocks = GetBlocks();
         _blockByInstructionOffset = BuildBlockLookup();
-
         PopulatePredecessors();
     }
-
-    public List<BasicBlock> Blocks { get; set; }
-    public List<Instruction> Instructions { get; set; }
 
     private void PrintGraph()
     {
@@ -82,14 +79,16 @@ public class ControlFlowGraph
             var instruction = Instructions[i];
 
             // a) any branch target
-            foreach (var target in GetBranchTargets(instruction)) boundaries.Add(target.Index);
+            foreach (var target in GetBranchTargets(instruction))
+            {
+                boundaries.Add(target.Index);
+            }
 
             // b) any instruction immediately after a branch or return
-            if (instruction.IsJump ||
-                instruction.OpCode == OpCodes.Ret ||
-                instruction.OpCode == OpCodes.Switch)
-                if (i + 1 < count)
-                    boundaries.Add(i + 1);
+            if (instruction.IsJump || instruction.IsReturn && i + 1 < count)
+            {
+                boundaries.Add(i + 1);
+            }
         }
 
         // 2) Sort them to know each block’s start and end
@@ -138,20 +137,28 @@ public class ControlFlowGraph
             var nextBlock = Blocks[i + 1];
 
             // Fall through:
-            if (block.LastInstruction.OpCode != OpCodes.Ret && !block.LastInstruction.IsUnconditionalJump)
+            if (block.LastInstruction is { IsReturn: false, IsUnconditionalJump: false })
+            {
                 successors.Add(nextBlock);
+            }
 
             successorsByBlock[block] = successors;
         }
 
-        foreach (var (block, successors) in successorsByBlock)
-        foreach (var successor in successors)
-            successor.Predecessors.Add(block);
+        SetPredecessors(successorsByBlock);
     }
 
-    /// <summary>
-    ///     Returns all true branch targets for this instruction, with any jump→jump chains collapsed.
-    /// </summary>
+    private static void SetPredecessors(Dictionary<BasicBlock, List<BasicBlock>> successorsByBlock)
+    {
+        foreach (var (block, successors) in successorsByBlock)
+        {
+            foreach (var successor in successors)
+            {
+                successor.Predecessors.Add(block);
+            }
+        }
+    }
+
     private List<(int Index, Instruction Instruction)> GetBranchTargets(Instruction instruction)
     {
         return instruction.Operand switch
