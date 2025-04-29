@@ -37,7 +37,8 @@ public class ControlFlowGraphParser
                 probes[returnInstruction.Index] = new Probe
                 {
                     Type = ProbeType.Return,
-                    BranchesToRewrite = targetsToRewrite
+                    BranchesToRewrite = targetsToRewrite,
+                    CoveredInstructionOffsets = block.GetCoveredInstructionOffsets()
                 };
             }
 
@@ -56,7 +57,8 @@ public class ControlFlowGraphParser
                 probes[last.Index] = new Probe
                 {
                     Type = ProbeType.End,
-                    BranchesToRewrite = targetsToRewrite
+                    BranchesToRewrite = targetsToRewrite,
+                    CoveredInstructionOffsets = block.GetCoveredInstructionOffsets()
                 };
             }
         }

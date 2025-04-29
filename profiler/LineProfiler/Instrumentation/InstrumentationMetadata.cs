@@ -1,6 +1,6 @@
 using Profiler.Core;
 
-namespace LineProfiler.Models;
+namespace LineProfiler.Instrumentation;
 
 public record InstrumentationMetadata
 {

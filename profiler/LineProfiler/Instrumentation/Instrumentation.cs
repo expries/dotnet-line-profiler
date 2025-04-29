@@ -1,5 +1,4 @@
-﻿using System.Net;
-using IlRewriter.Models;
+﻿using IlRewriter.Models;
 using IlRewriter.Models.Operands;
 using IlRewriter.Models.Signatures;
 using LineProfiler.Models;

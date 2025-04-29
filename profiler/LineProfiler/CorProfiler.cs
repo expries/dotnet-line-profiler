@@ -36,7 +36,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
 
         var hSetEventMask = ICorProfilerInfo11.SetEventMask(eventMask);
         
-        const string directoryWithPdbFiles = "C:\\Coding\\profiler\\SampleConsoleApp\\obj\\Debug\\net8.0";
+        const string directoryWithPdbFiles = "C:\\Coding\\otel-line-profiler\\profiler\\SampleConsoleApp\\obj\\Debug\\net8.0";
         var pdbFiles = ScanDirectoryForPdbFiles(directoryWithPdbFiles);
         PdbCache.Initialize(pdbFiles);
         

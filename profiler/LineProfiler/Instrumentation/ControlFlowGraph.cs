@@ -1,9 +1,8 @@
 using IlRewriter.Models;
 using IlRewriter.Models.OpCodes;
 using IlRewriter.Models.Operands;
-using LineProfiler.Caches;
 
-namespace LineProfiler.Models;
+namespace LineProfiler.Instrumentation;
 
 public class ControlFlowGraph
 {
