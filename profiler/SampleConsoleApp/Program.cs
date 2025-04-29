@@ -9,6 +9,14 @@ var activity = new Activity("SampleConsoleApp");
 Activity.Current = activity;
 activity.Start();
 
+//Test.IfElseIfElse(0);
+Test.Switch(0, -1);
+Test.Switch(0, 1);
+Test.Switch(1, 1);
+Test.Switch(2, 1);
+Test.Switch(3, 1);
+
+
 /*
 const string pdbPath = @"C:\Coding\profiler\SampleConsoleApp\bin\Debug\net8.0\SampleConsoleApp.pdb";
 var functions = PdbParser.ParsePdbMOdule(pdbPath);
@@ -28,7 +36,7 @@ Console.WriteLine("TraceID: " + Activity.Current.TraceId);
 
 //Test.Switch(0, -1);
 
-Test.If(0);
+//Test.If(0);
 
 /*
 

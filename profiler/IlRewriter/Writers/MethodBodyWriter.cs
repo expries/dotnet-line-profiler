@@ -11,21 +11,13 @@ public class MethodBodyWriter
     
     public long WriteToStream(MethodBody body, Stream stream)
     {
-        var instructionOffset = 0;
-
-        foreach (var instruction in body.Instructions)
-        {
-            instruction.Offset = instructionOffset;
-            instructionOffset += instruction.SizeInBytes;
-        }
-        
-        CorrectBranchingOffsets(body);
-        
-        MethodPrinter.PrintMethodBody(body);
+        var instructions = PopulateInstructionOffsets(body.Instructions);
+        CorrectBranchingOffsets(instructions);
+        instructions = PopulateInstructionOffsets(instructions);
         
         var startPosition = stream.Position;
 
-        foreach (var instruction in body.Instructions)
+        foreach (var instruction in instructions)
         {
             _instructionWriter.WriteToStream(instruction, stream);
         }
@@ -37,37 +29,56 @@ public class MethodBodyWriter
         return instructionEndPosition - startPosition;
     }
     
-    private static void CorrectBranchingOffsets(MethodBody body)
+    private static void CorrectBranchingOffsets(List<Instruction> instructions)
     {
-        foreach (var instruction in body.Instructions)
+        foreach (var instruction in instructions)
         {
             switch (instruction.Operand)
             {
                 case InlineBrTargetOperand operand:
                     if (operand.Instruction is null) continue;
                     operand.Value = operand.Instruction.Offset - instruction.EndOffset;
-                    continue;
+                    break;
                 case ShortInlineBrTargetOperand operand:
-                    if (operand.Instruction is null) continue;
+                    if (operand.Instruction is null) return;
                     var offset = operand.Instruction.Offset - instruction.EndOffset;
-                    
-                    try
-                    {
-                        operand.Value = Convert.ToSByte(offset);
-                    }
-                    catch (OverflowException)
-                    {
-                        instruction.OpCode = OpCodes.Br;
-                        instruction.Operand = new InlineBrTargetOperand
-                        {
-                            Instruction = instruction, 
-                            Offset = operand.Offset, 
-                            Value = offset
-                        };
-                    }
-
-                    continue;
+                    CorrectBranchingOffset(instruction, operand, offset);
+                    break;
             }
         }
+    }
+
+    private static void CorrectBranchingOffset(
+        Instruction instruction, 
+        ShortInlineBrTargetOperand operand, 
+        int offset)
+    {
+                    
+        try
+        {
+            operand.Value = Convert.ToSByte(offset);
+        }
+        catch (OverflowException)
+        {
+            instruction.OpCode = OpCodes.Br;
+            instruction.Operand = new InlineBrTargetOperand
+            {
+                Instruction = operand.Instruction, 
+                Value = offset
+            };
+        }
+    }
+
+    private static List<Instruction> PopulateInstructionOffsets(List<Instruction> instructions)
+    {
+        var offset = 0;
+        
+        foreach (var instruction in instructions)
+        {
+            instruction.Offset = offset;
+            offset += instruction.SizeInBytes;
+        }
+        
+        return instructions;
     }
 }

@@ -1,4 +1,5 @@
-﻿using IlRewriter.Models;
+﻿using System.Net;
+using IlRewriter.Models;
 using IlRewriter.Models.Operands;
 using IlRewriter.Models.Signatures;
 using LineProfiler.Models;
@@ -37,28 +38,32 @@ public static class Instrumentation
     {
         var instructionOffset = 0;
         instructionOffset += AddInitialization(method, metadata.BoolType, probes.Count, metadata.LocalVarCount);
+
+        var orderedProbes = probes
+            .OrderBy(probe => probe.Key)
+            .ToDictionary();
         
-        var probeIndices = probes.Keys.ToList();
+        var probeIndices = orderedProbes.Keys.ToList();
         
-        for (var i = 0; i < probes.Count; i++)
+        for (var i = 0; i < orderedProbes.Count; i++)
         {
             var probeIndex = probeIndices[i];
-            var probe = probes[probeIndex];
+            var probe = orderedProbes[probeIndex];
             
             switch (probe.Type)
             {
                 case ProbeType.End:
+                    Console.WriteLine("adding end probe: " + probe.Type + " at " + probeIndex);
                     instructionOffset += AddProbeForBranchEnd(
-                        method, probes,i,  probeIndex, metadata.LocalVarCount, instructionOffset);
+                        method, orderedProbes,i,  probeIndex, metadata.LocalVarCount, instructionOffset);
                     break;
                 case ProbeType.Return:
-                    instructionOffset += AddProbeForReturnStatement(
-                        method, probes, i, probeIndex, metadata.LocalVarCount, instructionOffset, metadata);
+                    instructionOffset += AddProbeForReturnStatement(method, orderedProbes, i, probeIndex, metadata.LocalVarCount, instructionOffset, metadata);
                     break;
             }
         }
 
-        const int instrumentationStackSize = 6;
+        const int instrumentationStackSize = 20;
         method.Header.MaxStack = (ushort) (method.Header.MaxStack + instrumentationStackSize);
         method.Header.LocalVarSigToken = (uint) metadata.LocalVarSignature.Value;
         
@@ -127,24 +132,29 @@ public static class Instrumentation
     {
         var startOfProbe = probeInstructions[0];
 
-        foreach (var instruction in probe.BranchesToRewrite)
+        foreach (var branch in probe.BranchesToRewrite)
         {
-            ChangeTarget(instruction, startOfProbe);
+            RewriteTarget(branch, startOfProbe);
         }   
     }
     
-    private static void ChangeTarget(Instruction from, Instruction to)
+    private static void RewriteTarget(Probe.BranchToRewrite branch, Instruction target)
     {
-        switch (from.Operand)
+        switch (branch.Instruction.Operand)
         {
             case InlineBrTargetOperand:
-                from.Operand = new InlineBrTargetOperand { Instruction = to };
+                Console.WriteLine(branch.Instruction.Offset + " -> " + target.Offset);
+                branch.Instruction.Operand = new InlineBrTargetOperand { Instruction = target };
                 return;
             case ShortInlineBrTargetOperand:
-                from.Operand = new ShortInlineBrTargetOperand { Instruction = to };
+                Console.WriteLine(branch.Instruction.Offset + " -> " + target.Offset);
+                branch.Instruction.Operand = new ShortInlineBrTargetOperand { Instruction = target };
                 return;
-            case InlineSwitchOperand:
-                throw new NotImplementedException("Switch rewriting not implemented");
+            case InlineSwitchOperand switchOperand:
+                var switchIndex = branch.SwitchIndex;
+                Console.WriteLine(branch.Instruction.Offset + "(" + switchIndex + ") -> " + target.Offset);
+                if (!switchIndex.HasValue) return;
+                switchOperand.Branches[switchIndex.Value] = target;
                 return;
         }
     }

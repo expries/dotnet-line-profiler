@@ -227,16 +227,27 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
             LocalVarCount = localVarCount,
             LocalVarSignature = mdLocalSignature,
         };
-
-        var cfg = new ControlFlowGraph(method.Body.Instructions);
-        ProbeCache.AddMethodProbes(assemblyId, functionId, cfg.Probes);
         
-        var probeTypes = cfg.Probes.Values.Select(p => p.Type.ToString()).ToArray();
+        var probes = GetProbes(assemblyId, functionId, method);
+        var probeTypes = probes.Values.Select(p => p.Type.ToString()).ToArray();
         Console.WriteLine($"Adding {probeTypes.Length} probes to method: " + string.Join(',', probeTypes));
+        
         var originalInstructionCount = method.Body.Instructions.Count;
-        var instrumentedMethod = Instrumentation.Instrumentation.InstrumentMethod(method, cfg.Probes, metadata);
+        var instrumentedMethod = Instrumentation.Instrumentation.InstrumentMethod(method, probes, metadata);
+        
         Console.WriteLine($"Instrumented method instruction count: {instrumentedMethod.Body.Instructions.Count} (originally: {originalInstructionCount})");
+        
         return instrumentedMethod;
+    }
+    
+    private static Dictionary<int, Probe> GetProbes(
+        AssemblyId assemblyId, FunctionId functionId, Method method)
+    {
+        var cfg = new ControlFlowGraph(method.Body.Instructions);
+        var parser = new ControlFlowGraphParser(cfg);
+        var probes = parser.LocateProbes();
+        ProbeCache.AddMethodProbes(assemblyId, functionId, probes);
+        return probes;
     }
 
     protected override HResult Shutdown()

@@ -122,11 +122,9 @@ public class InstructionReader : IlReader<Instruction>
     private InlineBrTargetOperand ReadInlineBrTargetOperand()
     {
         var value = ReadInt32();
-        var offset = value + Offset;
         return new InlineBrTargetOperand
         {
             Value = value,
-            Offset = offset,
         };
     }
     
