@@ -3,14 +3,13 @@ using IlRewriter.Models.Operands;
 
 namespace IlRewriter.Models;
 
-
 public class Instruction
 {
     public int Offset { get; set; }
     public int EndOffset => Offset + SizeInBytes;
     public OpCode OpCode { get; set; }
-    public Operand? Operand { get; set; } 
-    
+    public Operand? Operand { get; set; }
+
     public bool IsUnconditionalJump => OpCode == OpCodes.OpCodes.Br ||
                                        OpCode == OpCodes.OpCodes.Br_S ||
                                        OpCode == OpCodes.OpCodes.Leave ||
@@ -28,9 +27,9 @@ public class Instruction
                           OpCode == OpCodes.OpCodes.Bgt_Un_S || OpCode == OpCodes.OpCodes.Ble_Un ||
                           OpCode == OpCodes.OpCodes.Ble_Un_S || OpCode == OpCodes.OpCodes.Ble_Un_S ||
                           OpCode == OpCodes.OpCodes.Brfalse || OpCode == OpCodes.OpCodes.Brfalse_S ||
-                          OpCode == OpCodes.OpCodes.Brtrue || OpCode == OpCodes.OpCodes.Brtrue_S || 
+                          OpCode == OpCodes.OpCodes.Brtrue || OpCode == OpCodes.OpCodes.Brtrue_S ||
                           OpCode == OpCodes.OpCodes.Switch;
-    
+
     public int SizeInBytes
     {
         get

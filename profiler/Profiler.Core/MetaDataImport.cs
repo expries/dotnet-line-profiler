@@ -49,7 +49,8 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.EnumTypeDefs(phEnum, rTypeDefs, cMax, pcTypeDefs);
     }
 
-    public unsafe HResult EnumInterfaceImpls(HCORENUM* phEnum, MdTypeDef td, MdInterfaceImpl* rImpls, uint cMax, uint* pcImpls)
+    public unsafe HResult EnumInterfaceImpls(HCORENUM* phEnum, MdTypeDef td, MdInterfaceImpl* rImpls, uint cMax,
+        uint* pcImpls)
     {
         return _impl.EnumInterfaceImpls(phEnum, td, rImpls, cMax, pcImpls);
     }
@@ -77,14 +78,12 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.GetModuleFromScope(out pmd);
     }
 
-    public unsafe (HResult result, string typeName, int typeDefFlags, MdToken extends) GetTypeDefProps(MdTypeDef typeDef)
+    public unsafe (HResult result, string typeName, int typeDefFlags, MdToken extends) GetTypeDefProps(
+        MdTypeDef typeDef)
     {
         var result = GetTypeDefProps(typeDef, Span<char>.Empty, out var length, out _, out _);
 
-        if (!result.IsOK)
-        {
-            return (result, string.Empty, 0, default);
-        }
+        if (!result.IsOK) return (result, string.Empty, 0, default);
 
         Span<char> buffer = stackalloc char[(int)length];
 
@@ -93,11 +92,13 @@ public struct MetaDataImport(IntPtr ptr)
         return (result, buffer.WithoutNullTerminator(), typeDefFlags, extends);
     }
 
-    public unsafe HResult GetTypeDefProps(MdTypeDef typeDef, Span<char> typeName, out uint pchTypeDef, out int pdwTypeDefFlags, out MdToken ptkExtends)
+    public unsafe HResult GetTypeDefProps(MdTypeDef typeDef, Span<char> typeName, out uint pchTypeDef,
+        out int pdwTypeDefFlags, out MdToken ptkExtends)
     {
         fixed (char* c = typeName)
         {
-            return _impl.GetTypeDefProps(typeDef, c, (uint)typeName.Length, out pchTypeDef, out pdwTypeDefFlags, out ptkExtends);
+            return _impl.GetTypeDefProps(typeDef, c, (uint)typeName.Length, out pchTypeDef, out pdwTypeDefFlags,
+                out ptkExtends);
         }
     }
 
@@ -106,7 +107,8 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.GetInterfaceImplProps(iiImpl, out pClass, out ptkIface);
     }
 
-    public unsafe HResult GetTypeRefProps(MdTypeRef tr, out MdToken* ptkResolutionScope, char* szName, uint cchName, out uint pchName)
+    public unsafe HResult GetTypeRefProps(MdTypeRef tr, out MdToken* ptkResolutionScope, char* szName, uint cchName,
+        out uint pchName)
     {
         return _impl.GetTypeRefProps(tr, out ptkResolutionScope, szName, cchName, out pchName);
     }
@@ -121,17 +123,20 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.EnumMembers(phEnum, cl, rMembers, cMax, out pcTokens);
     }
 
-    public unsafe HResult EnumMembersWithName(HCORENUM* phEnum, MdTypeDef cl, char* szName, MdToken* rMembers, uint cMax, out uint pcTokens)
+    public unsafe HResult EnumMembersWithName(HCORENUM* phEnum, MdTypeDef cl, char* szName, MdToken* rMembers,
+        uint cMax, out uint pcTokens)
     {
         return _impl.EnumMembersWithName(phEnum, cl, szName, rMembers, cMax, out pcTokens);
     }
 
-    public unsafe HResult EnumMethods(HCORENUM* phEnum, MdTypeDef cl, MdMethodDef* rMethods, uint cMax, out uint pcTokens)
+    public unsafe HResult EnumMethods(HCORENUM* phEnum, MdTypeDef cl, MdMethodDef* rMethods, uint cMax,
+        out uint pcTokens)
     {
         return _impl.EnumMethods(phEnum, cl, rMethods, cMax, out pcTokens);
     }
 
-    public unsafe HResult EnumMethodsWithName(HCORENUM* phEnum, MdTypeDef cl, char* szName, MdMethodDef* rMethods, uint cMax, out uint pcTokens)
+    public unsafe HResult EnumMethodsWithName(HCORENUM* phEnum, MdTypeDef cl, char* szName, MdMethodDef* rMethods,
+        uint cMax, out uint pcTokens)
     {
         return _impl.EnumMethodsWithName(phEnum, cl, szName, rMethods, cMax, out pcTokens);
     }
@@ -141,27 +146,32 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.EnumFields(phEnum, cl, rFields, cMax, out pcTokens);
     }
 
-    public unsafe HResult EnumFieldsWithName(HCORENUM* phEnum, MdTypeDef cl, char* szName, MdFieldDef* rFields, uint cMax, out uint pcTokens)
+    public unsafe HResult EnumFieldsWithName(HCORENUM* phEnum, MdTypeDef cl, char* szName, MdFieldDef* rFields,
+        uint cMax, out uint pcTokens)
     {
         return _impl.EnumFieldsWithName(phEnum, cl, szName, rFields, cMax, out pcTokens);
     }
 
-    public unsafe HResult EnumParams(HCORENUM* phEnum, MdMethodDef mb, MdParamDef* rParams, uint cMax, out uint pcTokens)
+    public unsafe HResult EnumParams(HCORENUM* phEnum, MdMethodDef mb, MdParamDef* rParams, uint cMax,
+        out uint pcTokens)
     {
         return _impl.EnumParams(phEnum, mb, rParams, cMax, out pcTokens);
     }
 
-    public unsafe HResult EnumMemberRefs(HCORENUM* phEnum, MdToken tkParent, MdMemberRef* rMemberRefs, uint cMax, out uint pcTokens)
+    public unsafe HResult EnumMemberRefs(HCORENUM* phEnum, MdToken tkParent, MdMemberRef* rMemberRefs, uint cMax,
+        out uint pcTokens)
     {
         return _impl.EnumMemberRefs(phEnum, tkParent, rMemberRefs, cMax, out pcTokens);
     }
 
-    public unsafe HResult EnumMethodImpls(HCORENUM* phEnum, MdTypeDef td, MdToken* rMethodBody, MdToken* rMethodDecl, uint cMax, out uint pcTokens)
+    public unsafe HResult EnumMethodImpls(HCORENUM* phEnum, MdTypeDef td, MdToken* rMethodBody, MdToken* rMethodDecl,
+        uint cMax, out uint pcTokens)
     {
         return _impl.EnumMethodImpls(phEnum, td, rMethodBody, rMethodDecl, cMax, out pcTokens);
     }
 
-    public unsafe HResult EnumPermissionSets(HCORENUM* phEnum, MdToken tk, int dwActions, MdPermission* rPermission, uint cMax, out uint pcTokens)
+    public unsafe HResult EnumPermissionSets(HCORENUM* phEnum, MdToken tk, int dwActions, MdPermission* rPermission,
+        uint cMax, out uint pcTokens)
     {
         return _impl.EnumPermissionSets(phEnum, tk, dwActions, rPermission, cMax, out pcTokens);
     }
@@ -181,41 +191,47 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.FindField(td, szName, pvSigBlob, cbSigBlob, out pmb);
     }
 
-    public unsafe HResult FindMemberRef(MdTypeRef td, char* szName, nint* pvSigBlob, uint cbSigBlob, out MdMemberRef pmr)
+    public unsafe HResult FindMemberRef(MdTypeRef td, char* szName, nint* pvSigBlob, uint cbSigBlob,
+        out MdMemberRef pmr)
     {
         return _impl.FindMemberRef(td, szName, pvSigBlob, cbSigBlob, out pmr);
     }
 
     public unsafe (HResult result, MethodProperties properties) GetMethodProps(MdMethodDef methodDef)
     {
-        var result = GetMethodProps(methodDef, out _, Span<char>.Empty, out var length, out _, out _, out _, out _, out _);
+        var result = GetMethodProps(methodDef, out _, Span<char>.Empty, out var length, out _, out _, out _, out _,
+            out _);
 
-        if (!result)
-        {
-            return (result, default);
-        }
+        if (!result) return (result, default);
 
         Span<char> name = stackalloc char[(int)length];
 
-        result = GetMethodProps(methodDef, out var @class, name, out _, out var attributes, out var signature, out var signatureLength, out var rva, out var implementationFlags);
+        result = GetMethodProps(methodDef, out var @class, name, out _, out var attributes, out var signature,
+            out var signatureLength, out var rva, out var implementationFlags);
 
-        return (result, new(@class, name.WithoutNullTerminator(), attributes, signature, (int)signatureLength, rva, implementationFlags));
+        return (result,
+            new MethodProperties(@class, name.WithoutNullTerminator(), attributes, signature, (int)signatureLength, rva,
+                implementationFlags));
     }
 
-    public unsafe HResult GetMethodProps(MdMethodDef mb, out MdTypeDef pClass, Span<char> name, out uint pchMethod, out int pdwAttr, out byte* ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRva, out int pdwImplFlags)
+    public unsafe HResult GetMethodProps(MdMethodDef mb, out MdTypeDef pClass, Span<char> name, out uint pchMethod,
+        out int pdwAttr, out byte* ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRva, out int pdwImplFlags)
     {
         fixed (char* c = name)
         {
-            return _impl.GetMethodProps(mb, out pClass, c, (uint)name.Length, out pchMethod, out pdwAttr, out ppvSigBlob, out pcbSigBlob, out pulCodeRva, out pdwImplFlags);
+            return _impl.GetMethodProps(mb, out pClass, c, (uint)name.Length, out pchMethod, out pdwAttr,
+                out ppvSigBlob, out pcbSigBlob, out pulCodeRva, out pdwImplFlags);
         }
     }
 
-    public unsafe HResult GetMemberRefProps(MdMemberRef mr, out MdToken ptk, char* szMember, uint cchMember, out uint pchMember, out nint* ppvSigBlob, out uint pbSig)
+    public unsafe HResult GetMemberRefProps(MdMemberRef mr, out MdToken ptk, char* szMember, uint cchMember,
+        out uint pchMember, out nint* ppvSigBlob, out uint pbSig)
     {
         return _impl.GetMemberRefProps(mr, out ptk, szMember, cchMember, out pchMember, out ppvSigBlob, out pbSig);
     }
 
-    public unsafe HResult EnumProperties(HCORENUM* phEnum, MdTypeDef td, MdProperty* rProperties, uint cMax, out uint pcProperties)
+    public unsafe HResult EnumProperties(HCORENUM* phEnum, MdTypeDef td, MdProperty* rProperties, uint cMax,
+        out uint pcProperties)
     {
         return _impl.EnumProperties(phEnum, td, rProperties, cMax, out pcProperties);
     }
@@ -225,12 +241,16 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.EnumEvents(phEnum, td, rEvents, cMax, out pcEvents);
     }
 
-    public unsafe HResult GetEventProps(MdEvent ev, MdTypeDef* pClass, char* szEvent, uint cchEvent, uint* pchEvent, int* pdwEventFlags, MdToken* ptkEventType, out MdMethodDef pmdAddOn, out MdMethodDef pmdRemoveOn, out MdMethodDef pmdFire, out MdMethodDef* rmdOtherMethod, uint cMax, out uint pcOtherMethod)
+    public unsafe HResult GetEventProps(MdEvent ev, MdTypeDef* pClass, char* szEvent, uint cchEvent, uint* pchEvent,
+        int* pdwEventFlags, MdToken* ptkEventType, out MdMethodDef pmdAddOn, out MdMethodDef pmdRemoveOn,
+        out MdMethodDef pmdFire, out MdMethodDef* rmdOtherMethod, uint cMax, out uint pcOtherMethod)
     {
-        return _impl.GetEventProps(ev, pClass, szEvent, cchEvent, pchEvent, pdwEventFlags, ptkEventType, out pmdAddOn, out pmdRemoveOn, out pmdFire, out rmdOtherMethod, cMax, out pcOtherMethod);
+        return _impl.GetEventProps(ev, pClass, szEvent, cchEvent, pchEvent, pdwEventFlags, ptkEventType, out pmdAddOn,
+            out pmdRemoveOn, out pmdFire, out rmdOtherMethod, cMax, out pcOtherMethod);
     }
 
-    public unsafe HResult EnumMethodSemantics(HCORENUM* phEnum, MdMethodDef mb, out MdToken* rEventProp, uint cMax, out uint pcEventProp)
+    public unsafe HResult EnumMethodSemantics(HCORENUM* phEnum, MdMethodDef mb, out MdToken* rEventProp, uint cMax,
+        out uint pcEventProp)
     {
         return _impl.EnumMethodSemantics(phEnum, mb, out rEventProp, cMax, out pcEventProp);
     }
@@ -240,7 +260,8 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.GetMethodSemantics(mb, tkEventProp, out pdwSemanticsFlags);
     }
 
-    public unsafe HResult GetClassLayout(MdTypeDef td, out int pdwPackSize, COR_FIELD_OFFSET* rFieldOffset, uint cMax, out uint pcFieldOffset, out uint pulClassSize)
+    public unsafe HResult GetClassLayout(MdTypeDef td, out int pdwPackSize, COR_FIELD_OFFSET* rFieldOffset, uint cMax,
+        out uint pcFieldOffset, out uint pulClassSize)
     {
         return _impl.GetClassLayout(td, out pdwPackSize, rFieldOffset, cMax, out pcFieldOffset, out pulClassSize);
     }
@@ -255,7 +276,8 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.GetRVA(tk, pulCodeRva, pdwImplFlags);
     }
 
-    public unsafe HResult GetPermissionSetProps(MdPermission pm, out int pdwAction, out void* ppvPermission, out uint pcbPermission)
+    public unsafe HResult GetPermissionSetProps(MdPermission pm, out int pdwAction, out void* ppvPermission,
+        out uint pcbPermission)
     {
         return _impl.GetPermissionSetProps(pm, out pdwAction, out ppvPermission, out pcbPermission);
     }
@@ -295,9 +317,11 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.GetUserString(stk, szString, cchString, out pchString);
     }
 
-    public unsafe HResult GetPinvokeMap(MdToken tk, out int pdwMappingFlags, char* szImportName, uint cchImportName, out uint pchImportName, out MdModuleRef pmrImportDll)
+    public unsafe HResult GetPinvokeMap(MdToken tk, out int pdwMappingFlags, char* szImportName, uint cchImportName,
+        out uint pchImportName, out MdModuleRef pmrImportDll)
     {
-        return _impl.GetPinvokeMap(tk, out pdwMappingFlags, szImportName, cchImportName, out pchImportName, out pmrImportDll);
+        return _impl.GetPinvokeMap(tk, out pdwMappingFlags, szImportName, cchImportName, out pchImportName,
+            out pmrImportDll);
     }
 
     public unsafe HResult EnumSignatures(HCORENUM* phEnum, MdSignature* rSignatures, uint cmax, out uint pcSignatures)
@@ -320,12 +344,14 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.GetParamForMethodIndex(md, ulParamSeq, out ppd);
     }
 
-    public unsafe HResult EnumCustomAttributes(HCORENUM* phEnum, MdToken tk, MdToken tkType, MdCustomAttribute* rCustomAttributes, uint cMax, out uint pcCustomAttributes)
+    public unsafe HResult EnumCustomAttributes(HCORENUM* phEnum, MdToken tk, MdToken tkType,
+        MdCustomAttribute* rCustomAttributes, uint cMax, out uint pcCustomAttributes)
     {
         return _impl.EnumCustomAttributes(phEnum, tk, tkType, rCustomAttributes, cMax, out pcCustomAttributes);
     }
 
-    public unsafe HResult GetCustomAttributeProps(MdCustomAttribute cv, out MdToken ptkObj, out MdToken ptkType, out void* ppBlob, out uint pcbSize)
+    public unsafe HResult GetCustomAttributeProps(MdCustomAttribute cv, out MdToken ptkObj, out MdToken ptkType,
+        out void* ppBlob, out uint pcbSize)
     {
         return _impl.GetCustomAttributeProps(cv, out ptkObj, out ptkType, out ppBlob, out pcbSize);
     }
@@ -335,24 +361,37 @@ public struct MetaDataImport(IntPtr ptr)
         return _impl.FindTypeRef(tkResolutionScope, szName, out ptr);
     }
 
-    public unsafe HResult GetMemberProps(MdToken mb, MdTypeDef* pClass, char* szMember, uint cchMember, uint* pchMember, int* pdwAttr, out nint* ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRva, int* pdwImplFlags, int* pdwCPlusTypeFlag, out byte ppValue, out uint pcchValue)
+    public unsafe HResult GetMemberProps(MdToken mb, MdTypeDef* pClass, char* szMember, uint cchMember, uint* pchMember,
+        int* pdwAttr, out nint* ppvSigBlob, out uint pcbSigBlob, out uint pulCodeRva, int* pdwImplFlags,
+        int* pdwCPlusTypeFlag, out byte ppValue, out uint pcchValue)
     {
-        return _impl.GetMemberProps(mb, pClass, szMember, cchMember, pchMember, pdwAttr, out ppvSigBlob, out pcbSigBlob, out pulCodeRva, pdwImplFlags, pdwCPlusTypeFlag, out ppValue, out pcchValue);
+        return _impl.GetMemberProps(mb, pClass, szMember, cchMember, pchMember, pdwAttr, out ppvSigBlob, out pcbSigBlob,
+            out pulCodeRva, pdwImplFlags, pdwCPlusTypeFlag, out ppValue, out pcchValue);
     }
 
-    public unsafe HResult GetFieldProps(MdFieldDef mb, MdTypeDef* pClass, char* szField, uint cchField, uint* pchField, int* pdwAttr, out nint* ppvSigBlob, out uint pcbSigBlob, out int pdwCPlusTypeFlag, out byte ppValue, out uint pcchValue)
+    public unsafe HResult GetFieldProps(MdFieldDef mb, MdTypeDef* pClass, char* szField, uint cchField, uint* pchField,
+        int* pdwAttr, out nint* ppvSigBlob, out uint pcbSigBlob, out int pdwCPlusTypeFlag, out byte ppValue,
+        out uint pcchValue)
     {
-        return _impl.GetFieldProps(mb, pClass, szField, cchField, pchField, pdwAttr, out ppvSigBlob, out pcbSigBlob, out pdwCPlusTypeFlag, out ppValue, out pcchValue);
+        return _impl.GetFieldProps(mb, pClass, szField, cchField, pchField, pdwAttr, out ppvSigBlob, out pcbSigBlob,
+            out pdwCPlusTypeFlag, out ppValue, out pcchValue);
     }
 
-    public unsafe HResult GetPropertyProps(MdProperty prop, out MdTypeDef pClass, char* szProperty, uint cchProperty, out uint pchProperty, out int pdwPropFlags, out nint* ppvSig, out uint pbSig, out int pdwCPlusTypeFlag, out byte ppDefaultValue, out uint pcchDefaultValue, out MdMethodDef pmdSetter, out MdMethodDef pmdGetter, out MdMethodDef rmdOtherMethod, uint cMax, out uint pcOtherMethod)
+    public unsafe HResult GetPropertyProps(MdProperty prop, out MdTypeDef pClass, char* szProperty, uint cchProperty,
+        out uint pchProperty, out int pdwPropFlags, out nint* ppvSig, out uint pbSig, out int pdwCPlusTypeFlag,
+        out byte ppDefaultValue, out uint pcchDefaultValue, out MdMethodDef pmdSetter, out MdMethodDef pmdGetter,
+        out MdMethodDef rmdOtherMethod, uint cMax, out uint pcOtherMethod)
     {
-        return _impl.GetPropertyProps(prop, out pClass, szProperty, cchProperty, out pchProperty, out pdwPropFlags, out ppvSig, out pbSig, out pdwCPlusTypeFlag, out ppDefaultValue, out pcchDefaultValue, out pmdSetter, out pmdGetter, out rmdOtherMethod, cMax, out pcOtherMethod);
+        return _impl.GetPropertyProps(prop, out pClass, szProperty, cchProperty, out pchProperty, out pdwPropFlags,
+            out ppvSig, out pbSig, out pdwCPlusTypeFlag, out ppDefaultValue, out pcchDefaultValue, out pmdSetter,
+            out pmdGetter, out rmdOtherMethod, cMax, out pcOtherMethod);
     }
 
-    public unsafe HResult GetParamProps(MdParamDef tk, out MdMethodDef pmd, out uint pulSequence, char* szName, uint cchName, out uint pchName, out int pdwAttr, out int pdwCPlusTypeFlag, out byte ppValue, out uint pcchValue)
+    public unsafe HResult GetParamProps(MdParamDef tk, out MdMethodDef pmd, out uint pulSequence, char* szName,
+        uint cchName, out uint pchName, out int pdwAttr, out int pdwCPlusTypeFlag, out byte ppValue, out uint pcchValue)
     {
-        return _impl.GetParamProps(tk, out pmd, out pulSequence, szName, cchName, out pchName, out pdwAttr, out pdwCPlusTypeFlag, out ppValue, out pcchValue);
+        return _impl.GetParamProps(tk, out pmd, out pulSequence, szName, cchName, out pchName, out pdwAttr,
+            out pdwCPlusTypeFlag, out ppValue, out pcchValue);
     }
 
     public unsafe HResult GetCustomAttributeByName(MdToken tkObj, char* szName, out void* ppData, out uint pcbData)

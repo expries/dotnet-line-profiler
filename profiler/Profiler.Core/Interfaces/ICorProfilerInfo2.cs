@@ -26,12 +26,12 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * See the definition of StackSnapshotCallback for more information.
      */
     HResult DoStackSnapshot(
-                ThreadId thread,
-                delegate* unmanaged[Stdcall]<FunctionId, nint, COR_PRF_FRAME_INFO, uint, byte*, void*, HResult> callback,
-                uint infoFlags,
-                void* clientData,
-                byte* context,
-                uint contextSize);
+        ThreadId thread,
+        delegate* unmanaged[Stdcall]<FunctionId, nint, COR_PRF_FRAME_INFO, uint, byte*, void*, HResult> callback,
+        uint infoFlags,
+        void* clientData,
+        byte* context,
+        uint contextSize);
 
     /*
      * The code profiler calls SetFunctionHooks2 to specify handlers
@@ -50,9 +50,9 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * profiler's Initialize() callback.
      */
     HResult SetEnterLeaveFunctionHooks2(
-                void* pFuncEnter,
-                void* pFuncLeave,
-                void* pFuncTailcall);
+        void* pFuncEnter,
+        void* pFuncLeave,
+        void* pFuncTailcall);
 
     /*
      * GetFunctionInfo2 returns the parent class of a function, plus the
@@ -69,14 +69,14 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      *
      */
     HResult GetFunctionInfo2(
-                FunctionId funcId,
-                COR_PRF_FRAME_INFO frameInfo,
-                out ClassId pClassId,
-                out ModuleId pModuleId,
-                out MdToken pToken,
-                uint cTypeArgs,
-                out uint pcTypeArgs,
-                out ClassId* typeArgs);
+        FunctionId funcId,
+        COR_PRF_FRAME_INFO frameInfo,
+        out ClassId pClassId,
+        out ModuleId pModuleId,
+        out MdToken pToken,
+        uint cTypeArgs,
+        out uint pcTypeArgs,
+        out ClassId* typeArgs);
 
     /*
      * GetStringLayout returns detailed information about how string objects are stored.
@@ -93,9 +93,9 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * Strings may or may not be null-terminated.
      */
     HResult GetStringLayout(
-                out uint pBufferLengthOffset,
-                out uint pStringLengthOffset,
-                out uint pBufferOffset);
+        out uint pBufferLengthOffset,
+        out uint pStringLengthOffset,
+        out uint pBufferOffset);
 
     /*
      * GetClassLayout returns detailed information how a specific class is stored.
@@ -106,11 +106,11 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * It will fail with E_INVALIDARG for string and array classes.
      */
     HResult GetClassLayout(
-                ClassId classID,
-                out COR_FIELD_OFFSET* rFieldOffset,
-                uint cFieldOffset,
-                out uint pcFieldOffset,
-                out uint pulClassSize);
+        ClassId classID,
+        out COR_FIELD_OFFSET* rFieldOffset,
+        uint cFieldOffset,
+        out uint pcFieldOffset,
+        out uint pulClassSize);
 
     /*
      * Returns the parent module a class is defined in, along with the
@@ -122,13 +122,13 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * class.
      */
     HResult GetClassIDInfo2(
-                ClassId classId,
-                out ModuleId pModuleId,
-                out MdTypeDef pTypeDefToken,
-                out ClassId pParentClassId,
-                uint cNumTypeArgs,
-                out uint pcNumTypeArgs,
-                out ClassId* typeArgs);
+        ClassId classId,
+        out ModuleId pModuleId,
+        out MdTypeDef pTypeDefToken,
+        out ClassId pParentClassId,
+        uint cNumTypeArgs,
+        out uint pcNumTypeArgs,
+        out ClassId* typeArgs);
 
     /*
      * GetCodeInfo2 returns the extents of native code associated with the
@@ -136,10 +136,10 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * IL offset.
      */
     HResult GetCodeInfo2(
-                FunctionId functionID,
-                uint cCodeInfos,
-                out uint pcCodeInfos,
-                out COR_PRF_CODE_INFO* codeInfos);
+        FunctionId functionID,
+        uint cCodeInfos,
+        out uint pcCodeInfos,
+        out COR_PRF_CODE_INFO* codeInfos);
 
     /*
      * GetClassFromTokenAndTypeArgs returns the ClassID of a type given its metadata
@@ -162,11 +162,11 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * and use GetClassIDInfo2 to check whether a given ClassID is the desired type.
      */
     HResult GetClassFromTokenAndTypeArgs(
-                    ModuleId moduleID,
-                    MdTypeDef typeDef,
-                    uint cTypeArgs,
-                    ClassId* typeArgs,
-                    out ClassId pClassID);
+        ModuleId moduleID,
+        MdTypeDef typeDef,
+        uint cTypeArgs,
+        ClassId* typeArgs,
+        out ClassId pClassID);
 
     /*
      * GetFunctionFromTokenAndTypeArgs returns the FunctionID of a function given
@@ -188,20 +188,19 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * and use GetFunctionInfo2 to check whether a given FunctionID is the desired function.
      */
     HResult GetFunctionFromTokenAndTypeArgs(
-                    ModuleId moduleID,
-                    MdMethodDef funcDef,
-                    ClassId classId,
-                    uint cTypeArgs,
-                    ClassId* typeArgs,
-                    out FunctionId pFunctionID);
+        ModuleId moduleID,
+        MdMethodDef funcDef,
+        ClassId classId,
+        uint cTypeArgs,
+        ClassId* typeArgs,
+        out FunctionId pFunctionID);
 
     /*
      * Returns an enumerator over all frozen objects in the given module.
      */
     HResult EnumModuleFrozenObjects(
-                ModuleId moduleID,
-                out void* ppEnum);
-
+        ModuleId moduleID,
+        out void* ppEnum);
 
 
     /*
@@ -214,11 +213,11 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      *   convention
      */
     HResult GetArrayObjectInfo(
-                    ObjectId objectId,
-                    uint cDimensions,
-                    out uint* pDimensionSizes,
-                    out int* pDimensionLowerBounds,
-                    out byte* ppData);
+        ObjectId objectId,
+        uint cDimensions,
+        out uint* pDimensionSizes,
+        out int* pDimensionLowerBounds,
+        out byte* ppData);
 
     /*
      * GetBoxClassLayout returns information about how a particular value type is laid out
@@ -229,8 +228,8 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      *  interpret it.
      */
     HResult GetBoxClassLayout(
-                    ClassId classId,
-                    out uint pBufferOffset);
+        ClassId classId,
+        out uint pBufferOffset);
 
 
     /*
@@ -238,8 +237,8 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * the given ThreadID
      */
     HResult GetThreadAppDomain(
-                    ThreadId threadId,
-                    out AppDomainId pAppDomainId);
+        ThreadId threadId,
+        out AppDomainId pAppDomainId);
 
 
     /*
@@ -248,9 +247,9 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * it will return CORPROF_E_NOT_MANAGED_THREAD.
      */
     HResult GetRVAStaticAddress(
-                    ClassId classId,
-                    MdFieldDef fieldToken,
-                    out void* ppAddress);
+        ClassId classId,
+        MdFieldDef fieldToken,
+        out void* ppAddress);
 
     /*
      * GetAppDomainStaticAddress gets the address of the home for the given
@@ -260,10 +259,10 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * has not been assigned a home in the given AppDomain.
      */
     HResult GetAppDomainStaticAddress(
-                    ClassId classId,
-                    MdFieldDef fieldToken,
-                    AppDomainId appDomainId,
-                    out void* ppAddress);
+        ClassId classId,
+        MdFieldDef fieldToken,
+        AppDomainId appDomainId,
+        out void* ppAddress);
 
     /*
      * GetThreadStaticAddress gets the address of the home for the given
@@ -274,10 +273,10 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * has not been assigned a home in the given Thread.
      */
     HResult GetThreadStaticAddress(
-                    ClassId classId,
-                    MdFieldDef fieldToken,
-                    ThreadId threadId,
-                    out void* ppAddress);
+        ClassId classId,
+        MdFieldDef fieldToken,
+        ThreadId threadId,
+        out void* ppAddress);
 
     /*
      * GetContextStaticAddress gets the address of the home for the given
@@ -288,10 +287,10 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      * has not been assigned a home in the given Context.
      */
     HResult GetContextStaticAddress(
-                    ClassId classId,
-                    MdFieldDef fieldToken,
-                    ContextId contextId,
-                    out void* ppAddress);
+        ClassId classId,
+        MdFieldDef fieldToken,
+        ContextId contextId,
+        out void* ppAddress);
 
     /*
      * GetStaticFieldInfo gets COR_PRF_STATIC_TYPE for a specific
@@ -304,9 +303,9 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      *
      */
     HResult GetStaticFieldInfo(
-                    ClassId classId,
-                    MdFieldDef fieldToken,
-                    out COR_PRF_STATIC_TYPE pFieldInfo);
+        ClassId classId,
+        MdFieldDef fieldToken,
+        out COR_PRF_STATIC_TYPE pFieldInfo);
 
     /*
      * GetGenerationBounds returns the memory regions that make up a given
@@ -336,9 +335,9 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      */
 
     HResult GetGenerationBounds(
-                    uint cObjectRanges,
-                    out uint pcObjectRanges,
-                    out COR_PRF_GC_GENERATION_RANGE* ranges);
+        uint cObjectRanges,
+        out uint pcObjectRanges,
+        out COR_PRF_GC_GENERATION_RANGE* ranges);
 
     /*
      * GetObjectGeneration returns which generation the given object is currently in, along
@@ -347,27 +346,27 @@ internal unsafe interface ICorProfilerInfo2 : ICorProfilerInfo
      */
 
     HResult GetObjectGeneration(
-                    ObjectId objectId,
-                    out COR_PRF_GC_GENERATION_RANGE range);
+        ObjectId objectId,
+        out COR_PRF_GC_GENERATION_RANGE range);
 
 
     /*
-      * When an exception notification is received, GetNotifiedExceptionClauseInfo() may be used
-      * to get the native address and frame information for the exception clause (catch/finally/filter)
-      * that is about to be run (ExceptionCatchEnter, ExceptionUnwindFinallyEnter, ExceptionFilterEnter)
-      * or has just been run (ExceptionCatchLeave, ExceptionUnwindFinallyLeave, ExceptionFilterLeave).
-      *
-      * This call may be made at any time after one of the Enter calls above until either the matching
-      * Leave call is received or until a nested exception throws out of the current clause in which case
-      * there will be no Leave notification for that clause.  Note it is not possible for a throw to escape
-      * a Filter so there is always a Leave in that case.
-      *
-      * Return values:
-      *   S_OK indicates success
-      *   S_FALSE indicates that no exception clause is active
-      *   CORPROF_E_NOT_MANAGED_THREAD indicates an unmanaged thread.
-      */
+     * When an exception notification is received, GetNotifiedExceptionClauseInfo() may be used
+     * to get the native address and frame information for the exception clause (catch/finally/filter)
+     * that is about to be run (ExceptionCatchEnter, ExceptionUnwindFinallyEnter, ExceptionFilterEnter)
+     * or has just been run (ExceptionCatchLeave, ExceptionUnwindFinallyLeave, ExceptionFilterLeave).
+     *
+     * This call may be made at any time after one of the Enter calls above until either the matching
+     * Leave call is received or until a nested exception throws out of the current clause in which case
+     * there will be no Leave notification for that clause.  Note it is not possible for a throw to escape
+     * a Filter so there is always a Leave in that case.
+     *
+     * Return values:
+     *   S_OK indicates success
+     *   S_FALSE indicates that no exception clause is active
+     *   CORPROF_E_NOT_MANAGED_THREAD indicates an unmanaged thread.
+     */
 
     HResult GetNotifiedExceptionClauseInfo(
-                    out COR_PRF_EX_CLAUSE_INFO pinfo);
+        out COR_PRF_EX_CLAUSE_INFO pinfo);
 }

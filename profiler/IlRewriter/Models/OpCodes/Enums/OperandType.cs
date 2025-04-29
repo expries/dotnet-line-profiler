@@ -1,7 +1,9 @@
 ﻿// ReSharper disable InconsistentNaming
+
 namespace IlRewriter.Models.OpCodes.Enums;
 
-public enum OperandType {
+public enum OperandType
+{
     InlineBrTarget,
     InlineField,
     InlineI,
@@ -21,5 +23,5 @@ public enum OperandType {
     ShortInlineI,
     ShortInlineR,
     ShortInlineVar,
-    ShortInlineArg,
+    ShortInlineArg
 }

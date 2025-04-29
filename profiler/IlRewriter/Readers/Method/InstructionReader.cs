@@ -19,22 +19,17 @@ public class InstructionReader : IlReader<Instruction>
         };
 
         if (instruction.OpCode.OperandType != OperandType.InlineNone)
-        {
             instruction.Operand = ReadOperand(instruction.OpCode);
-        }
-        
+
         return instruction;
     }
 
     private OpCode ReadOpCode()
     {
         var byteCode = ReadByte();
-	    
+
         // Single byte opcodes
-        if (byteCode != 0xfe)
-        {
-            return OpCodes.OneByteOpCode[byteCode];
-        }
+        if (byteCode != 0xfe) return OpCodes.OneByteOpCode[byteCode];
 
         // Two byte opcodes
         byteCode = ReadByte();
@@ -85,7 +80,7 @@ public class InstructionReader : IlReader<Instruction>
     {
         var length = ReadUInt32();
         var branchOffsets = new int[length];
-        
+
         for (var i = 0; i < length; i++)
         {
             var offset = ReadInt32();
@@ -95,7 +90,7 @@ public class InstructionReader : IlReader<Instruction>
         return new InlineSwitchOperand
         {
             BranchOffsets = branchOffsets,
-            Branches = new Instruction[branchOffsets.Length],
+            Branches = new Instruction[branchOffsets.Length]
         };
     }
 
@@ -106,89 +101,89 @@ public class InstructionReader : IlReader<Instruction>
         return new ShortInlineBrTargetOperand
         {
             Offset = offset,
-            Value = value,
+            Value = value
         };
     }
-    
+
     private ShortInlineIOperand ReadShortInlineIOperand(OpCode opCode)
     {
         int value = opCode == OpCodes.Ldc_I4_S ? ReadSByte() : ReadByte();
         return new ShortInlineIOperand
         {
-            Value = value,
+            Value = value
         };
     }
-    
+
     private InlineBrTargetOperand ReadInlineBrTargetOperand()
     {
         var value = ReadInt32();
         return new InlineBrTargetOperand
         {
-            Value = value,
+            Value = value
         };
     }
-    
+
     private Int32Operand ReadInt32Operand()
     {
         var value = ReadInt32();
         return new Int32Operand
         {
-            Value = value,
+            Value = value
         };
     }
-    
+
     private SingleOperand ReadSingleOperand()
     {
         var value = ReadSingle();
         return new SingleOperand
         {
-            Value = value,
+            Value = value
         };
     }
-    
-    
+
+
     private DoubleOperand ReadDoubleOperand()
     {
         var value = ReadDouble();
         return new DoubleOperand
         {
-            Value = value,
+            Value = value
         };
     }
-    
+
     private Int64Operand ReadInt64Operand()
     {
         var value = ReadInt64();
         return new Int64Operand
         {
-            Value = value,
+            Value = value
         };
     }
-    
+
     private ByteOperand ReadByteOperand()
     {
         var value = ReadByte();
         return new ByteOperand
         {
-            Value = value,
+            Value = value
         };
     }
-    
+
     private UInt16Operand ReadUInt16Operand()
     {
         var value = ReadUInt16();
         return new UInt16Operand
         {
-            Value = value,
+            Value = value
         };
     }
-    
+
     private UInt32Operand ReadUInt32Operand()
     {
         var value = ReadUInt32();
         return new UInt32Operand
         {
-            Value = value,
+            Value = value
         };
     }
 }

@@ -1,6 +1,8 @@
-﻿namespace Profiler.Core;
+﻿using Profiler.Core.Interfaces;
 
-public abstract class CorProfilerCallback10Base : CorProfilerCallback9Base, Interfaces.ICorProfilerCallback10
+namespace Profiler.Core;
+
+public abstract class CorProfilerCallback10Base : CorProfilerCallback9Base, ICorProfilerCallback10
 {
     private readonly NativeObjects.ICorProfilerCallback10 _corProfilerCallback10;
 
@@ -11,7 +13,7 @@ public abstract class CorProfilerCallback10Base : CorProfilerCallback9Base, Inte
 
     protected override HResult QueryInterface(in Guid guid, out nint ptr)
     {
-        if (guid == Interfaces.ICorProfilerCallback10.Guid)
+        if (guid == ICorProfilerCallback10.Guid)
         {
             ptr = _corProfilerCallback10;
             return HResult.S_OK;
@@ -20,21 +22,9 @@ public abstract class CorProfilerCallback10Base : CorProfilerCallback9Base, Inte
         return base.QueryInterface(guid, out ptr);
     }
 
-    #region ICorProfilerCallback10
-
-    HResult Interfaces.ICorProfilerCallback10.EventPipeProviderCreated(nint provider)
-    {
-        return EventPipeProviderCreated(provider);
-    }
-
-    unsafe HResult Interfaces.ICorProfilerCallback10.EventPipeEventDelivered(nint provider, int eventId, int eventVersion, uint cbMetadataBlob, byte* metadataBlob, uint cbEventData, byte* eventData, in Guid pActivityId, in Guid pRelatedActivityId, ThreadId eventThread, uint numStackFrames, nint* stackFrames)
-    {
-        return EventPipeEventDelivered(provider, eventId, eventVersion, cbMetadataBlob, metadataBlob, cbEventData, eventData, in pActivityId, in pRelatedActivityId, eventThread, numStackFrames, stackFrames);
-    }
-
-    #endregion
-
-    protected virtual unsafe HResult EventPipeEventDelivered(nint provider, int eventId, int eventVersion, uint cbMetadataBlob, byte* metadataBlob, uint cbEventData, byte* eventData, in Guid pActivityId, in Guid pRelatedActivityId, ThreadId eventThread, uint numStackFrames, nint* stackFrames)
+    protected virtual unsafe HResult EventPipeEventDelivered(nint provider, int eventId, int eventVersion,
+        uint cbMetadataBlob, byte* metadataBlob, uint cbEventData, byte* eventData, in Guid pActivityId,
+        in Guid pRelatedActivityId, ThreadId eventThread, uint numStackFrames, nint* stackFrames)
     {
         return HResult.E_NOTIMPL;
     }
@@ -43,4 +33,21 @@ public abstract class CorProfilerCallback10Base : CorProfilerCallback9Base, Inte
     {
         return HResult.E_NOTIMPL;
     }
+
+    #region ICorProfilerCallback10
+
+    HResult ICorProfilerCallback10.EventPipeProviderCreated(nint provider)
+    {
+        return EventPipeProviderCreated(provider);
+    }
+
+    unsafe HResult ICorProfilerCallback10.EventPipeEventDelivered(nint provider, int eventId, int eventVersion,
+        uint cbMetadataBlob, byte* metadataBlob, uint cbEventData, byte* eventData, in Guid pActivityId,
+        in Guid pRelatedActivityId, ThreadId eventThread, uint numStackFrames, nint* stackFrames)
+    {
+        return EventPipeEventDelivered(provider, eventId, eventVersion, cbMetadataBlob, metadataBlob, cbEventData,
+            eventData, in pActivityId, in pRelatedActivityId, eventThread, numStackFrames, stackFrames);
+    }
+
+    #endregion
 }

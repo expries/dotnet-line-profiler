@@ -10,11 +10,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="SharpPdb" Version="1.0.4" />
+        <PackageReference Include="SharpPdb" Version="1.0.4"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\LineProfiler\LineProfiler.csproj" />
+        <ProjectReference Include="..\LineProfiler\LineProfiler.csproj"/>
     </ItemGroup>
 
 </Project>

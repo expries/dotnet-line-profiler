@@ -1,12 +1,14 @@
-﻿namespace Profiler.Core;
+﻿using NativeObjects;
+
+namespace Profiler.Core;
 
 public class ICorProfilerInfo4 : ICorProfilerInfo3
 {
-    private NativeObjects.ICorProfilerInfo4Invoker _impl;
+    private ICorProfilerInfo4Invoker _impl;
 
     public ICorProfilerInfo4(IntPtr ptr) : base(ptr)
     {
-        _impl = new(ptr);
+        _impl = new ICorProfilerInfo4Invoker(ptr);
     }
 
     public HResult EnumThreads(out nint ppEnum)
@@ -29,7 +31,8 @@ public class ICorProfilerInfo4 : ICorProfilerInfo3
         return _impl.RequestRevert(cFunctions, moduleIds, methodIds, status);
     }
 
-    public unsafe HResult GetCodeInfo3(FunctionId functionID, ReJITId reJitId, uint cCodeInfos, out uint pcCodeInfos, COR_PRF_CODE_INFO* codeInfos)
+    public unsafe HResult GetCodeInfo3(FunctionId functionID, ReJITId reJitId, uint cCodeInfos, out uint pcCodeInfos,
+        COR_PRF_CODE_INFO* codeInfos)
     {
         return _impl.GetCodeInfo3(functionID, reJitId, cCodeInfos, out pcCodeInfos, codeInfos);
     }
@@ -44,7 +47,8 @@ public class ICorProfilerInfo4 : ICorProfilerInfo3
         return _impl.GetReJITIDs(functionId, cReJitIds, pcReJitIds, reJitIds);
     }
 
-    public unsafe HResult GetILToNativeMapping2(FunctionId functionId, ReJITId reJitId, uint cMap, uint* pcMap, COR_DEBUG_IL_TO_NATIVE_MAP* map)
+    public unsafe HResult GetILToNativeMapping2(FunctionId functionId, ReJITId reJitId, uint cMap, uint* pcMap,
+        COR_DEBUG_IL_TO_NATIVE_MAP* map)
     {
         return _impl.GetILToNativeMapping2(functionId, reJitId, cMap, pcMap, map);
     }

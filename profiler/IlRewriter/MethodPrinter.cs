@@ -13,7 +13,7 @@ public static class MethodPrinter
             Console.WriteLine();
         }
     }
-    
+
     public static void PrintHeader(MethodHeader header)
     {
         Console.WriteLine();
@@ -33,10 +33,7 @@ public static class MethodPrinter
     private static void PrintInstruction(Instruction instruction)
     {
         Console.Write($"{instruction.Offset}: {instruction.OpCode.Name}");
-        if (instruction.Operand != null)
-        {
-            PrintOperand(instruction.Operand);
-        }
+        if (instruction.Operand != null) PrintOperand(instruction.Operand);
     }
 
     private static void PrintOperand(Operand operand)
@@ -53,7 +50,7 @@ public static class MethodPrinter
                 Console.Write($" ({inlineBrTargetOperand.Value} -> {inlineBrTargetOperand.Instruction?.Offset})");
                 break;
             case InlineSwitchOperand switchOperand:
-                Console.Write($" ({string.Join(',',switchOperand.Branches.Select(i => i.Offset))})");
+                Console.Write($" ({string.Join(',', switchOperand.Branches.Select(i => i.Offset))})");
                 break;
             case Int16Operand int16Operand:
                 Console.Write($" ({int16Operand.Value})");
@@ -68,7 +65,8 @@ public static class MethodPrinter
                 Console.Write($" ({sByteOperand.Value})");
                 break;
             case ShortInlineBrTargetOperand shortInlineBrTargetOperand:
-                Console.Write($" ({shortInlineBrTargetOperand.Value} -> {shortInlineBrTargetOperand.Instruction?.Offset})");
+                Console.Write(
+                    $" ({shortInlineBrTargetOperand.Value} -> {shortInlineBrTargetOperand.Instruction?.Offset})");
                 break;
             case ShortInlineIOperand shortInlineIOperand:
                 Console.Write($" ({shortInlineIOperand.Value})");
@@ -90,5 +88,3 @@ public static class MethodPrinter
         }
     }
 }
-
-

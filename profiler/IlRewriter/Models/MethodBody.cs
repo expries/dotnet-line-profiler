@@ -2,6 +2,6 @@
 
 public class MethodBody
 {
-	public List<Instruction> Instructions { get; set; } = [];
-	public MethodDataSection DataSection { get; set; } = new();
+    public List<Instruction> Instructions { get; set; } = [];
+    public MethodDataSection DataSection { get; set; } = new();
 }

@@ -11,17 +11,17 @@ internal unsafe interface ICorProfilerCallback10 : ICorProfilerCallback9
 
     HResult EventPipeEventDelivered(
         IntPtr provider,
-    int eventId,
-    int eventVersion,
-    uint cbMetadataBlob,
-    byte* metadataBlob,
-    uint cbEventData,
-    byte* eventData,
-    in Guid pActivityId,
-    in Guid pRelatedActivityId,
-    ThreadId eventThread,
-    uint numStackFrames,
-    nint* stackFrames);
+        int eventId,
+        int eventVersion,
+        uint cbMetadataBlob,
+        byte* metadataBlob,
+        uint cbEventData,
+        byte* eventData,
+        in Guid pActivityId,
+        in Guid pRelatedActivityId,
+        ThreadId eventThread,
+        uint numStackFrames,
+        nint* stackFrames);
 
     HResult EventPipeProviderCreated(IntPtr provider);
 }

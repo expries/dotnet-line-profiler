@@ -7,8 +7,8 @@ namespace LineProfiler.Instrumentation;
 
 public class ControlFlowGraphParser
 {
-    private readonly Dictionary<int, (int Index, Instruction Instruction)> _instructionsByOffset;
     private readonly ControlFlowGraph _graph;
+    private readonly Dictionary<int, (int Index, Instruction Instruction)> _instructionsByOffset;
 
     public ControlFlowGraphParser(ControlFlowGraph controlFlowGraph)
     {
@@ -45,10 +45,7 @@ public class ControlFlowGraphParser
 
             foreach (var predecessor in block.Predecessors)
             {
-                if (predecessor.StartOffset == 0)
-                {
-                    continue;
-                }
+                if (predecessor.StartOffset == 0) continue;
 
                 var last = GetInstructionByOffset(predecessor.LastInstruction.Offset);
                 var targetsToRewrite = GetJumpsTargetingLastInstruction(predecessor);
@@ -74,10 +71,7 @@ public class ControlFlowGraphParser
 
     private static List<Probe.BranchToRewrite> GetJumpsTargetingLastInstruction(BasicBlock block)
     {
-        if (block.Instructions.Count > 1)
-        {
-            return [];
-        }
+        if (block.Instructions.Count > 1) return [];
 
         var previousInstructions = block.Predecessors.Select(preBlock => preBlock.LastInstruction);
         var previousJumps = previousInstructions.Where(instruction => instruction.IsJump);
@@ -85,9 +79,7 @@ public class ControlFlowGraphParser
         return previousJumps.Select(instruction =>
             {
                 if (instruction.Operand is not InlineSwitchOperand switchOperand)
-                {
                     return new Probe.BranchToRewrite(instruction);
-                }
 
                 var switchIndex = switchOperand.Branches
                     .ToList()

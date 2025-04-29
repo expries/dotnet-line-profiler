@@ -1,6 +1,8 @@
-﻿namespace Profiler.Core;
+﻿using Profiler.Core.Interfaces;
 
-public abstract class CorProfilerCallback9Base : CorProfilerCallback8Base, Interfaces.ICorProfilerCallback9
+namespace Profiler.Core;
+
+public abstract class CorProfilerCallback9Base : CorProfilerCallback8Base, ICorProfilerCallback9
 {
     private readonly NativeObjects.ICorProfilerCallback9 _corProfilerCallback9;
 
@@ -9,9 +11,18 @@ public abstract class CorProfilerCallback9Base : CorProfilerCallback8Base, Inter
         _corProfilerCallback9 = NativeObjects.ICorProfilerCallback9.Wrap(this);
     }
 
+    #region ICorProfilerCallback9
+
+    HResult ICorProfilerCallback9.DynamicMethodUnloaded(FunctionId functionId)
+    {
+        return DynamicMethodUnloaded(functionId);
+    }
+
+    #endregion
+
     protected override HResult QueryInterface(in Guid guid, out nint ptr)
     {
-        if (guid == Interfaces.ICorProfilerCallback9.Guid)
+        if (guid == ICorProfilerCallback9.Guid)
         {
             ptr = _corProfilerCallback9;
             return HResult.S_OK;
@@ -19,15 +30,6 @@ public abstract class CorProfilerCallback9Base : CorProfilerCallback8Base, Inter
 
         return base.QueryInterface(guid, out ptr);
     }
-
-    #region ICorProfilerCallback9
-
-    HResult Interfaces.ICorProfilerCallback9.DynamicMethodUnloaded(FunctionId functionId)
-    {
-        return DynamicMethodUnloaded(functionId);
-    }
-
-    #endregion
 
     protected virtual HResult DynamicMethodUnloaded(FunctionId functionId)
     {

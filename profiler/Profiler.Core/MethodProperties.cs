@@ -13,7 +13,8 @@ public readonly unsafe struct MethodProperties
 
     public Span<byte> Signature => new(_signature, _signatureLength);
 
-    public MethodProperties(MdTypeDef @class, string name, int attributes, byte* signature, int signatureLength, uint rva, int implementationFlags)
+    public MethodProperties(MdTypeDef @class, string name, int attributes, byte* signature, int signatureLength,
+        uint rva, int implementationFlags)
     {
         Class = @class;
         Name = name;

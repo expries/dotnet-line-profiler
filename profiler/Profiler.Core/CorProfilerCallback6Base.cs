@@ -1,6 +1,8 @@
-﻿namespace Profiler.Core;
+﻿using Profiler.Core.Interfaces;
 
-public abstract class CorProfilerCallback6Base : CorProfilerCallback5Base, Interfaces.ICorProfilerCallback6
+namespace Profiler.Core;
+
+public abstract class CorProfilerCallback6Base : CorProfilerCallback5Base, ICorProfilerCallback6
 {
     private readonly NativeObjects.ICorProfilerCallback6 _corProfilerCallback6;
 
@@ -9,9 +11,18 @@ public abstract class CorProfilerCallback6Base : CorProfilerCallback5Base, Inter
         _corProfilerCallback6 = NativeObjects.ICorProfilerCallback6.Wrap(this);
     }
 
+    #region ICorProfilerCallback6
+
+    unsafe HResult ICorProfilerCallback6.GetAssemblyReferences(char* wszAssemblyPath, nint pAsmRefProvider)
+    {
+        return GetAssemblyReferences(wszAssemblyPath, pAsmRefProvider);
+    }
+
+    #endregion
+
     protected override HResult QueryInterface(in Guid guid, out nint ptr)
     {
-        if (guid == Interfaces.ICorProfilerCallback6.Guid)
+        if (guid == ICorProfilerCallback6.Guid)
         {
             ptr = _corProfilerCallback6;
             return HResult.S_OK;
@@ -19,15 +30,6 @@ public abstract class CorProfilerCallback6Base : CorProfilerCallback5Base, Inter
 
         return base.QueryInterface(guid, out ptr);
     }
-
-    #region ICorProfilerCallback6
-
-    unsafe HResult Interfaces.ICorProfilerCallback6.GetAssemblyReferences(char* wszAssemblyPath, nint pAsmRefProvider)
-    {
-        return GetAssemblyReferences(wszAssemblyPath, pAsmRefProvider);
-    }
-
-    #endregion
 
     protected virtual unsafe HResult GetAssemblyReferences(char* wszAssemblyPath, nint pAsmRefProvider)
     {

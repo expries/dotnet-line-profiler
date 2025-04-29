@@ -9,26 +9,26 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2"/>
-        <PackageReference Include="Google.Protobuf" Version="3.29.3" />
-        <PackageReference Include="Grpc.Core" Version="2.46.6" />
+        <PackageReference Include="Google.Protobuf" Version="3.29.3"/>
+        <PackageReference Include="Grpc.Core" Version="2.46.6"/>
         <PackageReference Include="Grpc.Tools" Version="2.70.0">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="opentelemetry\" />
+        <Folder Include="opentelemetry\"/>
     </ItemGroup>
-    
+
     <ItemGroup>
-        <Protobuf Include="opentelemetry\**\*.proto" />
+        <Protobuf Include="opentelemetry\**\*.proto"/>
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Text;
-using IlRewriter;
 using IlRewriter.Models;
 using IlRewriter.Models.Signatures;
 using IlRewriter.Readers.Method;
@@ -25,10 +24,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
     {
         Log($"Profiler version: {iCorProfilerInfoVersion}");
 
-        if (iCorProfilerInfoVersion < 11)
-        {
-            return HResult.E_FAIL;
-        }
+        if (iCorProfilerInfoVersion < 11) return HResult.E_FAIL;
 
         const CorPrfMonitor eventMask = CorPrfMonitor.COR_PRF_MONITOR_JIT_COMPILATION |
                                         CorPrfMonitor.COR_PRF_DISABLE_TRANSPARENCY_CHECKS_UNDER_FULL_TRUST |
@@ -74,10 +70,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         var moduleName = Path.GetFileNameWithoutExtension(modulePath);
         var symbolFileExists = PdbCache.TryGetModuleByName(moduleName, out var module);
 
-        if (!symbolFileExists || module is null)
-        {
-            return HResult.S_OK;
-        }
+        if (!symbolFileExists || module is null) return HResult.S_OK;
 
         PdbCache.AddModuleAlias(assemblyId, moduleName);
         module.AddFunctionAlias(methodToken.Value, functionId.Value);
@@ -135,7 +128,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         var fileName = $"{assemblyId.Value}_{functionId.Value}";
         File.WriteAllBytes($@"C:\Coding\otel-line-profiler\profiler\Release\{fileName}", bArr);
         */
-        
+
         var stream = UnsafeTypes.GetStreamFromBytePtr(pMethodHeader, methodSize);
         var reader = new MethodReader(stream);
         var method = reader.ReadFromStream();
@@ -187,7 +180,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         var signatureTokens = GetAndCacheSignatureTokens(
             assemblyId, patchedVarSignature, Callbacks.Signature, metadataEmit);
         var localVarCount = patchedVarSignature.GetVarCount();
-        
+
         var metadata = new InstrumentationMetadata(
             assemblyId, functionId, boolRef, activityRefs, traceIdRefs, signatureTokens, localVarCount);
 
@@ -203,7 +196,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
     }
 
     private SignatureTokens GetAndCacheSignatureTokens(
-        AssemblyId assemblyId, 
+        AssemblyId assemblyId,
         LocalVarSignature localVarSignature,
         MethodSignature callbackSignature,
         IMetadataEmitInvoker metaDataEmit)
@@ -211,27 +204,27 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         // Get signature tokens
         var mdLocalSignature =
             SignatureTokenCache.GetMdSignature(assemblyId, localVarSignature.BinaryData, metaDataEmit);
-        
+
         var mdProbeSignature =
             SignatureTokenCache.GetMdSignature(assemblyId, callbackSignature.BinaryData, metaDataEmit);
 
         return new SignatureTokens
         {
             Callback = mdProbeSignature,
-            LocalVars = mdLocalSignature,
+            LocalVars = mdLocalSignature
         };
     }
 
     private ActivityTypeRefs GetActivityTypeReferences(AssemblyId assemblyId, MetaDataImport metaDataImport)
     {
         var activityRef = TypeRefCache.GetMdTypeRef(assemblyId, "System.Diagnostics.Activity", metaDataImport);
-        
+
         var (mCurrentActivity, _) = TypeRefCache
             .GetMemberRef(activityRef, "get_Current", metaDataImport);
-        
+
         var (mGetTraceId, mGetTraceIdSignatureBytes) = TypeRefCache
             .GetMemberRef(activityRef, "get_TraceId", metaDataImport);
-        
+
         var mGetTraceIdSignature = new MemberRefSignature(mGetTraceIdSignatureBytes);
 
         return new ActivityTypeRefs(mGetTraceIdSignature)
@@ -245,22 +238,19 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
     private static TraceIdTypeRefs GetTraceIdTypeRefs(ActivityTypeRefs activityTypeRefs, MetaDataImport metaDataImport)
     {
         if (!activityTypeRefs.GetTraceIdSignature.TryParseReturnType(out var traceIdRid))
-        {
             throw new Exception($"Failed to parse member's return type '{activityTypeRefs.GetTraceIdSignature}'");
-        }
 
         var traceIdRef = new MdTypeRef(traceIdRid.ToTypeRefToken());
-        
+
         var (mToHexString, _) = TypeRefCache
             .GetMemberRef(traceIdRef, "ToHexString", metaDataImport);
-        
+
         return new TraceIdTypeRefs
         {
             TraceId = traceIdRef,
             ToHexString = mToHexString
         };
     }
-
 
 
     protected override HResult Shutdown()

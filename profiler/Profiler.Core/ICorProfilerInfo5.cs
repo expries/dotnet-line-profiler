@@ -1,12 +1,14 @@
-﻿namespace Profiler.Core;
+﻿using NativeObjects;
+
+namespace Profiler.Core;
 
 public class ICorProfilerInfo5 : ICorProfilerInfo4
 {
-    private NativeObjects.ICorProfilerInfo5Invoker _impl;
+    private ICorProfilerInfo5Invoker _impl;
 
     public ICorProfilerInfo5(IntPtr ptr) : base(ptr)
     {
-        _impl = new(ptr);
+        _impl = new ICorProfilerInfo5Invoker(ptr);
     }
 
     public HResult GetEventMask2(out CorPrfMonitor pdwEventsLow, out CorPrfHighMonitor pdwEventsHigh)

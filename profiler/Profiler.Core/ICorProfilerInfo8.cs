@@ -1,12 +1,14 @@
-﻿namespace Profiler.Core;
+﻿using NativeObjects;
+
+namespace Profiler.Core;
 
 public class ICorProfilerInfo8 : ICorProfilerInfo7
 {
-    private NativeObjects.ICorProfilerInfo8Invoker _impl;
+    private ICorProfilerInfo8Invoker _impl;
 
     public ICorProfilerInfo8(IntPtr ptr) : base(ptr)
     {
-        _impl = new(ptr);
+        _impl = new ICorProfilerInfo8Invoker(ptr);
     }
 
     public HResult IsFunctionDynamic(FunctionId functionId, out int isDynamic)
@@ -19,8 +21,10 @@ public class ICorProfilerInfo8 : ICorProfilerInfo7
         return _impl.GetFunctionFromIP3(ip, functionId, out pReJitId);
     }
 
-    public unsafe HResult GetDynamicFunctionInfo(FunctionId functionId, out ModuleId moduleId, byte* ppvSig, out uint pbSig, uint cchName, out uint pcchName, char* wszName)
+    public unsafe HResult GetDynamicFunctionInfo(FunctionId functionId, out ModuleId moduleId, byte* ppvSig,
+        out uint pbSig, uint cchName, out uint pcchName, char* wszName)
     {
-        return _impl.GetDynamicFunctionInfo(functionId, out moduleId, ppvSig, out pbSig, cchName, out pcchName, wszName);
+        return _impl.GetDynamicFunctionInfo(functionId, out moduleId, ppvSig, out pbSig, cchName, out pcchName,
+            wszName);
     }
 }

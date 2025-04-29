@@ -1,6 +1,8 @@
-﻿namespace Profiler.Core;
+﻿using Profiler.Core.Interfaces;
 
-public class ClassFactory : Interfaces.IClassFactory
+namespace Profiler.Core;
+
+public class ClassFactory : IClassFactory
 {
     private readonly NativeObjects.IClassFactory _classFactory;
 

@@ -1,12 +1,14 @@
-﻿namespace Profiler.Core;
+﻿using NativeObjects;
+
+namespace Profiler.Core;
 
 public class ICorProfilerInfo7 : ICorProfilerInfo6
 {
-    private NativeObjects.ICorProfilerInfo7Invoker _impl;
+    private ICorProfilerInfo7Invoker _impl;
 
     public ICorProfilerInfo7(IntPtr ptr) : base(ptr)
     {
-        _impl = new(ptr);
+        _impl = new ICorProfilerInfo7Invoker(ptr);
     }
 
     public HResult ApplyMetaData(ModuleId moduleId)
@@ -19,8 +21,10 @@ public class ICorProfilerInfo7 : ICorProfilerInfo6
         return _impl.GetInMemorySymbolsLength(moduleId, out pCountSymbolBytes);
     }
 
-    public unsafe HResult ReadInMemorySymbols(ModuleId moduleId, int symbolsReadOffset, byte* pSymbolBytes, int countSymbolBytes, out int pCountSymbolBytesRead)
+    public unsafe HResult ReadInMemorySymbols(ModuleId moduleId, int symbolsReadOffset, byte* pSymbolBytes,
+        int countSymbolBytes, out int pCountSymbolBytesRead)
     {
-        return _impl.ReadInMemorySymbols(moduleId, symbolsReadOffset, pSymbolBytes, countSymbolBytes, out pCountSymbolBytesRead);
+        return _impl.ReadInMemorySymbols(moduleId, symbolsReadOffset, pSymbolBytes, countSymbolBytes,
+            out pCountSymbolBytesRead);
     }
 }

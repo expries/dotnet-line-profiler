@@ -20,15 +20,15 @@ exporters:
       insecure: true
 
 extensions:
-  health_check: {}
+  health_check: { }
 service:
   pipelines:
     profiles:
-      receivers: [otlp]
-      exporters: [debug, otlp/pyroscope, otlphttp]
+      receivers: [ otlp ]
+      exporters: [ debug, otlp/pyroscope, otlphttp ]
     traces:
-      receivers: [otlp]
-      exporters: [debug, otlphttp]
+      receivers: [ otlp ]
+      exporters: [ debug, otlphttp ]
     metrics:
-      receivers: [otlp]
-      exporters: [debug, otlphttp]
+      receivers: [ otlp ]
+      exporters: [ debug, otlphttp ]

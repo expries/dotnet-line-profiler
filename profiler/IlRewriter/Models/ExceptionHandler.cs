@@ -3,10 +3,10 @@
 public class ExceptionHandler
 {
     public ExceptionHandler(
-        ExceptionHandlerType handlerType, 
-        Instruction tryStart, 
+        ExceptionHandlerType handlerType,
+        Instruction tryStart,
         Instruction tryEnd,
-        Instruction handlerStart, 
+        Instruction handlerStart,
         Instruction handlerEnd)
     {
         TryStart = tryStart;

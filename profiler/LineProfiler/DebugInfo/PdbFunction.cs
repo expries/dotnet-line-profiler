@@ -2,7 +2,7 @@ namespace LineProfiler.DebugInfo;
 
 public class PdbFunction
 {
-    public readonly Dictionary<int, PdbSequence> SequencesByOffset = new ();
+    public readonly Dictionary<int, PdbSequence> SequencesByOffset = new();
 
     public bool TryGetSequenceByOffset(int instructionOffset, out PdbSequence? sequence)
     {
@@ -22,11 +22,8 @@ public class PdbFunction
         {
             var sequenceFound = TryGetSequenceByOffset(offset, out var sequence);
 
-            if (!sequenceFound || sequence is null)
-            {
-                continue;
-            }
-                
+            if (!sequenceFound || sequence is null) continue;
+
             coveredLines.AddRange(sequence.Lines);
         }
 

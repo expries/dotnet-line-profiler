@@ -1,7 +1,9 @@
 ﻿// ReSharper disable InconsistentNaming
+
 namespace IlRewriter.Models.OpCodes.Enums;
 
-public enum FlowControl {
+public enum FlowControl
+{
     Branch,
     Break,
     Call,
@@ -10,5 +12,5 @@ public enum FlowControl {
     Next,
     Phi,
     Return,
-    Throw,
+    Throw
 }

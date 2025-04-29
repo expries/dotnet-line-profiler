@@ -29,13 +29,9 @@ public class MethodDataSectionReader(Stream stream, ReadContext context)
         var ehSection = new MethodEhSection(isFatFormat, hasMoreSections, hasOptIlTable, hasEhTable);
 
         if (ehSection.IsFatFormat)
-        {
             ReadFatSection(ehSection);
-        }
         else
-        {
             ReadSmallSection(ehSection);
-        }
 
         sections.Add(ehSection);
 

@@ -1,6 +1,8 @@
-﻿namespace Profiler.Core;
+﻿using Profiler.Core.Interfaces;
 
-public abstract class CorProfilerCallback3Base : CorProfilerCallback2Base, Interfaces.ICorProfilerCallback3
+namespace Profiler.Core;
+
+public abstract class CorProfilerCallback3Base : CorProfilerCallback2Base, ICorProfilerCallback3
 {
     private readonly NativeObjects.ICorProfilerCallback3 _corProfilerCallback3;
 
@@ -11,7 +13,7 @@ public abstract class CorProfilerCallback3Base : CorProfilerCallback2Base, Inter
 
     protected override HResult QueryInterface(in Guid guid, out nint ptr)
     {
-        if (guid == Interfaces.ICorProfilerCallback3.Guid)
+        if (guid == ICorProfilerCallback3.Guid)
         {
             ptr = _corProfilerCallback3;
             return HResult.S_OK;
@@ -19,25 +21,6 @@ public abstract class CorProfilerCallback3Base : CorProfilerCallback2Base, Inter
 
         return base.QueryInterface(guid, out ptr);
     }
-
-    #region ICorProfilerCallback3
-
-    HResult Interfaces.ICorProfilerCallback3.ProfilerAttachComplete()
-    {
-        return ProfilerAttachComplete();
-    }
-
-    HResult Interfaces.ICorProfilerCallback3.ProfilerDetachSucceeded()
-    {
-        return ProfilerDetachSucceeded();
-    }
-
-    HResult Interfaces.ICorProfilerCallback3.InitializeForAttach(nint pCorProfilerInfoUnk, nint pvClientData, uint cbClientData)
-    {
-        return InitializeForAttach(pCorProfilerInfoUnk, pvClientData, cbClientData);
-    }
-
-    #endregion
 
     protected virtual HResult InitializeForAttach(nint pCorProfilerInfoUnk, nint pvClientData, uint cbClientData)
     {
@@ -53,4 +36,23 @@ public abstract class CorProfilerCallback3Base : CorProfilerCallback2Base, Inter
     {
         return HResult.E_NOTIMPL;
     }
+
+    #region ICorProfilerCallback3
+
+    HResult ICorProfilerCallback3.ProfilerAttachComplete()
+    {
+        return ProfilerAttachComplete();
+    }
+
+    HResult ICorProfilerCallback3.ProfilerDetachSucceeded()
+    {
+        return ProfilerDetachSucceeded();
+    }
+
+    HResult ICorProfilerCallback3.InitializeForAttach(nint pCorProfilerInfoUnk, nint pvClientData, uint cbClientData)
+    {
+        return InitializeForAttach(pCorProfilerInfoUnk, pvClientData, cbClientData);
+    }
+
+    #endregion
 }

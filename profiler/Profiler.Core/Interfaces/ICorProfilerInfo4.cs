@@ -23,9 +23,9 @@ internal unsafe interface ICorProfilerInfo4 : ICorProfilerInfo3
      * re-JITs.
      */
     HResult RequestReJIT(
-                uint cFunctions,
-                ModuleId* moduleIds,
-                MdMethodDef* methodIds);
+        uint cFunctions,
+        ModuleId* moduleIds,
+        MdMethodDef* methodIds);
 
     /*
      * RequestRevert will instruct the runtime to revert to using/calling the
@@ -35,10 +35,10 @@ internal unsafe interface ICorProfilerInfo4 : ICorProfilerInfo3
      *
      */
     HResult RequestRevert(
-                uint cFunctions,
-                ModuleId* moduleIds,
-                MdMethodDef* methodIds,
-                HResult* status);
+        uint cFunctions,
+        ModuleId* moduleIds,
+        MdMethodDef* methodIds,
+        HResult* status);
 
     /*
      * Same as GetCodeInfo2, except instead of always returning the code info
@@ -46,41 +46,41 @@ internal unsafe interface ICorProfilerInfo4 : ICorProfilerInfo3
      * for a particular re-JITed version of a function.
      */
     HResult GetCodeInfo3(
-                FunctionId functionID,
-                ReJITId reJitId,
-                uint cCodeInfos,
-                out uint pcCodeInfos,
-                COR_PRF_CODE_INFO* codeInfos);
+        FunctionId functionID,
+        ReJITId reJitId,
+        uint cCodeInfos,
+        out uint pcCodeInfos,
+        COR_PRF_CODE_INFO* codeInfos);
 
     /*
      * Same as GetFunctionFromIP, but also returns which re-JITed version is
      * associated with the IP address.
      */
     HResult GetFunctionFromIP2(
-                byte* ip,
-                out FunctionId pFunctionId,
-                out ReJITId pReJitId);
+        byte* ip,
+        out FunctionId pFunctionId,
+        out ReJITId pReJitId);
 
     /*
      * GetReJITIDs can be used to find all of the re-JITed versions of the
      * given function.
      */
     HResult GetReJITIDs(
-                FunctionId functionId,
-                uint cReJitIds,
-                uint* pcReJitIds,
-                ReJITId* reJitIds);
+        FunctionId functionId,
+        uint cReJitIds,
+        uint* pcReJitIds,
+        ReJITId* reJitIds);
 
     /*
      * Same as GetILToNativeMapping, but allows the code profiler to specify
      * which re-JITed version it applies to.
      */
     HResult GetILToNativeMapping2(
-                FunctionId functionId,
-                ReJITId reJitId,
-                uint cMap,
-                uint* pcMap,
-                COR_DEBUG_IL_TO_NATIVE_MAP* map);
+        FunctionId functionId,
+        ReJITId reJitId,
+        uint cMap,
+        uint* pcMap,
+        COR_DEBUG_IL_TO_NATIVE_MAP* map);
 
     /*
      * Returns an enumerator for all previously jitted functions. May overlap with
@@ -94,7 +94,6 @@ internal unsafe interface ICorProfilerInfo4 : ICorProfilerInfo3
      * Note that types like arrays and strings may have a different size for each object.
      */
     HResult GetObjectSize2(
-                ObjectId objectId,
-                out nint pcSize);
-
+        ObjectId objectId,
+        out nint pcSize);
 }

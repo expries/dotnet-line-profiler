@@ -1,29 +1,31 @@
-﻿namespace Profiler.Core;
+﻿using Profiler.Core.Interfaces;
 
-public abstract class Unknown : Interfaces.IUnknown
+namespace Profiler.Core;
+
+public abstract class Unknown : IUnknown
 {
     private int _referenceCount;
 
-    protected abstract HResult QueryInterface(in Guid guid, out nint ptr);
+    HResult IUnknown.QueryInterface(in Guid guid, out nint ptr)
+    {
+        return QueryInterface(guid, out ptr);
+    }
 
-    HResult Interfaces.IUnknown.QueryInterface(in System.Guid guid, out nint ptr) => QueryInterface(guid, out ptr);
-
-    int Interfaces.IUnknown.AddRef()
+    int IUnknown.AddRef()
     {
         return Interlocked.Increment(ref _referenceCount);
     }
 
-    int Interfaces.IUnknown.Release()
+    int IUnknown.Release()
     {
         var value = Interlocked.Decrement(ref _referenceCount);
 
-        if (value == 0)
-        {
-            Dispose();
-        }
+        if (value == 0) Dispose();
 
         return value;
     }
+
+    protected abstract HResult QueryInterface(in Guid guid, out nint ptr);
 
     public virtual void Dispose()
     {

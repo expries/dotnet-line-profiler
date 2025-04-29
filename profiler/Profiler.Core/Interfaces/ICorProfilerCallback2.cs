@@ -19,9 +19,9 @@ internal unsafe interface ICorProfilerCallback2 : ICorProfilerCallback
      *
      */
     HResult ThreadNameChanged(
-                ThreadId threadId,
-                uint cchName,
-                char* name);
+        ThreadId threadId,
+        uint cchName,
+        char* name);
 
     /*
      *
@@ -52,9 +52,9 @@ internal unsafe interface ICorProfilerCallback2 : ICorProfilerCallback
      * until it receives a GarbageCollectionFinished callback.
      */
     HResult GarbageCollectionStarted(
-                int cGenerations,
-                int* generationCollected,
-                COR_PRF_GC_REASON reason);
+        int cGenerations,
+        int* generationCollected,
+        COR_PRF_GC_REASON reason);
 
     /*
      * The CLR calls SurvivingReferences with information about
@@ -89,9 +89,10 @@ internal unsafe interface ICorProfilerCallback2 : ICorProfilerCallback
      * on 64-bit platforms. Use ICorProfilerCallback4::SurvivingReferences2 instead.
      */
     HResult SurvivingReferences(
-                uint cSurvivingObjectIDRanges,
-                ObjectId* objectIDRangeStart,
-                uint* cObjectIDRangeLength);
+        uint cSurvivingObjectIDRanges,
+        ObjectId* objectIDRangeStart,
+        uint* cObjectIDRangeLength);
+
     /*
      * The CLR calls GarbageCollectionFinished after a garbage
      * collection has completed and all GC callbacks have been
@@ -153,11 +154,11 @@ internal unsafe interface ICorProfilerCallback2 : ICorProfilerCallback
      */
 
     HResult RootReferences2(
-                uint cRootRefs,
-                ObjectId* rootRefIds,
-                COR_PRF_GC_ROOT_KIND* rootKinds,
-                COR_PRF_GC_ROOT_FLAGS* rootFlags,
-                uint* rootIds);
+        uint cRootRefs,
+        ObjectId* rootRefIds,
+        COR_PRF_GC_ROOT_KIND* rootKinds,
+        COR_PRF_GC_ROOT_FLAGS* rootFlags,
+        uint* rootIds);
 
     /*
      * The CLR calls HandleCreated when a gc handle has been created.
@@ -165,8 +166,8 @@ internal unsafe interface ICorProfilerCallback2 : ICorProfilerCallback
      */
 
     HResult HandleCreated(
-                GCHandleId handleId,
-                ObjectId initialObjectId);
+        GCHandleId handleId,
+        ObjectId initialObjectId);
 
     /*
      * The CLR calls HandleDestroyed when a gc handle has been destroyed.
@@ -174,5 +175,5 @@ internal unsafe interface ICorProfilerCallback2 : ICorProfilerCallback
      */
 
     HResult HandleDestroyed(
-                GCHandleId handleId);
+        GCHandleId handleId);
 }

@@ -7,11 +7,8 @@ public class MemberRefSignature(byte[] binaryData)
         rid = new Rid(0, RefType.TypeSpec);
 
         // Note: only supports complex types
-        if (binaryData[2] != 0x11)
-        {
-            return false;
-        }
-        
+        if (binaryData[2] != 0x11) return false;
+
         var encodedTypeToken = binaryData[3];
 
         try

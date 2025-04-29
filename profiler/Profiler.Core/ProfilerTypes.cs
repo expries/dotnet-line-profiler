@@ -14,7 +14,10 @@ public readonly struct GCHandleId
 {
     public readonly nint Value;
 
-    public override string ToString() => Value.ToString("x2");
+    public override string ToString()
+    {
+        return Value.ToString("x2");
+    }
 }
 
 public readonly struct AppDomainId
@@ -31,7 +34,10 @@ public readonly struct ClassId
 {
     public readonly nint Value;
 
-    public override string ToString() => Value.ToString("x2");
+    public override string ToString()
+    {
+        return Value.ToString("x2");
+    }
 }
 
 public readonly record struct FunctionId(IntPtr Value)
@@ -48,7 +54,10 @@ public readonly struct ThreadId
 {
     public readonly nuint Value;
 
-    public override string ToString() => Value.ToString("x2");
+    public override string ToString()
+    {
+        return Value.ToString("x2");
+    }
 }
 
 public readonly struct ProcessId
@@ -64,7 +73,7 @@ public readonly struct ContextId
 public readonly struct MdToken
 {
     public readonly int Value;
-    
+
     public MdToken(int value)
     {
         Value = value;
@@ -85,6 +94,7 @@ public readonly struct MdTypeDef
         Value = value;
     }
 }
+
 public readonly struct MdMethodDef
 {
     public MdMethodDef(MdToken token)
@@ -153,7 +163,7 @@ public readonly struct MdModuleRef
 public readonly struct MdTypeSpec
 {
     public readonly int Value;
-    
+
     public MdTypeSpec(int value)
     {
         Value = value;
@@ -179,7 +189,6 @@ public readonly struct CorElementType
 {
     public readonly uint Value;
 }
-
 
 public readonly struct HCORENUM
 {
@@ -240,18 +249,17 @@ public readonly struct COR_PRF_ELT_INFO
 
 public readonly struct COR_PRF_FUNCTION_ARGUMENT_INFO
 {
-    public readonly uint NumRanges;                // number of chunks of arguments
-    public readonly uint TotalArgumentSize;    // total size of arguments
+    public readonly uint NumRanges; // number of chunks of arguments
+    public readonly uint TotalArgumentSize; // total size of arguments
     public readonly COR_PRF_FUNCTION_ARGUMENT_RANGE range1;
     public readonly COR_PRF_FUNCTION_ARGUMENT_RANGE range2;
 }
 
 public readonly struct COR_PRF_FUNCTION_ARGUMENT_RANGE
 {
-    public readonly nint StartAddress;          // start address of the range
-    public readonly uint Length;                         // contiguous length of the range
+    public readonly nint StartAddress; // start address of the range
+    public readonly uint Length; // contiguous length of the range
 }
-
 
 [Flags]
 public enum CorPrfMonitor : uint
@@ -271,10 +279,12 @@ public enum CorPrfMonitor : uint
     COR_PRF_MONITOR_CODE_TRANSITIONS = 0x00000800,
     COR_PRF_MONITOR_ENTERLEAVE = 0x00001000,
     COR_PRF_MONITOR_CCW = 0x00002000,
+
     COR_PRF_MONITOR_REMOTING_COOKIE = 0x00004000 |
-                                          COR_PRF_MONITOR_REMOTING,
+                                      COR_PRF_MONITOR_REMOTING,
+
     COR_PRF_MONITOR_REMOTING_ASYNC = 0x00008000 |
-                                          COR_PRF_MONITOR_REMOTING,
+                                     COR_PRF_MONITOR_REMOTING,
     COR_PRF_MONITOR_SUSPENDS = 0x00010000,
     COR_PRF_MONITOR_CACHE_SEARCHES = 0x00020000,
     COR_PRF_ENABLE_REJIT = 0x00040000,
@@ -290,42 +300,46 @@ public enum CorPrfMonitor : uint
     COR_PRF_ENABLE_FRAME_INFO = 0X08000000,
     COR_PRF_ENABLE_STACK_SNAPSHOT = 0X10000000,
     COR_PRF_USE_PROFILE_IMAGES = 0x20000000,
+
     COR_PRF_DISABLE_TRANSPARENCY_CHECKS_UNDER_FULL_TRUST
-                                        = 0x40000000,
+        = 0x40000000,
     COR_PRF_DISABLE_ALL_NGEN_IMAGES = 0x80000000,
     COR_PRF_ALL = 0x8FFFFFFF,
+
     COR_PRF_REQUIRE_PROFILE_IMAGE = COR_PRF_USE_PROFILE_IMAGES |
-                                          COR_PRF_MONITOR_CODE_TRANSITIONS |
-                                          COR_PRF_MONITOR_ENTERLEAVE,
+                                    COR_PRF_MONITOR_CODE_TRANSITIONS |
+                                    COR_PRF_MONITOR_ENTERLEAVE,
+
     COR_PRF_ALLOWABLE_AFTER_ATTACH = COR_PRF_MONITOR_THREADS |
-                                          COR_PRF_MONITOR_MODULE_LOADS |
-                                          COR_PRF_MONITOR_ASSEMBLY_LOADS |
-                                          COR_PRF_MONITOR_APPDOMAIN_LOADS |
-                                          COR_PRF_ENABLE_STACK_SNAPSHOT |
-                                          COR_PRF_MONITOR_GC |
-                                          COR_PRF_MONITOR_SUSPENDS |
-                                          COR_PRF_MONITOR_CLASS_LOADS |
-                                          COR_PRF_MONITOR_JIT_COMPILATION,
+                                     COR_PRF_MONITOR_MODULE_LOADS |
+                                     COR_PRF_MONITOR_ASSEMBLY_LOADS |
+                                     COR_PRF_MONITOR_APPDOMAIN_LOADS |
+                                     COR_PRF_ENABLE_STACK_SNAPSHOT |
+                                     COR_PRF_MONITOR_GC |
+                                     COR_PRF_MONITOR_SUSPENDS |
+                                     COR_PRF_MONITOR_CLASS_LOADS |
+                                     COR_PRF_MONITOR_JIT_COMPILATION,
+
     COR_PRF_MONITOR_IMMUTABLE = COR_PRF_MONITOR_CODE_TRANSITIONS |
-                                          COR_PRF_MONITOR_REMOTING |
-                                          COR_PRF_MONITOR_REMOTING_COOKIE |
-                                          COR_PRF_MONITOR_REMOTING_ASYNC |
-                                          COR_PRF_ENABLE_REJIT |
-                                          COR_PRF_ENABLE_INPROC_DEBUGGING |
-                                          COR_PRF_ENABLE_JIT_MAPS |
-                                          COR_PRF_DISABLE_OPTIMIZATIONS |
-                                          COR_PRF_DISABLE_INLINING |
-                                          COR_PRF_ENABLE_OBJECT_ALLOCATED |
-                                          COR_PRF_ENABLE_FUNCTION_ARGS |
-                                          COR_PRF_ENABLE_FUNCTION_RETVAL |
-                                          COR_PRF_ENABLE_FRAME_INFO |
-                                          COR_PRF_USE_PROFILE_IMAGES |
-                     COR_PRF_DISABLE_TRANSPARENCY_CHECKS_UNDER_FULL_TRUST |
-                                          COR_PRF_DISABLE_ALL_NGEN_IMAGES
+                                COR_PRF_MONITOR_REMOTING |
+                                COR_PRF_MONITOR_REMOTING_COOKIE |
+                                COR_PRF_MONITOR_REMOTING_ASYNC |
+                                COR_PRF_ENABLE_REJIT |
+                                COR_PRF_ENABLE_INPROC_DEBUGGING |
+                                COR_PRF_ENABLE_JIT_MAPS |
+                                COR_PRF_DISABLE_OPTIMIZATIONS |
+                                COR_PRF_DISABLE_INLINING |
+                                COR_PRF_ENABLE_OBJECT_ALLOCATED |
+                                COR_PRF_ENABLE_FUNCTION_ARGS |
+                                COR_PRF_ENABLE_FUNCTION_RETVAL |
+                                COR_PRF_ENABLE_FRAME_INFO |
+                                COR_PRF_USE_PROFILE_IMAGES |
+                                COR_PRF_DISABLE_TRANSPARENCY_CHECKS_UNDER_FULL_TRUST |
+                                COR_PRF_DISABLE_ALL_NGEN_IMAGES
 }
 
 /// <summary>
-/// Additional flags the profiler can specify via SetEventMask2 when loading
+///     Additional flags the profiler can specify via SetEventMask2 when loading
 /// </summary>
 [Flags]
 public enum CorPrfHighMonitor : uint
@@ -357,25 +371,25 @@ public enum CorPrfHighMonitor : uint
     COR_PRF_HIGH_MONITOR_PINNEDOBJECT_ALLOCATED = 0x00000100,
 
     COR_PRF_HIGH_ALLOWABLE_AFTER_ATTACH = COR_PRF_HIGH_IN_MEMORY_SYMBOLS_UPDATED |
-                                                      COR_PRF_HIGH_MONITOR_DYNAMIC_FUNCTION_UNLOADS |
-                                                      COR_PRF_HIGH_BASIC_GC |
-                                                      COR_PRF_HIGH_MONITOR_GC_MOVED_OBJECTS |
-                                                      COR_PRF_HIGH_MONITOR_LARGEOBJECT_ALLOCATED |
-                                                      COR_PRF_HIGH_MONITOR_EVENT_PIPE,
+                                          COR_PRF_HIGH_MONITOR_DYNAMIC_FUNCTION_UNLOADS |
+                                          COR_PRF_HIGH_BASIC_GC |
+                                          COR_PRF_HIGH_MONITOR_GC_MOVED_OBJECTS |
+                                          COR_PRF_HIGH_MONITOR_LARGEOBJECT_ALLOCATED |
+                                          COR_PRF_HIGH_MONITOR_EVENT_PIPE,
 
     COR_PRF_HIGH_ALLOWABLE_NOTIFICATION_PROFILER
-                                        = COR_PRF_HIGH_IN_MEMORY_SYMBOLS_UPDATED |
-                                              COR_PRF_HIGH_MONITOR_DYNAMIC_FUNCTION_UNLOADS |
-                                              COR_PRF_HIGH_DISABLE_TIERED_COMPILATION |
-                                              COR_PRF_HIGH_BASIC_GC |
-                                              COR_PRF_HIGH_MONITOR_GC_MOVED_OBJECTS |
-                                              COR_PRF_HIGH_MONITOR_LARGEOBJECT_ALLOCATED |
-                                              COR_PRF_HIGH_MONITOR_EVENT_PIPE,
+        = COR_PRF_HIGH_IN_MEMORY_SYMBOLS_UPDATED |
+          COR_PRF_HIGH_MONITOR_DYNAMIC_FUNCTION_UNLOADS |
+          COR_PRF_HIGH_DISABLE_TIERED_COMPILATION |
+          COR_PRF_HIGH_BASIC_GC |
+          COR_PRF_HIGH_MONITOR_GC_MOVED_OBJECTS |
+          COR_PRF_HIGH_MONITOR_LARGEOBJECT_ALLOCATED |
+          COR_PRF_HIGH_MONITOR_EVENT_PIPE,
 
     // MONITOR_IMMUTABLE represents all flags that may only be set during initialization.
     // Trying to change any of these flags elsewhere will result in a
     // failed HRESULT.
-    COR_PRF_HIGH_MONITOR_IMMUTABLE = COR_PRF_HIGH_DISABLE_TIERED_COMPILATION,
+    COR_PRF_HIGH_MONITOR_IMMUTABLE = COR_PRF_HIGH_DISABLE_TIERED_COMPILATION
 }
 
 public enum COR_PRF_FINALIZER_FLAGS
@@ -406,7 +420,7 @@ public enum COR_PRF_SUSPEND_REASON
     COR_PRF_SUSPEND_FOR_INPROC_DEBUGGER = 6,
     COR_PRF_SUSPEND_FOR_GC_PREP = 7,
     COR_PRF_SUSPEND_FOR_REJIT = 8,
-    COR_PRF_SUSPEND_FOR_PROFILER = 9,
+    COR_PRF_SUSPEND_FOR_PROFILER = 9
 }
 
 [Flags]
@@ -438,18 +452,18 @@ public static class KnownGuids
 [Flags]
 public enum CorILMethodFlags
 {
-    CorILMethod_InitLocals = 0x0010,           // call default constructor on all local vars
-    CorILMethod_MoreSects = 0x0008,           // there is another attribute after this one
+    CorILMethod_InitLocals = 0x0010, // call default constructor on all local vars
+    CorILMethod_MoreSects = 0x0008, // there is another attribute after this one
 
-    CorILMethod_CompressedIL = 0x0040,           // Not used.
+    CorILMethod_CompressedIL = 0x0040, // Not used.
 
     // Indicates the format for the COR_ILMETHOD header
     CorILMethod_FormatShift = 3,
-    CorILMethod_FormatMask = ((1 << CorILMethod_FormatShift) - 1),
-    CorILMethod_TinyFormat = 0x0002,         // use this code if the code size is even
+    CorILMethod_FormatMask = (1 << CorILMethod_FormatShift) - 1,
+    CorILMethod_TinyFormat = 0x0002, // use this code if the code size is even
     CorILMethod_SmallFormat = 0x0000,
     CorILMethod_FatFormat = 0x0003,
-    CorILMethod_TinyFormat1 = 0x0006,         // use this code if the code size is odd
+    CorILMethod_TinyFormat1 = 0x0006 // use this code if the code size is odd
 }
 
 public enum COR_PRF_STATIC_TYPE
@@ -475,47 +489,48 @@ public enum COR_PRF_CLAUSE_TYPE
     COR_PRF_CLAUSE_NONE = 0,
     COR_PRF_CLAUSE_FILTER = 1,
     COR_PRF_CLAUSE_CATCH = 2,
-    COR_PRF_CLAUSE_FINALLY = 3,
+    COR_PRF_CLAUSE_FINALLY = 3
 }
 
 public enum COR_PRF_RUNTIME_TYPE
 {
     COR_PRF_DESKTOP_CLR = 0x1,
-    COR_PRF_CORE_CLR = 0x2,
+    COR_PRF_CORE_CLR = 0x2
 }
 
 /// <summary>
-/// COR_PRF_GC_REASON describes the reason for a given GC.
+///     COR_PRF_GC_REASON describes the reason for a given GC.
 /// </summary>
 public enum COR_PRF_GC_REASON
 {
-    COR_PRF_GC_INDUCED = 1,     // Induced by GC.Collect
-    COR_PRF_GC_OTHER = 0        // Anything else
+    COR_PRF_GC_INDUCED = 1, // Induced by GC.Collect
+    COR_PRF_GC_OTHER = 0 // Anything else
 }
 
 /// <summary>
-/// COR_PRF_GC_ROOT_KIND describes the kind of GC root exposed by
-/// the RootReferences2 callback.
+///     COR_PRF_GC_ROOT_KIND describes the kind of GC root exposed by
+///     the RootReferences2 callback.
 /// </summary>
 public enum COR_PRF_GC_ROOT_KIND
 {
-    COR_PRF_GC_ROOT_STACK = 1,        // Variables on the stack
-    COR_PRF_GC_ROOT_FINALIZER = 2,    // Entry in the finalizer queue
-    COR_PRF_GC_ROOT_HANDLE = 3,        // GC Handle
-    COR_PRF_GC_ROOT_OTHER = 0        //Misc. roots
+    COR_PRF_GC_ROOT_STACK = 1, // Variables on the stack
+    COR_PRF_GC_ROOT_FINALIZER = 2, // Entry in the finalizer queue
+    COR_PRF_GC_ROOT_HANDLE = 3, // GC Handle
+    COR_PRF_GC_ROOT_OTHER = 0 //Misc. roots
 }
 
 /// <summary>
-/// COR_PRF_GC_ROOT_FLAGS describes properties of a GC root
-/// exposed by the RootReferences callback.
+///     COR_PRF_GC_ROOT_FLAGS describes properties of a GC root
+///     exposed by the RootReferences callback.
 /// </summary>
 public enum COR_PRF_GC_ROOT_FLAGS
 {
-    COR_PRF_GC_ROOT_PINNING = 0x1,    // Prevents GC from moving the object
-    COR_PRF_GC_ROOT_WEAKREF = 0x2,    // Does not prevent collection
-    COR_PRF_GC_ROOT_INTERIOR = 0x4,   // Refers to a field of the object rather than the object itself
-    COR_PRF_GC_ROOT_REFCOUNTED = 0x8, // Whether it prevents collection depends on a refcount - if not,
-                                      // COR_PRF_GC_ROOT_WEAKREF will be set also
+    COR_PRF_GC_ROOT_PINNING = 0x1, // Prevents GC from moving the object
+    COR_PRF_GC_ROOT_WEAKREF = 0x2, // Does not prevent collection
+    COR_PRF_GC_ROOT_INTERIOR = 0x4, // Refers to a field of the object rather than the object itself
+
+    COR_PRF_GC_ROOT_REFCOUNTED = 0x8 // Whether it prevents collection depends on a refcount - if not,
+    // COR_PRF_GC_ROOT_WEAKREF will be set also
 }
 
 public struct COR_DEBUG_IL_TO_NATIVE_MAP
@@ -529,7 +544,9 @@ public unsafe struct COR_PRF_EVENTPIPE_PROVIDER_CONFIG
 {
     public char* providerName;
     public ulong keywords;
+
     public uint loggingLevel;
+
     // filterData expects a semicolon delimited string that defines key value pairs
     // such as "key1=value1;key2=value2;". Quotes can be used to escape the '=' and ';'
     // characters. These key value pairs will be passed in the enable callback to event
@@ -555,6 +572,7 @@ public readonly struct EVENTPIPE_EVENT
 public unsafe struct COR_PRF_EVENTPIPE_PARAM_DESC
 {
     public uint type;
+
     // Used if type == ArrayType
     public uint elementType;
     public char* name;
@@ -571,7 +589,7 @@ public enum COR_PRF_HANDLE_TYPE
 {
     COR_PRF_HANDLE_TYPE_WEAK = 0x1,
     COR_PRF_HANDLE_TYPE_STRONG = 0x2,
-    COR_PRF_HANDLE_TYPE_PINNED = 0x3,
+    COR_PRF_HANDLE_TYPE_PINNED = 0x3
 }
 
 public readonly struct ObjectHandleId
@@ -579,19 +597,17 @@ public readonly struct ObjectHandleId
     public readonly nint Value;
 }
 
-public static class CorUnmanagedCallingConventionFlags {  
-  
-    public const byte IMAGE_CEE_UNMANAGED_CALLCONV_C         = 0x1;  
-    public const byte IMAGE_CEE_UNMANAGED_CALLCONV_STDCALL   = 0x2;  
-    public const byte IMAGE_CEE_UNMANAGED_CALLCONV_THISCALL  = 0x3;  
-    public const byte IMAGE_CEE_UNMANAGED_CALLCONV_FASTCALL  = 0x4;  
-  
-    public const byte IMAGE_CEE_CS_CALLCONV_C                = 0x1; 
-    public const byte IMAGE_CEE_CS_CALLCONV_STDCALL          = 0x2;  
-    public const byte IMAGE_CEE_CS_CALLCONV_THISCALL         = 0x3;  
-    public const byte IMAGE_CEE_CS_CALLCONV_FASTCALL         = 0x4; 
-    
-    
+public static class CorUnmanagedCallingConventionFlags
+{
+    public const byte IMAGE_CEE_UNMANAGED_CALLCONV_C = 0x1;
+    public const byte IMAGE_CEE_UNMANAGED_CALLCONV_STDCALL = 0x2;
+    public const byte IMAGE_CEE_UNMANAGED_CALLCONV_THISCALL = 0x3;
+    public const byte IMAGE_CEE_UNMANAGED_CALLCONV_FASTCALL = 0x4;
+
+    public const byte IMAGE_CEE_CS_CALLCONV_C = 0x1;
+    public const byte IMAGE_CEE_CS_CALLCONV_STDCALL = 0x2;
+    public const byte IMAGE_CEE_CS_CALLCONV_THISCALL = 0x3;
+    public const byte IMAGE_CEE_CS_CALLCONV_FASTCALL = 0x4;
 }
 
 public static class CorElementTypeFlags
@@ -625,18 +641,17 @@ public static class CorElementTypeFlags
     public const byte ELEMENT_TYPE_I = 0x18;
     public const byte ELEMENT_TYPE_U = 0x19;
     public const byte ELEMENT_TYPE_FNPTR = 0x1B;
-    public const byte ELEMENT_TYPE_OBJECT         = 0x1C;
-    public const byte ELEMENT_TYPE_SZARRAY        = 0x1D;
-    public const byte ELEMENT_TYPE_MVAR           = 0x1e;
+    public const byte ELEMENT_TYPE_OBJECT = 0x1C;
+    public const byte ELEMENT_TYPE_SZARRAY = 0x1D;
+    public const byte ELEMENT_TYPE_MVAR = 0x1e;
 
-    public const byte ELEMENT_TYPE_CMOD_REQD      = 0x1F;
-    public const byte ELEMENT_TYPE_CMOD_OPT       = 0x20;
+    public const byte ELEMENT_TYPE_CMOD_REQD = 0x1F;
+    public const byte ELEMENT_TYPE_CMOD_OPT = 0x20;
 
-    public const byte ELEMENT_TYPE_INTERNAL       = 0x21;
-    public const byte ELEMENT_TYPE_MAX            = 0x22;
+    public const byte ELEMENT_TYPE_INTERNAL = 0x21;
+    public const byte ELEMENT_TYPE_MAX = 0x22;
 
     public const byte ELEMENT_TYPE_MODIFIER = 0x40;
-    public const byte ELEMENT_TYPE_SENTINEL       = 0x01 | ELEMENT_TYPE_MODIFIER;
-    public const byte ELEMENT_TYPE_PINNED         = 0x05 | ELEMENT_TYPE_MODIFIER;
-
+    public const byte ELEMENT_TYPE_SENTINEL = 0x01 | ELEMENT_TYPE_MODIFIER;
+    public const byte ELEMENT_TYPE_PINNED = 0x05 | ELEMENT_TYPE_MODIFIER;
 }

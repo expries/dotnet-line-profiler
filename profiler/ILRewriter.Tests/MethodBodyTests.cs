@@ -21,33 +21,35 @@ public class MethodBodyTests : MethodTest
         var inputMemoryStream = new MemoryStream(ilMethodBody);
         var reader = new MethodReader(inputMemoryStream);
         var method = reader.ReadFromStream();
-        
-        var headerBytes = ilMethodBody[0..method.Header.SizeInBytes];
-        var instructionBytes = ilMethodBody[method.Header.SizeInBytes..(method.Header.SizeInBytes+method.Header.CodeSize)];
-        var dataSectionBytes = ilMethodBody[(method.Header.SizeInBytes+method.Header.CodeSize)..];
+
+        var headerBytes = ilMethodBody[..method.Header.SizeInBytes];
+        var instructionBytes =
+            ilMethodBody[method.Header.SizeInBytes..(method.Header.SizeInBytes + method.Header.CodeSize)];
+        var dataSectionBytes = ilMethodBody[(method.Header.SizeInBytes + method.Header.CodeSize)..];
 
         // Depends on the implementation of MethodHeader
         var methodBodyOffset = method.Header.SizeInBytes;
         var methodBodyBytes = ilMethodBody[methodBodyOffset..];
-        
+
         var outputMemoryStream = new MemoryStream();
         var writer = new MethodBodyWriter();
         writer.WriteToStream(method.Body, outputMemoryStream);
-        
+
         var headerOutput = new MemoryStream();
         var binaryWriter = new BinaryStreamWriter(headerOutput);
         var instructionOutput = new MemoryStream();
         var dataSectionOutput = new MemoryStream();
-        
+
         var headerWriter = new MethodHeaderWriter();
         headerWriter.WriteToStream(method.Header, binaryWriter);
 
         var instructionWriter = new InstructionWriter();
-        method.Body.Instructions.ForEach(instruction => instructionWriter.WriteToStream(instruction, instructionOutput));
+        method.Body.Instructions.ForEach(instruction =>
+            instructionWriter.WriteToStream(instruction, instructionOutput));
 
         var dataSectionWriter = new MethodDataSectionWriter();
         dataSectionWriter.WriteToStream(method.Body.DataSection, dataSectionOutput);
-        
+
         CheckOutput("Header", headerBytes, headerOutput.ToArray());
         CheckOutput("Instructions", instructionBytes, instructionOutput.ToArray());
         CheckOutput("DataSection", dataSectionBytes, dataSectionOutput.ToArray());

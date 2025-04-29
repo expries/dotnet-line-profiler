@@ -2,12 +2,13 @@
 
 public class BinaryStreamReader(Stream stream) : BinaryReader(stream)
 {
-    public int Position {
-        get => (int) BaseStream.Position;
+    public int Position
+    {
+        get => (int)BaseStream.Position;
         set => BaseStream.Position = value;
     }
 
-    public int Length => (int) BaseStream.Length;
+    public int Length => (int)BaseStream.Length;
 
     public void Advance(int bytes)
     {
@@ -23,6 +24,6 @@ public class BinaryStreamReader(Stream stream) : BinaryReader(stream)
     {
         align--;
         var position = Position;
-        Advance (((position + align) & ~align) - position);
+        Advance(((position + align) & ~align) - position);
     }
 }

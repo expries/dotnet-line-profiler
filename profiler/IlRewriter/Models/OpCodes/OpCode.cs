@@ -6,29 +6,25 @@ public readonly struct OpCode
 {
     public byte Op1 { get; }
     public byte Op2 { get; }
-    
-    public string Name => OpCodeNames.Names [_code];
-    public OperandType OperandType => (OperandType) _operandType;
+
+    public string Name => OpCodeNames.Names[_code];
+    public OperandType OperandType => (OperandType)_operandType;
     public int SizeInBytes => Op1 == 0xff ? 1 : 2;
 
     private readonly byte _code;
     private readonly byte _operandType;
-    
-    internal OpCode (int x, int y)
+
+    internal OpCode(int x, int y)
     {
-        Op1 = (byte) ((x >> 0) & 0xff);
-        Op2 = (byte) ((x >> 8) & 0xff);
-        _code = (byte) ((x >> 16) & 0xff);
-        _operandType = (byte) ((y >> 8) & 0xff);
+        Op1 = (byte)((x >> 0) & 0xff);
+        Op2 = (byte)((x >> 8) & 0xff);
+        _code = (byte)((x >> 16) & 0xff);
+        _operandType = (byte)((y >> 8) & 0xff);
 
         if (Op1 == 0xff)
-        {
-            OpCodes.OneByteOpCode [Op2] = this;
-        }
+            OpCodes.OneByteOpCode[Op2] = this;
         else
-        {
-            OpCodes.TwoBytesOpCode [Op2] = this;
-        }
+            OpCodes.TwoBytesOpCode[Op2] = this;
     }
 
     public static bool operator ==(OpCode one, OpCode other)

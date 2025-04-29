@@ -6,7 +6,7 @@ public class ShortInlineIOperandWriter : IlWriter<ShortInlineIOperand>
 {
     public override void WriteToStream(ShortInlineIOperand instruction, Stream stream)
     {
-        var bytes = new[] { (byte) instruction.Value };
+        var bytes = new[] { (byte)instruction.Value };
         stream.Write(bytes);
     }
 }

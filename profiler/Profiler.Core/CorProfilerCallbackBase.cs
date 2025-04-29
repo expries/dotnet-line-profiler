@@ -5,8 +5,10 @@ namespace Profiler.Core;
 
 public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 {
-    public IntPtr ICorProfilerCallback => _corProfilerCallback;
+    private readonly NativeObjects.ICorProfilerCallback _corProfilerCallback;
     public ICorProfilerInfo ICorProfilerInfo = null!;
+    public ICorProfilerInfo10 ICorProfilerInfo10 = null!;
+    public ICorProfilerInfo11 ICorProfilerInfo11 = null!;
     public ICorProfilerInfo2 ICorProfilerInfo2 = null!;
     public ICorProfilerInfo3 ICorProfilerInfo3 = null!;
     public ICorProfilerInfo4 ICorProfilerInfo4 = null!;
@@ -15,16 +17,14 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
     public ICorProfilerInfo7 ICorProfilerInfo7 = null!;
     public ICorProfilerInfo8 ICorProfilerInfo8 = null!;
     public ICorProfilerInfo9 ICorProfilerInfo9 = null!;
-    public ICorProfilerInfo10 ICorProfilerInfo10 = null!;
-    public ICorProfilerInfo11 ICorProfilerInfo11 = null!;
-    
-    private readonly NativeObjects.ICorProfilerCallback _corProfilerCallback;
-    
+
     protected CorProfilerCallbackBase()
     {
         _corProfilerCallback = NativeObjects.ICorProfilerCallback.Wrap(this);
     }
-    
+
+    public IntPtr ICorProfilerCallback => _corProfilerCallback;
+
     protected override HResult QueryInterface(in Guid guid, out nint ptr)
     {
         if (guid == Interfaces.ICorProfilerCallback.Guid)
@@ -45,11 +45,8 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
         var impl = new IUnknownInvoker(pICorProfilerInfoUnk);
 
         var result = impl.QueryInterface(Interfaces.ICorProfilerInfo.Guid, out var ptr);
-            
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
@@ -57,10 +54,7 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 
         result = impl.QueryInterface(Interfaces.ICorProfilerInfo2.Guid, out ptr);
 
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
@@ -68,10 +62,7 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 
         result = impl.QueryInterface(Interfaces.ICorProfilerInfo3.Guid, out ptr);
 
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
@@ -79,10 +70,7 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 
         result = impl.QueryInterface(Interfaces.ICorProfilerInfo4.Guid, out ptr);
 
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
@@ -90,10 +78,7 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 
         result = impl.QueryInterface(Interfaces.ICorProfilerInfo5.Guid, out ptr);
 
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
@@ -101,10 +86,7 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 
         result = impl.QueryInterface(Interfaces.ICorProfilerInfo6.Guid, out ptr);
 
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
@@ -112,10 +94,7 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 
         result = impl.QueryInterface(Interfaces.ICorProfilerInfo7.Guid, out ptr);
 
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
@@ -123,10 +102,7 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 
         result = impl.QueryInterface(Interfaces.ICorProfilerInfo8.Guid, out ptr);
 
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
@@ -134,10 +110,7 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 
         result = impl.QueryInterface(Interfaces.ICorProfilerInfo9.Guid, out ptr);
 
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
@@ -145,10 +118,7 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 
         result = impl.QueryInterface(Interfaces.ICorProfilerInfo10.Guid, out ptr);
 
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
@@ -156,16 +126,361 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
 
         result = impl.QueryInterface(Interfaces.ICorProfilerInfo11.Guid, out ptr);
 
-        if (!result.IsOK)
-        {
-            return supportedInterface;
-        }
+        if (!result.IsOK) return supportedInterface;
 
         supportedInterface++;
 
         ICorProfilerInfo11 = new ICorProfilerInfo11(ptr);
 
         return supportedInterface;
+    }
+
+    protected virtual HResult Shutdown()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult AppDomainCreationStarted(AppDomainId appDomainId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult AppDomainCreationFinished(AppDomainId appDomainId, HResult hrStatus)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult AppDomainShutdownStarted(AppDomainId appDomainId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult AppDomainShutdownFinished(AppDomainId appDomainId, HResult hrStatus)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult AssemblyLoadStarted(AssemblyId assemblyId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult AssemblyLoadFinished(AssemblyId assemblyId, HResult hrStatus)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult AssemblyUnloadStarted(AssemblyId assemblyId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult AssemblyUnloadFinished(AssemblyId assemblyId, HResult hrStatus)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ModuleLoadStarted(ModuleId moduleId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ModuleLoadFinished(ModuleId moduleId, HResult hrStatus)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ModuleUnloadStarted(ModuleId moduleId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ModuleUnloadFinished(ModuleId moduleId, HResult hrStatus)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ModuleAttachedToAssembly(ModuleId moduleId, AssemblyId assemblyId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ClassLoadStarted(ClassId classId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ClassLoadFinished(ClassId classId, HResult hrStatus)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ClassUnloadStarted(ClassId classId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ClassUnloadFinished(ClassId classId, HResult hrStatus)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult FunctionUnloadStarted(FunctionId functionId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult JITCompilationStarted(FunctionId functionId, bool fIsSafeToBlock)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult JITCompilationFinished(FunctionId functionId, HResult hrStatus, bool fIsSafeToBlock)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult JITCachedFunctionSearchStarted(FunctionId functionId, out bool pbUseCachedFunction)
+    {
+        pbUseCachedFunction = false;
+
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult JITCachedFunctionSearchFinished(FunctionId functionId, COR_PRF_JIT_CACHE result)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult JITFunctionPitched(FunctionId functionId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult JITInlining(FunctionId callerId, FunctionId calleeId, out bool pfShouldInline)
+    {
+        pfShouldInline = false;
+
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ThreadCreated(ThreadId threadId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ThreadDestroyed(ThreadId threadId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ThreadAssignedToOSThread(ThreadId managedThreadId, int osThreadId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RemotingClientInvocationStarted()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RemotingClientSendingMessage(in Guid pCookie, bool fIsAsync)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RemotingClientReceivingReply(in Guid pCookie, bool fIsAsync)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RemotingClientInvocationFinished()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RemotingServerReceivingMessage(in Guid pCookie, bool fIsAsync)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RemotingServerInvocationStarted()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RemotingServerInvocationReturned()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RemotingServerSendingReply(in Guid pCookie, bool fIsAsync)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult UnmanagedToManagedTransition(FunctionId functionId, COR_PRF_TRANSITION_REASON reason)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ManagedToUnmanagedTransition(FunctionId functionId, COR_PRF_TRANSITION_REASON reason)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RuntimeSuspendStarted(COR_PRF_SUSPEND_REASON suspendReason)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RuntimeSuspendFinished()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RuntimeSuspendAborted()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RuntimeResumeStarted()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RuntimeResumeFinished()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RuntimeThreadSuspended(ThreadId threadId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult RuntimeThreadResumed(ThreadId threadId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual unsafe HResult MovedReferences(uint cMovedObjectIDRanges, ObjectId* oldObjectIDRangeStart,
+        ObjectId* newObjectIDRangeStart, uint* cObjectIDRangeLength)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ObjectAllocated(ObjectId objectId, ClassId classId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual unsafe HResult ObjectsAllocatedByClass(uint cClassCount, ClassId* classIds, uint* cObjects)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual unsafe HResult ObjectReferences(ObjectId objectId, ClassId classId, uint cObjectRefs,
+        ObjectId* objectRefIds)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual unsafe HResult RootReferences(uint cRootRefs, ObjectId* rootRefIds)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionThrown(ObjectId thrownObjectId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionSearchFunctionEnter(FunctionId functionId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionSearchFunctionLeave()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionSearchFilterEnter(FunctionId functionId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionSearchFilterLeave()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionSearchCatcherFound(FunctionId functionId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual unsafe HResult ExceptionOSHandlerEnter(nint* __unused)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual unsafe HResult ExceptionOSHandlerLeave(nint* __unused)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionUnwindFunctionEnter(FunctionId functionId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionUnwindFunctionLeave()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionUnwindFinallyEnter(FunctionId functionId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionUnwindFinallyLeave()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionCatcherEnter(FunctionId functionId, ObjectId objectId)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionCatcherLeave()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual unsafe HResult COMClassicVTableCreated(ClassId wrappedClassId, in Guid implementedIID,
+        void* pVTable, uint cSlots)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual unsafe HResult COMClassicVTableDestroyed(ClassId wrappedClassId, in Guid implementedIID,
+        void* pVTable)
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionCLRCatcherFound()
+    {
+        return HResult.E_NOTIMPL;
+    }
+
+    protected virtual HResult ExceptionCLRCatcherExecute()
+    {
+        return HResult.E_NOTIMPL;
     }
 
     #region ICorProfilerCallback
@@ -409,9 +724,11 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
         return RuntimeThreadResumed(threadId);
     }
 
-    unsafe HResult ICorProfilerCallback.MovedReferences(uint cMovedObjectIDRanges, ObjectId* oldObjectIDRangeStart, ObjectId* newObjectIDRangeStart, uint* cObjectIDRangeLength)
+    unsafe HResult ICorProfilerCallback.MovedReferences(uint cMovedObjectIDRanges, ObjectId* oldObjectIDRangeStart,
+        ObjectId* newObjectIDRangeStart, uint* cObjectIDRangeLength)
     {
-        return MovedReferences(cMovedObjectIDRanges, oldObjectIDRangeStart, newObjectIDRangeStart, cObjectIDRangeLength);
+        return MovedReferences(cMovedObjectIDRanges, oldObjectIDRangeStart, newObjectIDRangeStart,
+            cObjectIDRangeLength);
     }
 
     HResult ICorProfilerCallback.ObjectAllocated(ObjectId objectId, ClassId classId)
@@ -424,7 +741,8 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
         return ObjectsAllocatedByClass(cClassCount, classIds, cObjects);
     }
 
-    unsafe HResult ICorProfilerCallback.ObjectReferences(ObjectId objectId, ClassId classId, uint cObjectRefs, ObjectId* objectRefIds)
+    unsafe HResult ICorProfilerCallback.ObjectReferences(ObjectId objectId, ClassId classId, uint cObjectRefs,
+        ObjectId* objectRefIds)
     {
         return ObjectReferences(objectId, classId, cObjectRefs, objectRefIds);
     }
@@ -504,12 +822,14 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
         return ExceptionCatcherLeave();
     }
 
-    unsafe HResult ICorProfilerCallback.COMClassicVTableCreated(ClassId wrappedClassId, in Guid implementedIID, void* pVTable, uint cSlots)
+    unsafe HResult ICorProfilerCallback.COMClassicVTableCreated(ClassId wrappedClassId, in Guid implementedIID,
+        void* pVTable, uint cSlots)
     {
         return COMClassicVTableCreated(wrappedClassId, in implementedIID, pVTable, cSlots);
     }
 
-    unsafe HResult ICorProfilerCallback.COMClassicVTableDestroyed(ClassId wrappedClassId, in Guid implementedIID, void* pVTable)
+    unsafe HResult ICorProfilerCallback.COMClassicVTableDestroyed(ClassId wrappedClassId, in Guid implementedIID,
+        void* pVTable)
     {
         return COMClassicVTableDestroyed(wrappedClassId, in implementedIID, pVTable);
     }
@@ -525,348 +845,4 @@ public abstract class CorProfilerCallbackBase : Unknown, ICorProfilerCallback
     }
 
     #endregion
-
-    protected virtual HResult Shutdown()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult AppDomainCreationStarted(AppDomainId appDomainId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult AppDomainCreationFinished(AppDomainId appDomainId, HResult hrStatus)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult AppDomainShutdownStarted(AppDomainId appDomainId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult AppDomainShutdownFinished(AppDomainId appDomainId, HResult hrStatus)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult AssemblyLoadStarted(AssemblyId assemblyId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult AssemblyLoadFinished(AssemblyId assemblyId, HResult hrStatus)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult AssemblyUnloadStarted(AssemblyId assemblyId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult AssemblyUnloadFinished(AssemblyId assemblyId, HResult hrStatus)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ModuleLoadStarted(ModuleId moduleId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ModuleLoadFinished(ModuleId moduleId, HResult hrStatus)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ModuleUnloadStarted(ModuleId moduleId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ModuleUnloadFinished(ModuleId moduleId, HResult hrStatus)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ModuleAttachedToAssembly(ModuleId moduleId, AssemblyId assemblyId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ClassLoadStarted(ClassId classId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ClassLoadFinished(ClassId classId, HResult hrStatus)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ClassUnloadStarted(ClassId classId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ClassUnloadFinished(ClassId classId, HResult hrStatus)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult FunctionUnloadStarted(FunctionId functionId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult JITCompilationStarted(FunctionId functionId, bool fIsSafeToBlock)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult JITCompilationFinished(FunctionId functionId, HResult hrStatus, bool fIsSafeToBlock)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult JITCachedFunctionSearchStarted(FunctionId functionId, out bool pbUseCachedFunction)
-    {
-        pbUseCachedFunction = false;
-
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult JITCachedFunctionSearchFinished(FunctionId functionId, COR_PRF_JIT_CACHE result)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult JITFunctionPitched(FunctionId functionId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult JITInlining(FunctionId callerId, FunctionId calleeId, out bool pfShouldInline)
-    {
-        pfShouldInline = false;
-
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ThreadCreated(ThreadId threadId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ThreadDestroyed(ThreadId threadId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ThreadAssignedToOSThread(ThreadId managedThreadId, int osThreadId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RemotingClientInvocationStarted()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RemotingClientSendingMessage(in Guid pCookie, bool fIsAsync)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RemotingClientReceivingReply(in Guid pCookie, bool fIsAsync)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RemotingClientInvocationFinished()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RemotingServerReceivingMessage(in Guid pCookie, bool fIsAsync)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RemotingServerInvocationStarted()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RemotingServerInvocationReturned()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RemotingServerSendingReply(in Guid pCookie, bool fIsAsync)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult UnmanagedToManagedTransition(FunctionId functionId, COR_PRF_TRANSITION_REASON reason)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ManagedToUnmanagedTransition(FunctionId functionId, COR_PRF_TRANSITION_REASON reason)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RuntimeSuspendStarted(COR_PRF_SUSPEND_REASON suspendReason)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RuntimeSuspendFinished()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RuntimeSuspendAborted()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RuntimeResumeStarted()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RuntimeResumeFinished()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RuntimeThreadSuspended(ThreadId threadId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult RuntimeThreadResumed(ThreadId threadId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual unsafe HResult MovedReferences(uint cMovedObjectIDRanges, ObjectId* oldObjectIDRangeStart, ObjectId* newObjectIDRangeStart, uint* cObjectIDRangeLength)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ObjectAllocated(ObjectId objectId, ClassId classId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual unsafe HResult ObjectsAllocatedByClass(uint cClassCount, ClassId* classIds, uint* cObjects)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual unsafe HResult ObjectReferences(ObjectId objectId, ClassId classId, uint cObjectRefs, ObjectId* objectRefIds)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual unsafe HResult RootReferences(uint cRootRefs, ObjectId* rootRefIds)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionThrown(ObjectId thrownObjectId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionSearchFunctionEnter(FunctionId functionId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionSearchFunctionLeave()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionSearchFilterEnter(FunctionId functionId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionSearchFilterLeave()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionSearchCatcherFound(FunctionId functionId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual unsafe HResult ExceptionOSHandlerEnter(nint* __unused)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual unsafe HResult ExceptionOSHandlerLeave(nint* __unused)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionUnwindFunctionEnter(FunctionId functionId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionUnwindFunctionLeave()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionUnwindFinallyEnter(FunctionId functionId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionUnwindFinallyLeave()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionCatcherEnter(FunctionId functionId, ObjectId objectId)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionCatcherLeave()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual unsafe HResult COMClassicVTableCreated(ClassId wrappedClassId, in Guid implementedIID, void* pVTable, uint cSlots)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual unsafe HResult COMClassicVTableDestroyed(ClassId wrappedClassId, in Guid implementedIID, void* pVTable)
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionCLRCatcherFound()
-    {
-        return HResult.E_NOTIMPL;
-    }
-
-    protected virtual HResult ExceptionCLRCatcherExecute()
-    {
-        return HResult.E_NOTIMPL;
-    }
 }

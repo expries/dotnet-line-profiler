@@ -1,12 +1,14 @@
-﻿namespace Profiler.Core;
+﻿using NativeObjects;
+
+namespace Profiler.Core;
 
 public class ICorProfilerInfo
 {
-    private NativeObjects.ICorProfilerInfoInvoker _impl;
+    private ICorProfilerInfoInvoker _impl;
 
     public ICorProfilerInfo(IntPtr ptr)
     {
-        _impl = new(ptr);
+        _impl = new ICorProfilerInfoInvoker(ptr);
     }
 
     public HResult QueryInterface(in Guid guid, out nint ptr)
@@ -70,7 +72,8 @@ public class ICorProfilerInfo
         return _impl.GetObjectSize(objectId, out pcSize);
     }
 
-    public HResult IsArrayClass(ClassId classId, out CorElementType pBaseElemType, out ClassId pBaseClassId, out uint pcRank)
+    public HResult IsArrayClass(ClassId classId, out CorElementType pBaseElemType, out ClassId pBaseClassId,
+        out uint pcRank)
     {
         return _impl.IsArrayClass(classId, out pBaseElemType, out pBaseClassId, out pcRank);
     }
@@ -84,7 +87,7 @@ public class ICorProfilerInfo
     public (HResult result, ThreadId threadId) GetCurrentThreadId()
     {
         var code = _impl.GetCurrentThreadId(out var threadId);
-        return new(code, threadId);
+        return new ValueTuple<HResult, ThreadId>(code, threadId);
     }
 
     public (HResult result, ModuleId moduleId, MdTypeDef typeDef) GetClassIdInfo(ClassId classId)
@@ -114,48 +117,48 @@ public class ICorProfilerInfo
         return _impl.SetFunctionIdMapper(pFunc);
     }
 
-    public unsafe HResult GetTokenAndMetaDataFromFunction(FunctionId functionId, out Guid riid, out void* ppImport, out MdToken pToken)
+    public unsafe HResult GetTokenAndMetaDataFromFunction(FunctionId functionId, out Guid riid, out void* ppImport,
+        out MdToken pToken)
     {
         return _impl.GetTokenAndMetaDataFromFunction(functionId, out riid, out ppImport, out pToken);
     }
 
-    public unsafe (HResult result, string moduleName, nint baseLoadAddress, AssemblyId assemblyId) GetModuleInfo(ModuleId moduleId)
+    public unsafe (HResult result, string moduleName, nint baseLoadAddress, AssemblyId assemblyId) GetModuleInfo(
+        ModuleId moduleId)
     {
         var result = GetModuleInfo(moduleId, Span<char>.Empty, out _, out var length, out _);
 
-        if (!result.IsOK)
-        {
-            return (result, string.Empty, default, default);
-        }
+        if (!result.IsOK) return (result, string.Empty, default, default);
 
         Span<char> buffer = stackalloc char[(int)length];
 
         result = GetModuleInfo(moduleId, buffer, out var baseLoadAddress, out _, out var assemblyId);
 
-        if (!result.IsOK)
-        {
-            return (result, string.Empty, default, default);
-        }
+        if (!result.IsOK) return (result, string.Empty, default, default);
 
         return (result, buffer.WithoutNullTerminator(), baseLoadAddress, assemblyId);
     }
 
 
-    public unsafe HResult GetModuleInfo(ModuleId moduleId, Span<char> moduleName, out nint ppBaseLoadAddress, out uint pcchName, out AssemblyId pAssemblyId)
+    public unsafe HResult GetModuleInfo(ModuleId moduleId, Span<char> moduleName, out nint ppBaseLoadAddress,
+        out uint pcchName, out AssemblyId pAssemblyId)
     {
         fixed (char* c = moduleName)
         {
-            return _impl.GetModuleInfo(moduleId, out ppBaseLoadAddress, (uint)moduleName.Length, out pcchName, c, out pAssemblyId);
+            return _impl.GetModuleInfo(moduleId, out ppBaseLoadAddress, (uint)moduleName.Length, out pcchName, c,
+                out pAssemblyId);
         }
     }
 
-    public (HResult result, MetaDataImport metaDataImport) GetModuleMetaData(ModuleId moduleId, CorOpenFlags dwOpenFlags, Guid riid)
+    public (HResult result, MetaDataImport metaDataImport) GetModuleMetaData(ModuleId moduleId,
+        CorOpenFlags dwOpenFlags, Guid riid)
     {
         var result = _impl.GetModuleMetaData(moduleId, dwOpenFlags, riid, out var ptr);
         return (result, new MetaDataImport(ptr));
     }
 
-    public unsafe HResult GetILFunctionBody(ModuleId moduleId, MdMethodDef methodId, out byte* ppMethodHeader, out uint pcbMethodSize)
+    public unsafe HResult GetILFunctionBody(ModuleId moduleId, MdMethodDef methodId, out byte* ppMethodHeader,
+        out uint pcbMethodSize)
     {
         return _impl.GetILFunctionBody(moduleId, methodId, out ppMethodHeader, out pcbMethodSize);
     }
@@ -174,24 +177,19 @@ public class ICorProfilerInfo
     {
         var result = GetAppDomainInfo(appDomainId, Span<char>.Empty, out var length, out _);
 
-        if (!result.IsOK)
-        {
-            return (result, string.Empty, default);
-        }
+        if (!result.IsOK) return (result, string.Empty, default);
 
         Span<char> buffer = stackalloc char[(int)length];
 
         result = GetAppDomainInfo(appDomainId, buffer, out _, out var processId);
 
-        if (!result.IsOK)
-        {
-            return (result, string.Empty, default);
-        }
+        if (!result.IsOK) return (result, string.Empty, default);
 
         return (result, buffer.WithoutNullTerminator(), processId);
     }
 
-    public unsafe HResult GetAppDomainInfo(AppDomainId appDomainId, Span<char> appDomainName, out uint pcchName, out ProcessId pProcessId)
+    public unsafe HResult GetAppDomainInfo(AppDomainId appDomainId, Span<char> appDomainName, out uint pcchName,
+        out ProcessId pProcessId)
     {
         fixed (char* c = appDomainName)
         {
@@ -199,31 +197,28 @@ public class ICorProfilerInfo
         }
     }
 
-    public unsafe HResult GetAssemblyInfo(AssemblyId assemblyId, Span<char> assemblyName, out uint pcchName, out AppDomainId pAppDomainId, out ModuleId pModuleId)
+    public unsafe HResult GetAssemblyInfo(AssemblyId assemblyId, Span<char> assemblyName, out uint pcchName,
+        out AppDomainId pAppDomainId, out ModuleId pModuleId)
     {
         fixed (char* c = assemblyName)
         {
-            return _impl.GetAssemblyInfo(assemblyId, (uint)assemblyName.Length, out pcchName, c, out pAppDomainId, out pModuleId);
+            return _impl.GetAssemblyInfo(assemblyId, (uint)assemblyName.Length, out pcchName, c, out pAppDomainId,
+                out pModuleId);
         }
     }
 
-    public unsafe (HResult result, string assemblyName, AppDomainId appDomainId, ModuleId moduleId) GetAssemblyInfo(AssemblyId assemblyId)
+    public unsafe (HResult result, string assemblyName, AppDomainId appDomainId, ModuleId moduleId) GetAssemblyInfo(
+        AssemblyId assemblyId)
     {
         var result = GetAssemblyInfo(assemblyId, Span<char>.Empty, out var length, out _, out _);
 
-        if (!result.IsOK)
-        {
-            return (result, string.Empty, default, default);
-        }
+        if (!result.IsOK) return (result, string.Empty, default, default);
 
         Span<char> buffer = stackalloc char[(int)length];
 
         result = GetAssemblyInfo(assemblyId, buffer, out _, out var appDomainId, out var moduleId);
 
-        if (!result.IsOK)
-        {
-            return (result, string.Empty, default, default);
-        }
+        if (!result.IsOK) return (result, string.Empty, default, default);
 
         return (result, buffer.WithoutNullTerminator(), appDomainId, moduleId);
     }
@@ -238,7 +233,8 @@ public class ICorProfilerInfo
         return _impl.ForceGC();
     }
 
-    public unsafe HResult SetILInstrumentedCodeMap(FunctionId functionId, int fStartJit, uint cILMapEntries, CorIlMap* rgILMapEntries)
+    public unsafe HResult SetILInstrumentedCodeMap(FunctionId functionId, int fStartJit, uint cILMapEntries,
+        CorIlMap* rgILMapEntries)
     {
         return _impl.SetILInstrumentedCodeMap(functionId, fStartJit, cILMapEntries, rgILMapEntries);
     }
@@ -268,7 +264,8 @@ public class ICorProfilerInfo
         return _impl.EndInprocDebugging(dwProfilerContext);
     }
 
-    public unsafe HResult GetILToNativeMapping(FunctionId functionId, uint cMap, out uint pcMap, CorDebugIlToNativeMap* map)
+    public unsafe HResult GetILToNativeMapping(FunctionId functionId, uint cMap, out uint pcMap,
+        CorDebugIlToNativeMap* map)
     {
         return _impl.GetILToNativeMapping(functionId, cMap, out pcMap, map);
     }

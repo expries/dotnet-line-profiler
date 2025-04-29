@@ -16,11 +16,11 @@ public static class MethodInstrumentation
     {
         // variable: 'bool*': which probes have been visited
         byte[] arrayPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
-        
+
         // variable 'Activity' (class-instance): current Activity
         var activityRid = Rid.FromTypeRef(activityRef.Value);
         var activitySignature = LocalVarSignature.CreateClassInstanceVariable(activityRid);
-        
+
         // variable 'TraceId' (struct): current Trace ID
         var traceIdRid = Rid.FromTypeRef(traceId.Value);
         var traceIdSignature = LocalVarSignature.CreateValueTypeVariable(traceIdRid);
@@ -31,7 +31,7 @@ public static class MethodInstrumentation
             CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_PTR,
             CorElementTypeFlags.ELEMENT_TYPE_CHAR
         ];
-        
+
         signature.AddLocalVariables([arrayPtrSignature, activitySignature, traceIdSignature, traceIdCPtrSignature]);
         return signature;
     }
@@ -55,7 +55,8 @@ public static class MethodInstrumentation
         return probes;
     }
 
-    private static Method AddInstrumentation(Method method, Dictionary<int, Probe> probes, InstrumentationMetadata metadata)
+    private static Method AddInstrumentation(Method method, Dictionary<int, Probe> probes,
+        InstrumentationMetadata metadata)
     {
         var instructionOffset = 0;
         instructionOffset += AddInitialization(method, metadata.BoolType, probes.Count, metadata.LocalVarCount);
@@ -147,10 +148,7 @@ public static class MethodInstrumentation
     {
         var startOfProbe = probeInstructions[0];
 
-        foreach (var branch in probe.BranchesToRewrite)
-        {
-            RewriteTarget(branch, startOfProbe);
-        }
+        foreach (var branch in probe.BranchesToRewrite) RewriteTarget(branch, startOfProbe);
     }
 
     private static void RewriteTarget(Probe.BranchToRewrite branch, Instruction target)

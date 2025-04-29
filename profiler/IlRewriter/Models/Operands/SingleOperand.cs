@@ -2,6 +2,6 @@
 
 public class SingleOperand : Operand
 {
-    public float Value  { get; set; }
+    public float Value { get; set; }
     public override int SizeInBytes => 4;
 }

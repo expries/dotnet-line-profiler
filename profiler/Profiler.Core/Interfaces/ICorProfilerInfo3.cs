@@ -17,8 +17,8 @@ internal unsafe interface ICorProfilerInfo3 : ICorProfilerInfo2
     HResult RequestProfilerDetach(int dwExpectedCompletionMilliseconds);
 
     HResult SetFunctionIDMapper2(
-                delegate* unmanaged[Stdcall]<FunctionId, void*, int*, nint> pFunc,
-                void* clientData);
+        delegate* unmanaged[Stdcall]<FunctionId, void*, int*, nint> pFunc,
+        void* clientData);
 
     /*
      * GetStringLayout2 returns detailed information about how string objects are stored.
@@ -32,8 +32,8 @@ internal unsafe interface ICorProfilerInfo3 : ICorProfilerInfo2
      * Strings may or may not be null-terminated.
      */
     HResult GetStringLayout2(
-                out uint pStringLengthOffset,
-                out uint pBufferOffset);
+        out uint pStringLengthOffset,
+        out uint pBufferOffset);
 
     /*
      * The code profiler calls SetFunctionHooks3 to specify handlers
@@ -53,15 +53,15 @@ internal unsafe interface ICorProfilerInfo3 : ICorProfilerInfo2
      * profiler's Initialize() callback.
      */
     HResult SetEnterLeaveFunctionHooks3(
-                void* pFuncEnter3,
-                void* pFuncLeave3,
-                void* pFuncTailcall3);
+        void* pFuncEnter3,
+        void* pFuncLeave3,
+        void* pFuncTailcall3);
 
 
     HResult SetEnterLeaveFunctionHooks3WithInfo(
-                void* pFuncEnter3WithInfo,
-                void* pFuncLeave3WithInfo,
-                void* pFuncTailcall3WithInfo);
+        void* pFuncEnter3WithInfo,
+        void* pFuncLeave3WithInfo,
+        void* pFuncTailcall3WithInfo);
 
     /*
      * The profiler can call GetFunctionEnter3Info to gather frame info and argument info
@@ -70,30 +70,30 @@ internal unsafe interface ICorProfilerInfo3 : ICorProfilerInfo2
      * size in a ULONG pointed by pcbArgumentInfo.
      */
     HResult GetFunctionEnter3Info(
-                FunctionId functionId,
-                COR_PRF_ELT_INFO eltInfo,
-                out COR_PRF_FRAME_INFO pFrameInfo,
-                int* pcbArgumentInfo,
-                COR_PRF_FUNCTION_ARGUMENT_INFO* pArgumentInfo);
+        FunctionId functionId,
+        COR_PRF_ELT_INFO eltInfo,
+        out COR_PRF_FRAME_INFO pFrameInfo,
+        int* pcbArgumentInfo,
+        COR_PRF_FUNCTION_ARGUMENT_INFO* pArgumentInfo);
 
     /*
      * The profiler can call GetFunctionLeave3Info to gather frame info and return value
      * in FunctionLeave3WithInfo callback.
      */
     HResult GetFunctionLeave3Info(
-                FunctionId functionId,
-                COR_PRF_ELT_INFO eltInfo,
-                out COR_PRF_FRAME_INFO pFrameInfo,
-                out COR_PRF_FUNCTION_ARGUMENT_RANGE pRetvalRange);
+        FunctionId functionId,
+        COR_PRF_ELT_INFO eltInfo,
+        out COR_PRF_FRAME_INFO pFrameInfo,
+        out COR_PRF_FUNCTION_ARGUMENT_RANGE pRetvalRange);
 
     /*
      * The profiler can call GetFunctionTailcall3Info to gather frame info in
      * FunctionTailcall3WithInfo callback.
      */
     HResult GetFunctionTailcall3Info(
-                FunctionId functionId,
-                COR_PRF_ELT_INFO eltInfo,
-                out COR_PRF_FRAME_INFO pFrameInfo);
+        FunctionId functionId,
+        COR_PRF_ELT_INFO eltInfo,
+        out COR_PRF_FRAME_INFO pFrameInfo);
 
     HResult EnumModules(out void* ppEnum);
 
@@ -103,14 +103,14 @@ internal unsafe interface ICorProfilerInfo3 : ICorProfilerInfo2
      * be NULL if szVersionString is not NULL.
      */
     HResult GetRuntimeInformation(out ushort pClrInstanceId,
-                                  out COR_PRF_RUNTIME_TYPE pRuntimeType,
-                                  out ushort pMajorVersion,
-                                  out ushort pMinorVersion,
-                                  out ushort pBuildNumber,
-                                  out ushort pQFEVersion,
-                                  uint cchVersionString,
-                                  out uint pcchVersionString,
-                                  char* szVersionString);
+        out COR_PRF_RUNTIME_TYPE pRuntimeType,
+        out ushort pMajorVersion,
+        out ushort pMinorVersion,
+        out ushort pBuildNumber,
+        out ushort pQFEVersion,
+        uint cchVersionString,
+        out uint pcchVersionString,
+        char* szVersionString);
 
     /*
      * GetThreadStaticAddress2 gets the address of the home for the given
@@ -120,21 +120,21 @@ internal unsafe interface ICorProfilerInfo3 : ICorProfilerInfo2
      * has not been assigned a home in the given Thread.
      */
     HResult GetThreadStaticAddress2(
-                    ClassId classId,
-                    MdFieldDef fieldToken,
-                    AppDomainId appDomainId,
-                    ThreadId threadId,
-                    out void* ppAddress);
+        ClassId classId,
+        MdFieldDef fieldToken,
+        AppDomainId appDomainId,
+        ThreadId threadId,
+        out void* ppAddress);
 
     /*
      * GetAppDomainsContainingModule returns the AppDomainIDs in which the
      * given module has been loaded
      */
     HResult GetAppDomainsContainingModule(
-                ModuleId moduleId,
-                uint cAppDomainIds,
-                out uint pcAppDomainIds,
-                AppDomainId* appDomainIds);
+        ModuleId moduleId,
+        uint cAppDomainIds,
+        out uint pcAppDomainIds,
+        AppDomainId* appDomainIds);
 
 
     /*
@@ -153,11 +153,11 @@ internal unsafe interface ICorProfilerInfo3 : ICorProfilerInfo2
      *
      */
     HResult GetModuleInfo2(
-                ModuleId moduleId,
-                out byte* ppBaseLoadAddress,
-                uint cchName,
-                out uint pcchName,
-                char* szName,
-                out AssemblyId pAssemblyId,
-                out int pdwModuleFlags);
+        ModuleId moduleId,
+        out byte* ppBaseLoadAddress,
+        uint cchName,
+        out uint pcchName,
+        char* szName,
+        out AssemblyId pAssemblyId,
+        out int pdwModuleFlags);
 }

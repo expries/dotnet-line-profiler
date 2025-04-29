@@ -5,9 +5,9 @@ namespace IlRewriter.Readers.Method;
 
 public class MethodBodyReader : IlReader<MethodBody>
 {
-    private readonly IlReader<Instruction> _instructionReader;
     private readonly IlReader<MethodDataSection> _dataSectionReader;
-	
+    private readonly IlReader<Instruction> _instructionReader;
+
     public MethodBodyReader(Stream stream, ReadContext context) : base(stream, context)
     {
         _instructionReader = new InstructionReader(stream, context);
@@ -17,48 +17,46 @@ public class MethodBodyReader : IlReader<MethodBody>
     public override MethodBody ReadFromStream()
     {
         var header = Context.Header;
-        MoveTo((uint) header.SizeInBytes);
-		
+        MoveTo((uint)header.SizeInBytes);
+
         while (Position < EndPosition)
         {
             var offset = Offset;
             var instruction = _instructionReader.ReadFromStream();
             instruction.Offset = offset;
-            
+
             Context.InstructionsByOffset[offset] = instruction;
             Context.InstructionsByEndOffset[Offset] = instruction;
         }
-		
+
         ResolveBranches();
 
         var dataSection = _dataSectionReader.ReadFromStream();
-        
+
         return new MethodBody
         {
             Instructions = Context.InstructionsByOffset.Values.ToList(),
             DataSection = dataSection
         };
     }
-    
+
     private void ResolveBranches()
     {
         foreach (var instruction in Context.InstructionsByOffset.Values)
-        {
             switch (instruction.Operand)
             {
                 case InlineSwitchOperand switchOperand:
                     ResolveSwitchBranches(instruction, switchOperand);
                     break;
                 case ShortInlineBrTargetOperand shortInlineOperand:
-                    shortInlineOperand.Instruction = 
+                    shortInlineOperand.Instruction =
                         Context.InstructionsByOffset[instruction.EndOffset + shortInlineOperand.Value];
                     break;
                 case InlineBrTargetOperand inlineOperand:
-                    inlineOperand.Instruction = 
+                    inlineOperand.Instruction =
                         Context.InstructionsByOffset[instruction.EndOffset + inlineOperand.Value];
                     break;
-            }   
-        }
+            }
     }
 
     private void ResolveSwitchBranches(Instruction switchInstruction, InlineSwitchOperand operand)

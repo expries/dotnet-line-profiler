@@ -4,16 +4,16 @@ namespace IlRewriter.Writers;
 
 public class MethodWriter : IlWriter<Method>
 {
-    private readonly MethodHeaderWriter _headerWriter = new MethodHeaderWriter();
-    private readonly MethodBodyWriter _bodyWriter = new MethodBodyWriter();
-    
+    private readonly MethodBodyWriter _bodyWriter = new();
+    private readonly MethodHeaderWriter _headerWriter = new();
+
     public override void WriteToStream(Method method, Stream stream)
     {
         var methodBodyStream = new MemoryStream();
         var codeSize = _bodyWriter.WriteToStream(method.Body, methodBodyStream);
 
         PrepareHeader(method, codeSize);
-        
+
         var headerWriter = new BinaryStreamWriter(stream);
         _headerWriter.WriteToStream(method.Header, headerWriter);
 
@@ -23,9 +23,9 @@ public class MethodWriter : IlWriter<Method>
 
     private static void PrepareHeader(Method method, long codeSize)
     {
-        method.Header.CodeSize = (int) codeSize;
+        method.Header.CodeSize = (int)codeSize;
 
-        if (codeSize >= 64 || 
+        if (codeSize >= 64 ||
             method.Header.LocalVarSigToken > 0 ||
             method.Header.MaxStack > 8 ||
             method.Header.InitLocals ||

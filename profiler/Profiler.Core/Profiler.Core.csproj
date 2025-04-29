@@ -7,9 +7,9 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PublishAot>true</PublishAot>
     </PropertyGroup>
-    
+
     <ItemGroup>
-      <ProjectReference Include="..\Profiler.Core.NativeStubGenerator\Profiler.Core.NativeStubGenerator.csproj" OutputItemType="Analyzer" />
+        <ProjectReference Include="..\Profiler.Core.NativeStubGenerator\Profiler.Core.NativeStubGenerator.csproj" OutputItemType="Analyzer"/>
     </ItemGroup>
-    
+
 </Project>

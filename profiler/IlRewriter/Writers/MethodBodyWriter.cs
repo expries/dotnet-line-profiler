@@ -6,33 +6,29 @@ namespace IlRewriter.Writers;
 
 public class MethodBodyWriter
 {
-    private readonly IlWriter<Instruction> _instructionWriter = new InstructionWriter();
     private readonly IlWriter<MethodDataSection> _dataSectionWriter = new MethodDataSectionWriter();
-    
+    private readonly IlWriter<Instruction> _instructionWriter = new InstructionWriter();
+
     public long WriteToStream(MethodBody body, Stream stream)
     {
         var instructions = PopulateInstructionOffsets(body.Instructions);
         CorrectBranchingOffsets(instructions);
         instructions = PopulateInstructionOffsets(instructions);
-        
+
         var startPosition = stream.Position;
 
-        foreach (var instruction in instructions)
-        {
-            _instructionWriter.WriteToStream(instruction, stream);
-        }
+        foreach (var instruction in instructions) _instructionWriter.WriteToStream(instruction, stream);
 
         var instructionEndPosition = stream.Position;
-        
+
         _dataSectionWriter.WriteToStream(body.DataSection, stream);
 
         return instructionEndPosition - startPosition;
     }
-    
+
     private static void CorrectBranchingOffsets(List<Instruction> instructions)
     {
         foreach (var instruction in instructions)
-        {
             switch (instruction.Operand)
             {
                 case InlineBrTargetOperand operand:
@@ -45,15 +41,13 @@ public class MethodBodyWriter
                     CorrectBranchingOffset(instruction, operand, offset);
                     break;
             }
-        }
     }
 
     private static void CorrectBranchingOffset(
-        Instruction instruction, 
-        ShortInlineBrTargetOperand operand, 
+        Instruction instruction,
+        ShortInlineBrTargetOperand operand,
         int offset)
     {
-                    
         try
         {
             operand.Value = Convert.ToSByte(offset);
@@ -63,7 +57,7 @@ public class MethodBodyWriter
             instruction.OpCode = OpCodes.Br;
             instruction.Operand = new InlineBrTargetOperand
             {
-                Instruction = operand.Instruction, 
+                Instruction = operand.Instruction,
                 Value = offset
             };
         }
@@ -72,13 +66,13 @@ public class MethodBodyWriter
     private static List<Instruction> PopulateInstructionOffsets(List<Instruction> instructions)
     {
         var offset = 0;
-        
+
         foreach (var instruction in instructions)
         {
             instruction.Offset = offset;
             offset += instruction.SizeInBytes;
         }
-        
+
         return instructions;
     }
 }

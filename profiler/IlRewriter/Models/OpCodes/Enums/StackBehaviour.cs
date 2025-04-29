@@ -1,7 +1,9 @@
 ﻿// ReSharper disable InconsistentNaming
+
 namespace IlRewriter.Models.OpCodes.Enums;
 
-public enum StackBehaviour {
+public enum StackBehaviour
+{
     Pop0,
     Pop1,
     Pop1_pop1,
@@ -30,5 +32,5 @@ public enum StackBehaviour {
     Pushr8,
     Pushref,
     Varpop,
-    Varpush,
+    Varpush
 }

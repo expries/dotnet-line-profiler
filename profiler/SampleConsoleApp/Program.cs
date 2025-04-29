@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
 using SampleConsoleApp;
 
-
-
 var test = bool.Parse("true");
 Console.WriteLine(test);
 var activity = new Activity("SampleConsoleApp");

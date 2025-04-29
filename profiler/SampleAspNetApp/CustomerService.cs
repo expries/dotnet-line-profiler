@@ -17,7 +17,7 @@ public class CustomerService
         {
             Console.WriteLine("No active Activity");
         }
+
         return Random.Shared.Next(1, 100);
     }
-    
 }

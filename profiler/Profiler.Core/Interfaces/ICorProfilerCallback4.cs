@@ -4,13 +4,14 @@
 internal unsafe interface ICorProfilerCallback4 : ICorProfilerCallback3
 {
     public new static readonly Guid Guid = Guid.Parse("7B63B2E3-107D-4d48-B2F6-F61E229470D2");
+
     /*
      * Similar to JITCompilationStarted, except called when rejitting a method
      */
     HResult ReJITCompilationStarted(
-                FunctionId functionId,
-                ReJITId rejitId,
-                int fIsSafeToBlock);
+        FunctionId functionId,
+        ReJITId rejitId,
+        int fIsSafeToBlock);
 
     /*
      * This is called exactly once per method (which may represent more than
@@ -18,18 +19,18 @@ internal unsafe interface ICorProfilerCallback4 : ICorProfilerCallback3
      * generation flags or a new method body.
      */
     HResult GetReJITParameters(
-                ModuleId moduleId,
-                MdMethodDef methodId,
-                IntPtr pFunctionControl);
+        ModuleId moduleId,
+        MdMethodDef methodId,
+        IntPtr pFunctionControl);
 
     /*
      * Similar to JITCompilationFinished, except called when rejitting a method
      */
     HResult ReJITCompilationFinished(
-                FunctionId functionId,
-                ReJITId rejitId,
-                HResult hrStatus,
-                int fIsSafeToBlock);
+        FunctionId functionId,
+        ReJITId rejitId,
+        HResult hrStatus,
+        int fIsSafeToBlock);
 
     /*
      * This is called to report an error encountered while processing a ReJIT request.
@@ -37,10 +38,10 @@ internal unsafe interface ICorProfilerCallback4 : ICorProfilerCallback3
      * RequestReJIT returns, if the error was encountered later on.
      */
     HResult ReJITError(
-                ModuleId moduleId,
-                MdMethodDef methodId,
-                FunctionId functionId,
-                HResult hrStatus);
+        ModuleId moduleId,
+        MdMethodDef methodId,
+        FunctionId functionId,
+        HResult hrStatus);
 
     /*
      * The CLR calls MovedReferences with information about
@@ -74,10 +75,10 @@ internal unsafe interface ICorProfilerCallback4 : ICorProfilerCallback3
      * from ICorProfilerCallback4::MovedReferences2 to save some chattiness.
      */
     HResult MovedReferences2(
-                uint cMovedObjectIDRanges,
-                ObjectId* oldObjectIDRangeStart,
-                ObjectId* newObjectIDRangeStart,
-                nint* cObjectIDRangeLength);
+        uint cMovedObjectIDRanges,
+        ObjectId* oldObjectIDRangeStart,
+        ObjectId* newObjectIDRangeStart,
+        nint* cObjectIDRangeLength);
 
     /*
      * The CLR calls SurvivingReferences with information about
@@ -114,8 +115,7 @@ internal unsafe interface ICorProfilerCallback4 : ICorProfilerCallback3
      * from ICorProfilerCallback4::SurvivingReferences2 to save some chattiness.
      */
     HResult SurvivingReferences2(
-                uint cSurvivingObjectIDRanges,
-                ObjectId* objectIDRangeStart,
-                nint* cObjectIDRangeLength);
-
+        uint cSurvivingObjectIDRanges,
+        ObjectId* objectIDRangeStart,
+        nint* cObjectIDRangeLength);
 }

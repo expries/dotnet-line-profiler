@@ -10,8 +10,8 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * object given its ObjectId.
      */
     HResult GetClassFromObject(
-                ObjectId ObjectId,
-                out ClassId pClassId);
+        ObjectId ObjectId,
+        out ClassId pClassId);
 
     /*
      * V2 MIGRATION WARNING - DOES NOT WORK FOR GENERIC TYPES
@@ -20,9 +20,9 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * use GetClassFromTokenAndTypeArgs for all types.
      */
     HResult GetClassFromToken(
-                ModuleId ModuleId,
-                MdTypeDef typeDef,
-                out ClassId pClassId);
+        ModuleId ModuleId,
+        MdTypeDef typeDef,
+        out ClassId pClassId);
 
     /*
      * V2 MIGRATION WARNING - WILL NOT WORK WITH .NET FRAMEWORK
@@ -32,9 +32,9 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * in all cases.
      */
     HResult GetCodeInfo(
-                FunctionId FunctionId,
-                out byte* pStart,
-                out uint pcSize);
+        FunctionId FunctionId,
+        out byte* pStart,
+        out uint pcSize);
 
     /*
      * RECOMMENDATION: USE GetEventMask2 INSTEAD.  WHILE THIS METHOD CONTINUES TO
@@ -45,15 +45,15 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * Runtime.
      */
     HResult GetEventMask(
-                out int pdwEvents);
+        out int pdwEvents);
 
     /*
      * The code profiler calls GetFunctionFromIP to map an instruction pointer
      * in managed code to a FunctionId.
      */
     HResult GetFunctionFromIP(
-                nint ip,
-                out FunctionId pFunctionId);
+        nint ip,
+        out FunctionId pFunctionId);
 
     /*
      * V2 MIGRATION WARNING - WILL NOT WORK FOR GENERIC FUNCTIONS OR
@@ -63,9 +63,9 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * GetFunctionFromTokenAndTypeArgs for all functions.
      */
     HResult GetFunctionFromToken(
-                ModuleId ModuleId,
-                MdToken token,
-                out FunctionId pFunctionId);
+        ModuleId ModuleId,
+        MdToken token,
+        out FunctionId pFunctionId);
 
     /*
      * The code profiler calls GetHandleFromThread to map a ThreadId to a Win32
@@ -73,8 +73,8 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * before using it.
      */
     HResult GetHandleFromThread(
-                ThreadId ThreadId,
-                out nint phThread);
+        ThreadId ThreadId,
+        out nint phThread);
 
     /*
      * The code profiler calls GetObjectSize to obtain the size of an object.
@@ -84,8 +84,8 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * Use ICorProfilerInfo4::GetObjectSize2 instead.
      */
     HResult GetObjectSize(
-                ObjectId ObjectId,
-                out uint pcSize);
+        ObjectId ObjectId,
+        out uint pcSize);
 
     /*
      * This will return S_OK if the ClassId provided is an array class, and will
@@ -98,18 +98,18 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * pcRank        : the number of dimensions of the array
      */
     HResult IsArrayClass(
-                ClassId ClassId,
-                out CorElementType pBaseElemType,
-                out ClassId pBaseClassId,
-                out uint pcRank);
+        ClassId ClassId,
+        out CorElementType pBaseElemType,
+        out ClassId pBaseClassId,
+        out uint pcRank);
 
     /*
      * The code profiler calls GetThreadInfo to obtain the current Win32 thread ID for
      * the specified thread.
      */
     HResult GetThreadInfo(
-                ThreadId ThreadId,
-                out int pdwWin32ThreadId);
+        ThreadId ThreadId,
+        out int pdwWin32ThreadId);
 
     /*
      * The code profiler calls GetCurrentThreadId to get the managed thread ID
@@ -120,7 +120,7 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * pThreadId will be NULL.
      */
     HResult GetCurrentThreadId(
-                out ThreadId pThreadId);
+        out ThreadId pThreadId);
 
     /*
      * V2 MIGRATION NOTE - More information is available for generic types
@@ -132,9 +132,9 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * can then be used to access the metadata for this class.
      */
     HResult GetClassIdInfo(
-                ClassId ClassId,
-                out ModuleId pModuleId,
-                out MdTypeDef pTypeDefToken);
+        ClassId ClassId,
+        out ModuleId pModuleId,
+        out MdTypeDef pTypeDefToken);
 
     /*
      * Return the parent class for a given function.  Also return the metadata
@@ -146,10 +146,10 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * try using GetFunctionInfo2 with a COR_PRF_FRAME_INFO to give more context.
      */
     HResult GetFunctionInfo(
-                FunctionId FunctionId,
-                out ClassId pClassId,
-                out ModuleId pModuleId,
-                out MdToken pToken);
+        FunctionId FunctionId,
+        out ClassId pClassId,
+        out ModuleId pModuleId,
+        out MdToken pToken);
 
     /*
      * RECOMMENDATION: USE SetEventMask2 INSTEAD.  WHILE THIS METHOD CONTINUES TO
@@ -176,26 +176,26 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * profiler's Initialize() callback.
      */
     HResult SetEnterLeaveFunctionHooks(
-                void* pFuncEnter,
-                void* pFuncLeave,
-                void* pFuncTailcall);
+        void* pFuncEnter,
+        void* pFuncLeave,
+        void* pFuncTailcall);
 
     /*
      * This is used for mapping FunctionIds to alternative values that will be
      * passed to the callbacks
      */
     HResult SetFunctionIdMapper(
-                void* pFunc);
+        void* pFunc);
 
     /*
      * For a given function, retrieve the token value and an instance of the
      * meta data interface which can be used against this token.
      */
     HResult GetTokenAndMetaDataFromFunction(
-                FunctionId FunctionId,
-                out Guid riid,
-                out void* ppImport,
-                out MdToken pToken);
+        FunctionId FunctionId,
+        out Guid riid,
+        out void* ppImport,
+        out MdToken pToken);
 
     /*
      * Retrieve information about a given module.
@@ -211,12 +211,12 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * NOTE: More information is available by using ICorProfilerInfo3::GetModuleInfo2 instead.
      */
     HResult GetModuleInfo(
-                ModuleId ModuleId,
-                out nint ppBaseLoadAddress,
-                uint cchName,
-                out uint pcchName,
-                char* szName,
-                out AssemblyId pAssemblyId);
+        ModuleId ModuleId,
+        out nint ppBaseLoadAddress,
+        uint cchName,
+        out uint pcchName,
+        char* szName,
+        out AssemblyId pAssemblyId);
 
     /*
      * Get a metadata interface instance which maps to the given module.
@@ -232,10 +232,10 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * NOTE: the only values valid for dwOpenFlags are ofRead and ofWrite.
      */
     HResult GetModuleMetaData(
-                ModuleId ModuleId,
-                CorOpenFlags dwOpenFlags,
-                Guid riid,
-                out IntPtr ppOut);
+        ModuleId ModuleId,
+        CorOpenFlags dwOpenFlags,
+        Guid riid,
+        out IntPtr ppOut);
 
     /*
      * Retrieve a pointer to the body of a method starting at it's header.
@@ -249,10 +249,10 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * P/Invoke method).
      */
     HResult GetILFunctionBody(
-                ModuleId ModuleId,
-                MdMethodDef methodId,
-                out byte* ppMethodHeader,
-                out uint pcbMethodSize);
+        ModuleId ModuleId,
+        MdMethodDef methodId,
+        out byte* ppMethodHeader,
+        out uint pcbMethodSize);
 
     /*
      * IL method bodies must be located as RVA's to the loaded module, which
@@ -261,8 +261,8 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * will ensure memory is allocated within that range.
      */
     HResult GetILFunctionBodyAllocator(
-                ModuleId ModuleId,
-                out void* ppMalloc);
+        ModuleId ModuleId,
+        out void* ppMalloc);
 
     /*
      * Replaces the method body for a function in a module.  This will replace
@@ -273,30 +273,30 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * ensure the buffer is compatible.
      */
     HResult SetILFunctionBody(
-                ModuleId ModuleId,
-                MdMethodDef methodid,
-                byte* pbNewILMethodHeader);
+        ModuleId ModuleId,
+        MdMethodDef methodid,
+        byte* pbNewILMethodHeader);
 
     /*
      * Retrieve app domain information given its id.
      */
     HResult GetAppDomainInfo(
-                AppDomainId appDomainId,
-                uint cchName,
-                out uint pcchName,
-                char* szName,
-                out ProcessId pProcessId);
+        AppDomainId appDomainId,
+        uint cchName,
+        out uint pcchName,
+        char* szName,
+        out ProcessId pProcessId);
 
     /*
      * Retrieve information about an assembly given its ID.
      */
     HResult GetAssemblyInfo(
-                AssemblyId assemblyId,
-                uint cchName,
-                out uint pcchName,
-                char* szName,
-                out AppDomainId pAppDomainId,
-                out ModuleId pModuleId);
+        AssemblyId assemblyId,
+        uint cchName,
+        out uint pcchName,
+        char* szName,
+        out AppDomainId pAppDomainId,
+        out ModuleId pModuleId);
 
 
     /*
@@ -306,7 +306,7 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      *
      */
     HResult SetFunctionReJIT(
-                FunctionId functionId);
+        FunctionId functionId);
 
     /*
      * ForceGC forces a GC to occur within the runtime.
@@ -350,22 +350,22 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      *
      */
     HResult SetILInstrumentedCodeMap(
-                FunctionId FunctionId,
-                int fStartJit,
-                uint cILMapEntries,
-                CorIlMap* rgILMapEntries);
+        FunctionId FunctionId,
+        int fStartJit,
+        uint cILMapEntries,
+        CorIlMap* rgILMapEntries);
 
     /*
      * DEPRECATED.
      */
     HResult GetInprocInspectionInterface(
-                out void* ppicd);
+        out void* ppicd);
 
     /*
      * DEPRECATED.
      */
     HResult GetInprocInspectionIThisThread(
-                out void* ppicd);
+        out void* ppicd);
 
     /*
      * This will return the ContextID currently associated with the calling
@@ -373,8 +373,8 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * is not a runtime thread.
      */
     HResult GetThreadContext(
-                ThreadId ThreadId,
-                out ContextId pContextId);
+        ThreadId ThreadId,
+        out ContextId pContextId);
 
     /*
      * DEPRECATED.
@@ -387,7 +387,7 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * DEPRECATED.
      */
     HResult EndInprocDebugging(
-                int dwProfilerContext);
+        int dwProfilerContext);
 
     /*
      * GetILToNativeMapping returns a map from IL offsets to native
@@ -396,8 +396,8 @@ internal unsafe interface ICorProfilerInfo : IUnknown
      * may be the values specified in CorDebugIlToNativeMappingTypes.
      */
     HResult GetILToNativeMapping(
-                FunctionId FunctionId,
-                uint cMap,
-                out uint pcMap,
-                CorDebugIlToNativeMap* map);
+        FunctionId FunctionId,
+        uint cMap,
+        out uint pcMap,
+        CorDebugIlToNativeMap* map);
 }

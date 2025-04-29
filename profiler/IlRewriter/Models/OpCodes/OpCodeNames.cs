@@ -1,12 +1,13 @@
 ﻿namespace IlRewriter.Models.OpCodes;
 
-public static class OpCodeNames {
+public static class OpCodeNames
+{
+    internal static readonly string[] Names;
 
-    internal static readonly string [] Names;
-
-    static OpCodeNames ()
+    static OpCodeNames()
     {
-        var table = new byte [] {
+        var table = new byte[]
+        {
             3, 110, 111, 112,
             5, 98, 114, 101, 97, 107,
             7, 108, 100, 97, 114, 103, 46, 48,
@@ -225,18 +226,19 @@ public static class OpCodeNames {
             7, 114, 101, 116, 104, 114, 111, 119,
             6, 115, 105, 122, 101, 111, 102,
             10, 114, 101, 102, 97, 110, 121, 116, 121, 112, 101,
-            9, 114, 101, 97, 100, 111, 110, 108, 121, 46,
+            9, 114, 101, 97, 100, 111, 110, 108, 121, 46
         };
 
         Names = new string [219];
 
-        for (int i = 0, p = 0; i < Names.Length; i++) {
-            var buffer = new char [table [p++]];
+        for (int i = 0, p = 0; i < Names.Length; i++)
+        {
+            var buffer = new char [table[p++]];
 
-            for (int j = 0; j < buffer.Length; j++)
-                buffer [j] = (char) table [p++];
+            for (var j = 0; j < buffer.Length; j++)
+                buffer[j] = (char)table[p++];
 
-            Names [i] = new string (buffer);
+            Names[i] = new string(buffer);
         }
     }
 }

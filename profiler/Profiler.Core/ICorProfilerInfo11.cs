@@ -1,12 +1,14 @@
-﻿namespace Profiler.Core;
+﻿using NativeObjects;
+
+namespace Profiler.Core;
 
 public class ICorProfilerInfo11 : ICorProfilerInfo10
 {
-    private NativeObjects.ICorProfilerInfo11Invoker _impl;
+    private ICorProfilerInfo11Invoker _impl;
 
     public ICorProfilerInfo11(IntPtr ptr) : base(ptr)
     {
-        _impl = new(ptr);
+        _impl = new ICorProfilerInfo11Invoker(ptr);
     }
 
     public unsafe HResult GetEnvironmentVariable(char* szName, uint cchValue, out uint pcchValue, char* szValue)

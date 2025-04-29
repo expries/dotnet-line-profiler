@@ -16,11 +16,12 @@ public static class HeaderFlags
     public const int InitLocals = 0x10;
 }
 
-public enum ExceptionHandlerType {
+public enum ExceptionHandlerType
+{
     Catch = 0,
     Filter = 1,
     Finally = 2,
-    Fault = 4,
+    Fault = 4
 }
 
 public class MethodEhSection(bool isFatFormat, bool hasMoreSections, bool optIlTable, bool ehTable)
@@ -29,6 +30,6 @@ public class MethodEhSection(bool isFatFormat, bool hasMoreSections, bool optIlT
     public bool HasMoreSections { get; set; } = hasMoreSections;
     public bool OptIlTable { get; set; } = optIlTable;
     public bool EhTable { get; set; } = ehTable;
-    
+
     public List<ExceptionHandler> Handlers { get; set; } = [];
 }

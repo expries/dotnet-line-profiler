@@ -12,7 +12,7 @@ public class MethodTest
         return files.Select(filePath =>
         {
             var bytes = File.ReadAllBytes(filePath);
-            return bytes.Select(@byte => (object) @byte).ToArray();
+            return bytes.Select(@byte => (object)@byte).ToArray();
         }).ToList();
     }
 }

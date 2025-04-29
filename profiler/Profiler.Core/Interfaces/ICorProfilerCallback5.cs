@@ -23,7 +23,7 @@ internal unsafe interface ICorProfilerCallback5 : ICorProfilerCallback4
      */
     HResult ConditionalWeakTableElementReferences(
         uint cRootRefs,
-    ObjectId* keyRefIds,
-    ObjectId* valueRefIds,
-    GCHandleId* rootIds);
+        ObjectId* keyRefIds,
+        ObjectId* valueRefIds,
+        GCHandleId* rootIds);
 }

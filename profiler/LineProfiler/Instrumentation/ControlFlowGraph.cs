@@ -6,10 +6,8 @@ namespace LineProfiler.Instrumentation;
 
 public class ControlFlowGraph
 {
-    public List<BasicBlock> Blocks { get; set; }
-    public List<Instruction> Instructions { get; set; }
-    private readonly Dictionary<int, (int Index, Instruction Instruction)> _instructionByOffset;
     private readonly Dictionary<int, BasicBlock> _blockByInstructionOffset;
+    private readonly Dictionary<int, (int Index, Instruction Instruction)> _instructionByOffset;
 
     public ControlFlowGraph(List<Instruction> instructions)
     {
@@ -20,6 +18,9 @@ public class ControlFlowGraph
 
         PopulatePredecessors();
     }
+
+    public List<BasicBlock> Blocks { get; set; }
+    public List<Instruction> Instructions { get; set; }
 
     private void PrintGraph()
     {
@@ -36,6 +37,7 @@ public class ControlFlowGraph
             var formattedOffsets = string.Join(' ', offsets);
             Console.WriteLine($"{block.StartOffset}: {formattedOffsets}");
         }
+
         Console.WriteLine();
     }
 
@@ -48,6 +50,7 @@ public class ControlFlowGraph
             var formattedPredecessors = string.Join(' ', predecessorOffsets);
             Console.WriteLine($"{block.StartOffset}: {formattedPredecessors}");
         }
+
         Console.WriteLine();
     }
 
@@ -62,12 +65,8 @@ public class ControlFlowGraph
     {
         var blockByInstructionOffset = new Dictionary<int, BasicBlock>();
         foreach (var block in Blocks)
-        {
-            foreach (var instruction in block.Instructions)
-            {
-                blockByInstructionOffset[instruction.Offset] = block;
-            }
-        }
+        foreach (var instruction in block.Instructions)
+            blockByInstructionOffset[instruction.Offset] = block;
 
         return blockByInstructionOffset;
     }
@@ -83,21 +82,14 @@ public class ControlFlowGraph
             var instruction = Instructions[i];
 
             // a) any branch target
-            foreach (var target in GetBranchTargets(instruction))
-            {
-                boundaries.Add(target.Index);
-            }
+            foreach (var target in GetBranchTargets(instruction)) boundaries.Add(target.Index);
 
             // b) any instruction immediately after a branch or return
             if (instruction.IsJump ||
                 instruction.OpCode == OpCodes.Ret ||
                 instruction.OpCode == OpCodes.Switch)
-            {
                 if (i + 1 < count)
-                {
                     boundaries.Add(i + 1);
-                }
-            }
         }
 
         // 2) Sort them to know each block’s start and end
@@ -147,24 +139,18 @@ public class ControlFlowGraph
 
             // Fall through:
             if (block.LastInstruction.OpCode != OpCodes.Ret && !block.LastInstruction.IsUnconditionalJump)
-            {
                 successors.Add(nextBlock);
-            }
 
             successorsByBlock[block] = successors;
         }
 
         foreach (var (block, successors) in successorsByBlock)
-        {
-            foreach (var successor in successors)
-            {
-                successor.Predecessors.Add(block);
-            }
-        }
+        foreach (var successor in successors)
+            successor.Predecessors.Add(block);
     }
 
     /// <summary>
-    /// Returns all true branch targets for this instruction, with any jump→jump chains collapsed.
+    ///     Returns all true branch targets for this instruction, with any jump→jump chains collapsed.
     /// </summary>
     private List<(int Index, Instruction Instruction)> GetBranchTargets(Instruction instruction)
     {

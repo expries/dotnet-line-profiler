@@ -5,30 +5,24 @@ namespace LineProfiler.Caches;
 
 public static class PdbCache
 {
-    private static readonly Dictionary<string, PdbModule> ModulesByName = new ();
+    private static readonly Dictionary<string, PdbModule> ModulesByName = new();
     private static readonly Dictionary<AssemblyId, PdbModule> ModulesByAssemblyId = new();
 
     public static void Initialize(string[] pdbFilePaths)
     {
-        foreach (var pdbPath in pdbFilePaths)
-        {
-            CachePdb(pdbPath);
-        }
+        foreach (var pdbPath in pdbFilePaths) CachePdb(pdbPath);
     }
 
     public static void AddModuleAlias(AssemblyId assemblyId, string moduleName)
     {
-        if (ModulesByName.TryGetValue(moduleName, out var module))
-        {
-            ModulesByAssemblyId[assemblyId] = module;
-        }
+        if (ModulesByName.TryGetValue(moduleName, out var module)) ModulesByAssemblyId[assemblyId] = module;
     }
 
     public static bool TryGetModuleByName(string moduleName, out PdbModule? module)
     {
         return ModulesByName.TryGetValue(moduleName, out module);
     }
-    
+
     public static bool TryGetModuleByAssemblyId(AssemblyId assemblyId, out PdbModule? module)
     {
         return ModulesByAssemblyId.TryGetValue(assemblyId, out module);

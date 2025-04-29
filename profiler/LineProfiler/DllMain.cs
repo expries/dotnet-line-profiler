@@ -6,7 +6,7 @@ namespace LineProfiler;
 public class DllMain
 {
     private static ClassFactory? _instance;
-    
+
     [UnmanagedCallersOnly(EntryPoint = "DllGetClassObject")]
     public static unsafe int DllGetClassObject(Guid* rclsid, Guid* riid, IntPtr* ppv)
     {

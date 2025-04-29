@@ -10,16 +10,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\publish.bat" />
-      <Content Include="..\publish.sh" />
+        <Content Include="..\publish.bat"/>
+        <Content Include="..\publish.sh"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\IlRewriter\IlRewriter.csproj" />
-      <ProjectReference Include="..\Profiler.Core\Profiler.Core.csproj" />
+        <ProjectReference Include="..\IlRewriter\IlRewriter.csproj"/>
+        <ProjectReference Include="..\Profiler.Core\Profiler.Core.csproj"/>
     </ItemGroup>
-    
+
     <ItemGroup>
-        <PackageReference Include="SharpPdb" Version="1.0.4" />
+        <PackageReference Include="SharpPdb" Version="1.0.4"/>
     </ItemGroup>
 </Project>

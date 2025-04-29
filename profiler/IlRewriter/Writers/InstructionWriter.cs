@@ -10,13 +10,10 @@ public class InstructionWriter : IlWriter<Instruction>
     public override void WriteToStream(Instruction instruction, Stream stream)
     {
         WriteOpCode(instruction.OpCode, stream);
-        
-        if (instruction.Operand is not null)
-        {
-            WriteOperand(instruction, stream);
-        }
+
+        if (instruction.Operand is not null) WriteOperand(instruction, stream);
     }
-    
+
     private static void WriteOpCode(OpCode opCode, Stream stream)
     {
         if (opCode.Op1 == 0xff)
@@ -29,7 +26,7 @@ public class InstructionWriter : IlWriter<Instruction>
             stream.WriteByte(opCode.Op2);
         }
     }
-    
+
     private static void WriteOperand(Instruction instruction, Stream stream)
     {
         switch (instruction.Operand)
