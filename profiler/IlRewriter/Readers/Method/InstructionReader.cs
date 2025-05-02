@@ -19,7 +19,9 @@ public class InstructionReader : IlReader<Instruction>
         };
 
         if (instruction.OpCode.OperandType != OperandType.InlineNone)
+        {
             instruction.Operand = ReadOperand(instruction.OpCode);
+        }
 
         return instruction;
     }
@@ -29,7 +31,10 @@ public class InstructionReader : IlReader<Instruction>
         var byteCode = ReadByte();
 
         // Single byte opcodes
-        if (byteCode != 0xfe) return OpCodes.OneByteOpCode[byteCode];
+        if (byteCode != 0xFE)
+        {
+            return OpCodes.OneByteOpCode[byteCode];
+        }
 
         // Two byte opcodes
         byteCode = ReadByte();

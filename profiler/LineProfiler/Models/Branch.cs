@@ -1,6 +1,9 @@
+using LineProfiler.DebugInfo;
+
 namespace LineProfiler.Models;
 
-public record Branch
+public record Branch(string SourcePath, List<SourceLine> SourceLines)
 {
-    public int InstructionIndex { get; set; }
+    public string SourcePath { get; set; } = SourcePath;
+    public List<SourceLine> SourceLines { get; set; } = SourceLines;
 }

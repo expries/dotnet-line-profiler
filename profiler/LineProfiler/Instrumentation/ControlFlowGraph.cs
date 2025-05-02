@@ -7,7 +7,7 @@ public class ControlFlowGraph
 {
     public List<BasicBlock> Blocks { get; set; }
     public List<Instruction> Instructions { get; set; }
-    private readonly Dictionary<int, BasicBlock> _blockByInstructionOffset;
+    private readonly Dictionary<int, BasicBlock> _blockByOffset;
     private readonly Dictionary<int, (int Index, Instruction Instruction)> _instructionByOffset;
 
     public ControlFlowGraph(List<Instruction> instructions)
@@ -15,7 +15,7 @@ public class ControlFlowGraph
         Instructions = instructions;
         _instructionByOffset = BuildInstructionLookup();
         Blocks = GetBlocks();
-        _blockByInstructionOffset = BuildBlockLookup();
+        _blockByOffset = BuildBlockLookup();
         PopulatePredecessors();
     }
 
@@ -118,33 +118,32 @@ public class ControlFlowGraph
         {
             var block = Blocks[i];
             var successors = new List<BasicBlock>();
-            var branchTargets = GetBranchTargets(block.LastInstruction);
 
-            // Branches;
-            foreach (var target in branchTargets)
+            // Branches
+            foreach (var target in GetBranchTargets(block.LastInstruction))
             {
-                var targetBlock = _blockByInstructionOffset[target.Instruction.Offset];
+                var targetBlock = _blockByOffset[target.Instruction.Offset];
                 successors.Add(targetBlock);
             }
 
-            // Last block
+            // Last block in method
             if (i + 1 >= Blocks.Count)
             {
                 successorsByBlock[block] = successors;
                 continue;
             }
-
-            var nextBlock = Blocks[i + 1];
-
-            // Fall through:
+            
+            // Fall through
             if (block.LastInstruction is { IsReturn: false, IsUnconditionalJump: false })
             {
+                var nextBlock = Blocks[i + 1];
                 successors.Add(nextBlock);
             }
 
             successorsByBlock[block] = successors;
         }
-
+        
+        // Sets predecessors for blocks by iterating over successors
         SetPredecessors(successorsByBlock);
     }
 

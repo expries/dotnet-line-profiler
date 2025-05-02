@@ -7,14 +7,14 @@ public class ClassFactory : IClassFactory
     private readonly NativeObjects.IClassFactory _classFactory;
 
     private readonly CorProfilerCallbackBase _corProfilerCallback;
+    
+    public IntPtr IClassFactory => _classFactory;
 
     public ClassFactory(CorProfilerCallbackBase corProfilerCallback)
     {
         _classFactory = NativeObjects.IClassFactory.Wrap(this);
         _corProfilerCallback = corProfilerCallback;
     }
-
-    public IntPtr IClassFactory => _classFactory;
 
     public HResult CreateInstance(IntPtr outer, in Guid guid, out IntPtr instance)
     {

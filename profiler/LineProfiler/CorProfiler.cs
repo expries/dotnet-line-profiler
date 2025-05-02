@@ -8,7 +8,10 @@ using LineProfiler.Caches;
 using LineProfiler.Helpers;
 using LineProfiler.Instrumentation;
 using LineProfiler.Instrumentation.Metadata;
+using LineProfiler.Models;
 using NativeObjects;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 using Profiler.Core;
 
 namespace LineProfiler;
@@ -16,39 +19,27 @@ namespace LineProfiler;
 internal unsafe class CorProfiler : CorProfilerCallback10Base
 {
     private static ConcurrentQueue<string> Logs { get; } = new();
-
     private TypeRefCache TypeRefCache { get; } = new();
-
     private SignatureTokenCache SignatureTokenCache { get; } = new();
+    private TracerProvider? _tracerProvider;
 
     protected override HResult Initialize(int iCorProfilerInfoVersion)
     {
         Log($"Profiler version: {iCorProfilerInfoVersion}");
 
         if (iCorProfilerInfoVersion < 11) return HResult.E_FAIL;
+        
+        SetupOpenTelemetryTracer();
+        LoadPdbFiles();
 
         const CorPrfMonitor eventMask = CorPrfMonitor.COR_PRF_MONITOR_JIT_COMPILATION |
                                         CorPrfMonitor.COR_PRF_DISABLE_TRANSPARENCY_CHECKS_UNDER_FULL_TRUST |
                                         CorPrfMonitor.COR_PRF_DISABLE_INLINING;
-
+        
         var hSetEventMask = ICorProfilerInfo11.SetEventMask(eventMask);
-
-        const string directoryWithPdbFiles =
-            "C:\\Coding\\otel-line-profiler\\profiler\\SampleConsoleApp\\obj\\Debug\\net8.0";
-        var pdbFiles = ScanDirectoryForPdbFiles(directoryWithPdbFiles);
-        PdbCache.Initialize(pdbFiles);
-
         return hSetEventMask;
     }
-
-    private static string[] ScanDirectoryForPdbFiles(string directory)
-    {
-        var pdbDirFiles = Directory.GetFiles(directory);
-        var pdbFiles = pdbDirFiles
-            .Where(file => Path.GetExtension(file).Equals(".pdb"))
-            .ToArray();
-        return pdbFiles;
-    }
+    
 
     protected override HResult JITCompilationStarted(FunctionId functionId, bool fIsSafeToBlock)
     {
@@ -74,7 +65,7 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         if (!symbolFileExists || module is null) return HResult.S_OK;
 
         PdbCache.AddModuleAlias(assemblyId, moduleName);
-        module.AddFunctionAlias(methodToken.Value, functionId.Value);
+        module.AddFunctionAlias(functionId.Value, methodToken.Value);
 
         // Get method name and type name
         var (hGetModuleMetadata, metaDataImport) = ICorProfilerInfo2.GetModuleMetaData(
@@ -142,7 +133,6 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
             var instrumentedMethod = InstrumentMethod(method, assemblyId, functionId, metaDataImport);
             var instrumentedMethodBytes = ConvertMethodToByteArray(instrumentedMethod);
             var pInstrumentedMethod = UnsafeTypes.GetBytePtr(instrumentedMethodBytes);
-
             var hSetBody = ICorProfilerInfo2.SetILFunctionBody(moduleId, mdMethodToken, pInstrumentedMethod);
 
             if (!hSetBody.IsOK)
@@ -158,6 +148,49 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         }
 
         return HResult.S_OK;
+    }
+    
+    protected override HResult Shutdown()
+    {
+        _tracerProvider?.Dispose();
+        var logFile = new FileStream(@"C:\Users\Samuel\Desktop\logs.txt", FileMode.OpenOrCreate);
+        Console.WriteLine("[Profiler] *** Shutting down, dumping remaining logs ***");
+
+        while (Logs.TryDequeue(out var log))
+        {
+            Console.WriteLine($"[Profiler] {log}");
+            logFile.Write(Encoding.UTF8.GetBytes($"[Profiler] {log}\n"));
+        }
+
+        logFile.Close();
+        return HResult.S_OK;
+    }
+    
+    private static void LoadPdbFiles()
+    {
+        const string pdbDirectory = @"C:\Coding\otel-line-profiler\profiler\SampleConsoleApp\obj\Debug\net8.0";
+        var pdbFiles = GetPdbFilesInDirectory(pdbDirectory);
+        PdbCache.Initialize(pdbFiles);
+    }
+
+    private void SetupOpenTelemetryTracer()
+    {
+        _tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(ProbeActivitySource.Name)
+            .AddOtlpExporter(options =>
+            {
+                options.Endpoint = new Uri("http://localhost:4317");
+            })
+            .Build();
+    }
+
+    private static string[] GetPdbFilesInDirectory(string directory)
+    {
+        var pdbDirFiles = Directory.GetFiles(directory);
+        var pdbFiles = pdbDirFiles
+            .Where(file => Path.GetExtension(file).Equals(".pdb"))
+            .ToArray();
+        return pdbFiles;
     }
 
     private Method InstrumentMethod(
@@ -202,7 +235,6 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
         MethodSignature callbackSignature,
         IMetadataEmitInvoker metaDataEmit)
     {
-        // Get signature tokens
         var mdLocalSignature =
             SignatureTokenCache.GetMdSignature(assemblyId, localVarSignature.BinaryData, metaDataEmit);
 
@@ -251,22 +283,6 @@ internal unsafe class CorProfiler : CorProfilerCallback10Base
             TraceId = traceIdRef,
             ToHexString = mToHexString
         };
-    }
-
-
-    protected override HResult Shutdown()
-    {
-        var logFile = new FileStream(@"C:\Users\Samuel\Desktop\logs.txt", FileMode.OpenOrCreate);
-        Console.WriteLine("[Profiler] *** Shutting down, dumping remaining logs ***");
-
-        while (Logs.TryDequeue(out var log))
-        {
-            Console.WriteLine($"[Profiler] {log}");
-            logFile.Write(Encoding.UTF8.GetBytes($"[Profiler] {log}\n"));
-        }
-
-        logFile.Close();
-        return HResult.S_OK;
     }
 
     private static byte[] ConvertMethodToByteArray(Method method)

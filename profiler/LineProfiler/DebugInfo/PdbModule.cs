@@ -20,9 +20,11 @@ public class PdbModule
         _functionsByToken[functionToken] = function;
     }
 
-    public void AddFunctionAlias(int functionToken, nint functionId)
+    public void AddFunctionAlias(nint functionId, int functionToken)
     {
         if (_functionsByToken.TryGetValue(functionToken, out var function))
+        {
             _functionsByFunctionId[functionId] = function;
+        }
     }
 }

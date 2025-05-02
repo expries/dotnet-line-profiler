@@ -9,13 +9,8 @@ processors:
 exporters:
   debug:
     verbosity: detailed
-  otlphttp:
-    endpoint: http://profiles-api:8080/api
-    encoding: proto
-    tls:
-      insecure: true
-  otlp/pyroscope:
-    endpoint: http://pyroscope:4040
+  otlp:
+    endpoint: tempo:4317
     tls:
       insecure: true
 
@@ -25,10 +20,10 @@ service:
   pipelines:
     profiles:
       receivers: [ otlp ]
-      exporters: [ debug, otlp/pyroscope, otlphttp ]
+      exporters: [ debug, otlp ]
     traces:
       receivers: [ otlp ]
-      exporters: [ debug, otlphttp ]
+      exporters: [ debug, otlp ]
     metrics:
       receivers: [ otlp ]
-      exporters: [ debug, otlphttp ]
+      exporters: [ debug, otlp ]

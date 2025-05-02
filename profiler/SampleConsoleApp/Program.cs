@@ -1,9 +1,31 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using SampleConsoleApp;
+
+
+
+IntPtr traceIdPointer;
+var activity = Activity.Current;
+
+if (activity is not null)
+{
+    var traceId = activity.TraceId;
+    var traceIdString = traceId.ToHexString();
+    var gcHandle = GCHandle.Alloc(traceIdString, GCHandleType.Pinned);
+    traceIdPointer = GCHandle.ToIntPtr(gcHandle);
+}
+else
+{
+    traceIdPointer = IntPtr.Zero;
+}
+
+
+Console.WriteLine(traceIdPointer);
+
 
 var test = bool.Parse("true");
 Console.WriteLine(test);
-var activity = new Activity("SampleConsoleApp");
+//var activity = new Activity("SampleConsoleApp");
 Activity.Current = activity;
 activity.Start();
 /*
@@ -16,6 +38,8 @@ var cfg = new ControlFlowGraph(method.Body.Instructions);
 var cfgParser = new ControlFlowGraphParser(cfg);
 var probes = cfgParser.LocateProbes();
 */
+
+
 
 //Test.IfElseIfElse(0);
 Test.Switch(0, -1);

@@ -10,16 +10,28 @@ services:
       - 13133:13133 # health_check extension
     volumes:
       - ./otel-collector/config.yaml:/etc/otel-collector-config.yaml/:ro
-    depends_on:
-      - pyroscope
-  
-  
-  pyroscope:
-    # fixed versions for pyroscope, otel-collector, otel-profiler due to protocol changes
-    image: grafana/pyroscope:weekly-f96-1886f2c42
-    command: [ "-self-profiling.disable-push=true" ]
+
+  init:
+    image: &tempoImage grafana/tempo:latest
+    user: root
+    entrypoint:
+      - "chown"
+      - "10001:10001"
+      - "/var/tempo"
+    volumes:
+      - ./tempo-data:/var/tempo
+
+  tempo:
+    image: *tempoImage
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo/config.yaml:/etc/tempo.yaml
+      - ./tempo/data:/var/tempo
     ports:
-      - 4040:4040
+      - 3200:3200 # tempo
+      - 5317:4317 # otlp grpc
+    depends_on:
+      - init
 
   grafana:
     image: grafana/grafana-enterprise
@@ -28,19 +40,18 @@ services:
     volumes:
       - ./grafana/data:/var/lib/grafana/:rw
 
-  profiles-api:
-    environment:
-      ASPNETCORE_URLS: http://0.0.0.0:8080;
-    ports:
-      - 8080:8080
-    build:
-      context: ./profiles-api
-
   app:
     platform: linux/amd64
     environment:
       ASPNETCORE_URLS: http://*:5000
+      CORECLR_ENABLE_PROFILING: 1
+      CORECLR_PROFILER_PATH: /opt/dotnet-profiler/LineProfiler.so
+      CORECLR_PROFILER_PATH_64: /opt/dotnet-profiler/LineProfiler.so
     ports:
       - 5000:5000
     build:
       context: ./example-app
+    volumes:
+      - ./profiler/Release/linux-x64/:/opt/dotnet-profiler/
+    depends_on:
+      - otel-collector

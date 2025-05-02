@@ -7,20 +7,18 @@ public class MethodDataSectionReader(Stream stream, ReadContext context)
 {
     public override MethodDataSection ReadFromStream()
     {
-        var ehSections = Context.Header.MoreSections ? ReadSection() : [];
+        var ehSections = Context.Header.MoreSections ? ReadSections() : [];
         return new MethodDataSection
         {
             EhSections = ehSections
         };
     }
 
-    private List<MethodEhSection> ReadSection()
+    private List<MethodEhSection> ReadSections()
     {
-        var sections = new List<MethodEhSection>();
         Align(4);
-
+        
         var flags = ReadByte();
-
         var hasEhTable = (flags & 0x1) != 0;
         var hasOptIlTable = (flags & 0x2) != 0;
         var isFatFormat = (flags & 0x40) != 0;
@@ -29,23 +27,27 @@ public class MethodDataSectionReader(Stream stream, ReadContext context)
         var ehSection = new MethodEhSection(isFatFormat, hasMoreSections, hasOptIlTable, hasEhTable);
 
         if (ehSection.IsFatFormat)
+        {
             ReadFatSection(ehSection);
+        }
         else
+        {
             ReadSmallSection(ehSection);
+        }
 
-        sections.Add(ehSection);
-
+        var sections = new List<MethodEhSection> { ehSection };
         if (!ehSection.HasMoreSections) return sections;
-
-        var moreEhSections = ReadSection();
-        moreEhSections.ForEach(sections.Add);
+        var nextSections = ReadSections();
+        nextSections.ForEach(sections.Add);
         return sections;
     }
 
     private void ReadSmallSection(MethodEhSection ehSection)
     {
-        var countByte = ReadByte();
-        var count = countByte / 12;
+        var dataSize = ReadByte();
+        var count = dataSize / 12;
+        
+        // Move over reserved space
         Advance(2);
 
         ReadExceptionHandlers(
@@ -57,8 +59,10 @@ public class MethodDataSectionReader(Stream stream, ReadContext context)
 
     private void ReadFatSection(MethodEhSection ehSection)
     {
+        // Read data size from bytes 2-4
         Advance(-1);
-        var count = (ReadInt32() >> 8) / 24;
+        var dataSize = ReadInt32() >> 8;
+        var count = dataSize / 24;
 
         ReadExceptionHandlers(
             ehSection,
@@ -67,9 +71,9 @@ public class MethodDataSectionReader(Stream stream, ReadContext context)
             ReadInt32);
     }
 
-    private void ReadExceptionHandlers(MethodEhSection ehSection, int count, Func<int> readEntry, Func<int> readLength)
+    private void ReadExceptionHandlers(MethodEhSection ehSection, int dataSize, Func<int> readEntry, Func<int> readLength)
     {
-        for (var i = 0; i < count; i++)
+        for (var i = 0; i < dataSize; i++)
         {
             var handlerType = (ExceptionHandlerType)(readEntry() & 0x7);
             var tryStartOffset = readEntry();

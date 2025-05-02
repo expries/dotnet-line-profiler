@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using IlRewriter.Models.Signatures;
 using LineProfiler.Caches;
 using LineProfiler.DebugInfo;
@@ -25,6 +26,8 @@ public static class Callbacks
         CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_CHAR);
 
     public static unsafe delegate* unmanaged<bool*, int, nint, nint, IntPtr, void> ProcessProbesPointer { get; } = &ProcessProbes;
+    
+    private static readonly ActivitySource ActivitySource = new(ProbeActivitySource.Name);
 
     [UnmanagedCallersOnly]
     public static unsafe void ProcessProbes(
@@ -34,10 +37,10 @@ public static class Callbacks
         nint nFunctionId,
         IntPtr ptraceId)
     {
-        var traceId = RawStringPointerToString(ptraceId);
+        var traceIdString = RawStringPointerToString(ptraceId);
         Console.WriteLine();
 
-        if (string.IsNullOrEmpty(traceId))
+        if (string.IsNullOrEmpty(traceIdString))
         {
             Console.WriteLine("Empty or invalid trace id ...");
             return;
@@ -45,7 +48,7 @@ public static class Callbacks
 
         Console.WriteLine($"AssemblyId: {nAssemblyId}");
         Console.WriteLine($"FunctionId: {nFunctionId}");
-        Console.WriteLine($"Trace id: {traceId}");
+        Console.WriteLine($"Trace id: {traceIdString}");
 
         var assemblyId = new AssemblyId(nAssemblyId);
         var functionId = new FunctionId(nFunctionId);
@@ -75,11 +78,37 @@ public static class Callbacks
             return;
         }
 
-        var coveredLines = GetCoveredLines(pdbFunction, probes, pArray, length);
+        var branches = GetCoveredBranches(pdbFunction, probes, pArray, length);
+        //PrintBranchLines(branches);
 
-        foreach (var line in coveredLines) Console.WriteLine($"[{line.LineNumber}]: {string.Join(", ", line.Text)}");
+        var traceId = ActivityTraceId.CreateFromString(traceIdString);
+        var spanId = ActivitySpanId.CreateRandom();
+        var parentContext = new ActivityContext(traceId, spanId, ActivityTraceFlags.Recorded, isRemote: true);
+        
+        var activity = ActivitySource.StartActivity("Method", kind: ActivityKind.Internal, parentContext);
+        
+        if (activity is null)
+        {
+            Console.WriteLine("Failed to start new activity");
+            return;
+        }
+        
+        activity.SetTag("assemblyId", assemblyId.Value);
+        activity.SetTag("functionId", functionId.Value);
+        activity.SetTag("branches", branches);
+        activity.Stop();
 
         Console.WriteLine();
+    }
+
+    private static void PrintBranchLines(List<Branch> branches)
+    {
+        var coveredLines = branches.SelectMany(branch => branch.SourceLines).ToList();
+        
+        foreach (var line in coveredLines)
+        {
+            Console.WriteLine($"[{line.LineNumber}]: {string.Join(", ", line.Text)}");
+        }
     }
 
     private static string? RawStringPointerToString(IntPtr stringPointer)
@@ -92,27 +121,28 @@ public static class Callbacks
         return Marshal.PtrToStringAuto(stringPointer + offset, stringLength);
     }
 
-    private static unsafe List<SourceLine> GetCoveredLines(
+    private static unsafe List<Branch> GetCoveredBranches(
         PdbFunction pdbFunction,
-        Dictionary<int, Probe> probes,
+        Dictionary<int, Probe> probesByIndex,
         bool* visitedProbes,
         int length)
     {
-        var coveredLines = new List<SourceLine>();
+        var branches = new List<Branch>();
+        var probes = probesByIndex.Values.ToArray();
 
         for (var i = 0; i < length; i++)
         {
             var probeWasVisited = visitedProbes[i];
-            Console.WriteLine($"[{i}]: {probeWasVisited}");
+            //Console.WriteLine($"[{i}]: {probeWasVisited}");
 
             if (!probeWasVisited) continue;
 
-            var probe = probes.Values.ToArray()[i];
+            var probe = probes[i];
             var offsets = probe.CoveredInstructionOffsets;
-            var lines = pdbFunction.GetSourceLinesByOffsets(offsets);
-            coveredLines.AddRange(lines);
+            var branch = pdbFunction.GetBranchByInstructionOffsets(offsets);
+            branches.Add(branch);
         }
 
-        return coveredLines;
+        return branches;
     }
 }

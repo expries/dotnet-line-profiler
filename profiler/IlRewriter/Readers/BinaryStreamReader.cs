@@ -7,8 +7,7 @@ public class BinaryStreamReader(Stream stream) : BinaryReader(stream)
         get => (int)BaseStream.Position;
         set => BaseStream.Position = value;
     }
-
-    public int Length => (int)BaseStream.Length;
+   
 
     public void Advance(int bytes)
     {

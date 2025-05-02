@@ -1,32 +1,37 @@
+using LineProfiler.Models;
+
 namespace LineProfiler.DebugInfo;
 
 public class PdbFunction
 {
     public readonly Dictionary<int, PdbSequence> SequencesByOffset = new();
 
+    public void AddSequence(int instructionOffset, PdbSequence sequence)
+    {
+        SequencesByOffset[instructionOffset] = sequence;
+    }
+    
     public bool TryGetSequenceByOffset(int instructionOffset, out PdbSequence? sequence)
     {
         return SequencesByOffset.TryGetValue(instructionOffset, out sequence);
     }
 
-    public void AddSequence(int instructionOffset, PdbSequence sequence)
+    public Branch GetBranchByInstructionOffsets(List<int> offsets)
     {
-        SequencesByOffset[instructionOffset] = sequence;
-    }
-
-    public List<SourceLine> GetSourceLinesByOffsets(List<int> offsets)
-    {
-        var coveredLines = new List<SourceLine>();
-
+        var branch = new Branch(string.Empty, []);
+        
         foreach (var offset in offsets)
         {
             var sequenceFound = TryGetSequenceByOffset(offset, out var sequence);
 
             if (!sequenceFound || sequence is null) continue;
 
-            coveredLines.AddRange(sequence.Lines);
+            branch.SourcePath = sequence.SourcePath;
+            branch.SourceLines.AddRange(sequence.Lines);
         }
 
-        return coveredLines;
+        return branch;
     }
+    
+    
 }

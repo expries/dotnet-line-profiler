@@ -10,7 +10,7 @@ public class MethodHeaderReader : IlReader<MethodHeader>
 
     public override MethodHeader ReadFromStream()
     {
-        // 2 least significant bit of the first byte indicate hat of header is present
+        // 2 least significant bit of the first byte indicate what kind of header is present
         var firstByte = ReadByte();
         var header = (firstByte & 0x3) switch
         {
