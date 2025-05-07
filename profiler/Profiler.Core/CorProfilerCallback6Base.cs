@@ -33,6 +33,6 @@ public abstract class CorProfilerCallback6Base : CorProfilerCallback5Base, ICorP
 
     protected virtual unsafe HResult GetAssemblyReferences(char* wszAssemblyPath, nint pAsmRefProvider)
     {
-        return HResult.E_NOTIMPL;
+        return HResult.S_OK;
     }
 }

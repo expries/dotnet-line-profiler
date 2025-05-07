@@ -19,38 +19,6 @@ public class ControlFlowGraph
         PopulatePredecessors();
     }
 
-    private void PrintGraph()
-    {
-        PrintBlocks();
-        PrintBlockLinks();
-    }
-
-    private void PrintBlocks()
-    {
-        Console.WriteLine("Blocks:");
-        foreach (var block in Blocks)
-        {
-            var offsets = block.Instructions.Select(i => i.Offset).ToArray();
-            var formattedOffsets = string.Join(' ', offsets);
-            Console.WriteLine($"{block.StartOffset}: {formattedOffsets}");
-        }
-
-        Console.WriteLine();
-    }
-
-    private void PrintBlockLinks()
-    {
-        Console.WriteLine("Block links:");
-        foreach (var block in Blocks)
-        {
-            var predecessorOffsets = block.Predecessors.Select(p => p.StartOffset).ToArray();
-            var formattedPredecessors = string.Join(' ', predecessorOffsets);
-            Console.WriteLine($"{block.StartOffset}: {formattedPredecessors}");
-        }
-
-        Console.WriteLine();
-    }
-
     private Dictionary<int, (int Index, Instruction Instruction)> BuildInstructionLookup()
     {
         return Instructions

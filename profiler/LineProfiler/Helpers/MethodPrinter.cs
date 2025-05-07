@@ -1,7 +1,7 @@
 using IlRewriter.Models;
 using IlRewriter.Models.Operands;
 
-namespace IlRewriter;
+namespace LineProfiler.Helpers;
 
 public static class MethodPrinter
 {

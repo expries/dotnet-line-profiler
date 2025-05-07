@@ -41,12 +41,13 @@ public class ControlFlowGraphParser
         {
             var returnInstruction = GetInstructionByOffset(block.LastInstruction.Offset);
             var targetsToRewrite = GetJumpsTargetingLastInstruction(block);
+            var coveredOffsets = block.GetCoveredInstructionOffsets();
 
-            probes[returnInstruction.Index] = new Probe
+            probes[returnInstruction.Index] = new Probe(block)
             {
                 Type = ProbeType.Return,
                 BranchesToRewrite = targetsToRewrite,
-                CoveredInstructionOffsets = block.GetCoveredInstructionOffsets()
+                CoveredInstructionOffsets = coveredOffsets,
             };
         }
 
@@ -66,11 +67,11 @@ public class ControlFlowGraphParser
         var targetsToRewrite = GetJumpsTargetingLastInstruction(predecessor);
         var coveredOffsets = predecessor.GetCoveredInstructionOffsets();
 
-        probes[last.Index] = new Probe
+        probes[last.Index] = new Probe(predecessor)
         {
             Type = ProbeType.End,
             BranchesToRewrite = targetsToRewrite,
-            CoveredInstructionOffsets = coveredOffsets
+            CoveredInstructionOffsets = coveredOffsets,
         };
     }
 

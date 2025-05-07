@@ -6,21 +6,22 @@ namespace Profiler.Core.Interfaces;
 public unsafe interface IMetadataEmit : IUnknown
 {
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-    void SetModuleProps([MarshalAs(UnmanagedType.LPWStr)] MdString szName);
+    void SetModuleProps(char* szName);
 
-    void Save([MarshalAs(UnmanagedType.LPWStr)] MdString szFile, uint dwSaveFlags);
+    void Save(char* szFile, uint dwSaveFlags);
 
 
     void SaveToStream([MarshalAs(UnmanagedType.Interface)] IStream* pIStream, uint dwSaveFlags);
 
     uint GetSaveSize(uint fSave);
 
-    uint DefineTypeDef([MarshalAs(UnmanagedType.LPWStr)] MdString szTypeDef,
+    uint DefineTypeDef(
+        char* szTypeDef,
         uint dwTypeDefFlags,
         uint tkExtends,
         uint* rtkImplements);
 
-    uint DefineNestedType([MarshalAs(UnmanagedType.LPWStr)] MdString szTypeDef,
+    uint DefineNestedType(char* szTypeDef,
         uint dwTypeDefFlags,
         uint tkExtends,
         uint* rtkImplements,
@@ -29,7 +30,7 @@ public unsafe interface IMetadataEmit : IUnknown
     void SetHandler([MarshalAs(UnmanagedType.IUnknown)] IUnknown* pUnk);
 
     uint DefineMethod(uint td,
-        [MarshalAs(UnmanagedType.LPWStr)] MdString szName,
+        char* szName,
         uint dwMethodFlags,
         byte* pvSigBlob,
         uint cbSigBlob,
@@ -38,8 +39,8 @@ public unsafe interface IMetadataEmit : IUnknown
 
     void DefineMethodImpl(uint td, uint tkBody, uint tkDecl);
 
-    uint DefineTypeRefByName(uint tkResolutionScope,
-        [MarshalAs(UnmanagedType.LPWStr)] MdString szName);
+    HResult DefineTypeRefByName(uint tkResolutionScope,
+        char* szName, out MdTypeRef typeRef);
 
     uint DefineImportType([MarshalAs(UnmanagedType.Interface)] IMetaDataAssemblyImport* pAssemImport,
         IntPtr pbHashValue,
@@ -48,10 +49,12 @@ public unsafe interface IMetadataEmit : IUnknown
         [MarshalAs(UnmanagedType.Interface)] IMetaDataImport* pImport,
         uint tdImport);
 
-    uint DefineMemberRef(uint tkImport,
-        [MarshalAs(UnmanagedType.LPWStr)] MdString szName,
+    HResult DefineMemberRef(
+        uint typeRef,
+        char* szName,
         byte* pvSigBlob,
-        uint cbSigBlob);
+        uint cbSigBlob, 
+        out MdMemberRef mdMemberRef);
 
     uint DefineImportMember([MarshalAs(UnmanagedType.Interface)] IMetaDataAssemblyImport* pAssemImport,
         IntPtr pbHashValue,
@@ -64,7 +67,7 @@ public unsafe interface IMetadataEmit : IUnknown
         uint cbSigBlob);
 
     uint DefineEvent(uint td,
-        [MarshalAs(UnmanagedType.LPWStr)] MdString szEvent,
+        char* szEvent,
         uint dwEventFlags,
         uint tkEventType,
         uint mdAddOn,
@@ -86,7 +89,7 @@ public unsafe interface IMetadataEmit : IUnknown
 
     HResult GetTokenFromSig(byte* pvSig, uint cbSig, out MdSignature signature);
 
-    void DefineModuleRef([MarshalAs(UnmanagedType.LPWStr)] MdString szName, out uint pmur);
+    void DefineModuleRef(char* szName, out uint pmur);
 
     void SetParent(uint mr, uint tk);
 
@@ -94,7 +97,7 @@ public unsafe interface IMetadataEmit : IUnknown
 
     void SaveToMemory(IntPtr pbData, uint cbData);
 
-    uint DefineUserString([MarshalAs(UnmanagedType.LPWStr)] MdString szString, uint cchString);
+    uint DefineUserString(char* szString, uint cchString);
 
     void DeleteToken(uint tkObj);
 
@@ -117,10 +120,10 @@ public unsafe interface IMetadataEmit : IUnknown
 
     void DefinePinvokeMap(uint tk,
         uint dwMappingFlags,
-        [MarshalAs(UnmanagedType.LPWStr)] MdString szImportName,
+        char* szImportName,
         uint mrImportDll);
 
-    void SetPinvokeMap(uint tk, uint dwMappingFlags, [MarshalAs(UnmanagedType.LPWStr)] MdString szImportName,
+    void SetPinvokeMap(uint tk, uint dwMappingFlags, char* szImportName,
         uint mrImportDll);
 
     void DeletePinvokeMap(uint tk);
@@ -130,7 +133,7 @@ public unsafe interface IMetadataEmit : IUnknown
     void SetCustomAttributeValue(uint tkObj, uint tkType, IntPtr pCustomAttribute, uint cbCustomAttribute);
 
     uint DefineField(uint td,
-        [MarshalAs(UnmanagedType.LPWStr)] MdString szName,
+        char* szName,
         uint dwFieldFlags,
         byte* pvSigBlob,
         uint cbSigBlob,
@@ -139,7 +142,7 @@ public unsafe interface IMetadataEmit : IUnknown
         uint cchValue);
 
     void DefineProperty(uint td,
-        [MarshalAs(UnmanagedType.LPWStr)] MdString szProperty,
+        char* szProperty,
         uint dwPropFlags,
         byte* pvSigBlob,
         uint cbSigBlob,
@@ -152,7 +155,7 @@ public unsafe interface IMetadataEmit : IUnknown
 
     uint DefineParam(uint md,
         uint ulParamSeq,
-        [MarshalAs(UnmanagedType.LPWStr)] MdString szName,
+        char* szName,
         uint dwParamFlags,
         uint dwCPlusTypeFlag,
         IntPtr pValue,
@@ -200,14 +203,6 @@ public unsafe interface IMetadataEmit : IUnknown
 
     void MergeEnd();
 #pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-}
-
-public interface IMetaDataAssemblyImport
-{
-}
-
-public interface IMetaDataAssemblyEmit
-{
 }
 
 [ComImport]

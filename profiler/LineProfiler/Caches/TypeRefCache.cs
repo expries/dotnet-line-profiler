@@ -45,7 +45,7 @@ public class TypeRefCache : ITypeRefCache
 
             if (!hEnumMemberRefs.IsOK)
                 throw new Exception(
-                    $"Enum member refs for type {parentTypeRef.Value} failed with code {hEnumMemberRefs.Code} " +
+                    $"Enum member refs for type {parentTypeRef.Value} while looking for member {memberName} failed with code {hEnumMemberRefs.Code} " +
                     $"({hEnumMemberRefs.ToString()})");
 
             for (uint i = 0; i < resultCount; i++)

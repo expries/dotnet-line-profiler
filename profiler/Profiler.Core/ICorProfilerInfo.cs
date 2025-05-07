@@ -156,6 +156,13 @@ public class ICorProfilerInfo
         var result = _impl.GetModuleMetaData(moduleId, dwOpenFlags, riid, out var ptr);
         return (result, new MetaDataImport(ptr));
     }
+    
+    public (HResult result, IMetaDataAssemblyEmitInvoker metaDataImport) GetModuleMetaDataAssemblyEmit(ModuleId moduleId,
+        CorOpenFlags dwOpenFlags, Guid riid)
+    {
+        var result = _impl.GetModuleMetaData(moduleId, dwOpenFlags, riid, out var ptr);
+        return (result, new IMetaDataAssemblyEmitInvoker(ptr));
+    }
 
     public unsafe HResult GetILFunctionBody(ModuleId moduleId, MdMethodDef methodId, out byte* ppMethodHeader,
         out uint pcbMethodSize)

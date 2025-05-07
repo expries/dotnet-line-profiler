@@ -10,6 +10,8 @@ public static class UnsafeTypes
         Marshal.Copy((IntPtr)ptr, byteArray, 0, (int)length);
         return byteArray;
     }
+    
+
 
     public static unsafe byte* GetBytePtr(byte[] data)
     {
@@ -27,6 +29,16 @@ public static class UnsafeTypes
         for (var i = 0; i < size; i++) str += pString[i];
 
         return str;
+    }
+    
+    public static string? GetStringFromPointer(IntPtr pString)
+    {
+        if (pString == IntPtr.Zero) return null;
+        var headerOffset = IntPtr.Size;
+        var stringLength = Marshal.ReadInt32(pString, headerOffset);
+        if (stringLength < 0) return null;
+        var offset = headerOffset + sizeof(int);
+        return Marshal.PtrToStringAuto(pString + offset, stringLength);
     }
 
     public static unsafe MemoryStream GetStreamFromBytePtr(byte* pData, uint size)

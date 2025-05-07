@@ -1,7 +1,10 @@
-﻿using IlRewriter.Models;
+﻿using IlRewriter;
+using IlRewriter.Models;
 using IlRewriter.Models.Operands;
 using IlRewriter.Models.Signatures;
 using LineProfiler.Caches;
+using LineProfiler.Configuration;
+using LineProfiler.DebugInfo;
 using LineProfiler.Instrumentation.Metadata;
 using LineProfiler.Models;
 using Profiler.Core;
@@ -10,49 +13,47 @@ namespace LineProfiler.Instrumentation;
 
 public static class MethodInstrumentation
 {
-    public static LocalVarSignature CreateLocalVarSignature(
-        LocalVarSignature signature,
-        MdTypeRef activityRef,
-        MdTypeRef traceId)
+    public static LocalVarSignature CreateLocalVarSignature(LocalVarSignature signature)
     {
         // variable: 'bool*': visited probes
         byte[] arrayPtrSignature = [CorElementTypeFlags.ELEMENT_TYPE_PTR, CorElementTypeFlags.ELEMENT_TYPE_BOOLEAN];
-
-        // variable 'Activity' (class-instance): current Activity
-        var activityRid = Rid.FromTypeRef(activityRef.Value);
-        var activitySignature = LocalVarSignature.CreateClassInstanceVariable(activityRid);
-
-        // variable 'TraceId' (struct): current Trace ID
-        var traceIdRid = Rid.FromTypeRef(traceId.Value);
-        var traceIdSignature = LocalVarSignature.CreateValueTypeVariable(traceIdRid);
-
-        // variable: 'char*': current trace id as string
-        byte[] traceIdCPtrSignature =
-        [
-            CorElementTypeFlags.ELEMENT_TYPE_PINNED, CorElementTypeFlags.ELEMENT_TYPE_PTR,
-            CorElementTypeFlags.ELEMENT_TYPE_CHAR
-        ];
-
-        signature.AddLocalVariables([arrayPtrSignature, activitySignature, traceIdSignature, traceIdCPtrSignature]);
+        signature.AddLocalVariables([arrayPtrSignature]);
         return signature;
     }
 
     public static Method InstrumentMethod(
         Method method,
+        PdbFunction symbols,
         InstrumentationMetadata metadata)
     {
-        var probes = GetAndCacheProbes(metadata.AssemblyId, metadata.FunctionId, method);
+        var probes = GetAndCacheProbes(metadata.FunctionToken, method, symbols);
         var instrumentedMethod = AddInstrumentation(method, probes, metadata);
         return instrumentedMethod;
     }
 
     private static Dictionary<int, Probe> GetAndCacheProbes(
-        AssemblyId assemblyId, FunctionId functionId, Method method)
+        MdToken methodToken, Method method, PdbFunction symbols)
     {
         var cfg = new ControlFlowGraph(method.Body.Instructions);
         var parser = new ControlFlowGraphParser(cfg);
         var probes = parser.LocateProbes();
-        ProbeCache.AddMethodProbes(assemblyId, functionId, probes);
+        var cachedProbes = new Dictionary<int, ProbeCacheEntry>();
+
+        foreach (var (i, probe) in probes)
+        {
+            var coveredOffsets = probe.CoveredInstructionOffsets.ToArray();
+            var blockOffsets = probe.Block.InstructionOffsets.ToArray();
+
+            var (coveredLines, _) = symbols.GetLinesByInstructionOffsets(coveredOffsets);
+            var (blockLines, _) = symbols.GetLinesByInstructionOffsets(blockOffsets);
+            
+            cachedProbes[i] = new ProbeCacheEntry(
+                probe.Block.Id, 
+                coveredLines.ToArray(),
+                blockLines.ToArray());
+        }
+        
+        CallbackCache.Instance.Probes[methodToken.Value] = cachedProbes;
         return probes;
     }
 
@@ -84,7 +85,7 @@ public static class MethodInstrumentation
 
         const int instrumentationStackSize = 20;
         method.Header.MaxStack = (ushort)(method.Header.MaxStack + instrumentationStackSize);
-        method.Header.LocalVarSigToken = (uint)metadata.SignatureTokens.LocalVars.Value;
+        method.Header.LocalVarSigToken = (uint)metadata.LocalVarSignature.Value;
         return method;
     }
 
@@ -118,7 +119,7 @@ public static class MethodInstrumentation
         return probeInstructions.Count;
     }
 
-    private static unsafe int AddProbeForReturnStatement(
+    private static int AddProbeForReturnStatement(
         Method method,
         Dictionary<int, Probe> probes,
         int arrayIndex,
@@ -126,11 +127,9 @@ public static class MethodInstrumentation
         int instructionOffset,
         InstrumentationMetadata metadata)
     {
-        var processProbesPointer = new UIntPtr(Callbacks.ProcessProbesPointer);
-
         var probeInstructions = new InstructionBuilder()
             .WriteTrueToArray(arrayIndex, metadata.LocalVarCount)
-            .AddMethodCall(processProbesPointer, metadata, probes.Count)
+            .AddMethodCall(metadata, probes.Count)
             .Build();
 
         var probe = probes[probeIndex];

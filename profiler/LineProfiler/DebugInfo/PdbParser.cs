@@ -1,10 +1,10 @@
+using LineProfiler.Caches;
 using SharpPdb.Managed;
 
 namespace LineProfiler.DebugInfo;
 
 public static class PdbParser
 {
-    private static readonly Dictionary<string, string[]> SourceCodeLinesByPath = new();
 
     public static PdbModule ParsePdbModule(string pdbPath)
     {
@@ -23,48 +23,47 @@ public static class PdbParser
     private static PdbFunction ParsePdbFunction(IPdbFunction function)
     {
         var sequencePoints = function.SequencePoints.ToList();
-        var parsedFunction = new PdbFunction();
+        var parsedFunction = new PdbFunction { Token = function.Token};
 
         sequencePoints.ForEach(sequencePoint =>
         {
-            var sequence = ParsePdbSequence(sequencePoint);
+            var sequence = ParsePdbSequence(sequencePoint, function);
             parsedFunction.AddSequence(sequencePoint.Offset, sequence);
         });
 
         return parsedFunction;
     }
 
-    private static PdbSequence ParsePdbSequence(IPdbSequencePoint sequencePoint)
+    private static PdbSequence ParsePdbSequence(IPdbSequencePoint sequencePoint, IPdbFunction function)
     {
         var lineStartIdx = sequencePoint.StartLine;
         var lineEndIdx = Math.Max(sequencePoint.EndLine, sequencePoint.StartLine + 1);
 
         var sourceCodeFilePath = sequencePoint.Source.Name;
-        var sourceCode = ReadSourceCodeFromFile(sourceCodeFilePath);
+        var sourceCode = ReadSourceCodeFromFile(sourceCodeFilePath, cacheKey: function.Token);
         var sequence = new PdbSequence(sequencePoint.Source.Name);
-
 
         for (var lineNumber = lineStartIdx; lineNumber < lineEndIdx; lineNumber++)
         {
             if (lineNumber < 0 || lineNumber >= sourceCode.Length) continue;
             var text = sourceCode[lineNumber - 1];
-            var sourceCodeLine = new SourceLine(lineNumber, text);
-            sequence.Lines.Add(sourceCodeLine);
+            sequence.LineNumbers.Add(lineNumber);
         }
 
         return sequence;
     }
 
-    private static string[] ReadSourceCodeFromFile(string sourcePath)
+    private static string[] ReadSourceCodeFromFile(string sourcePath, int cacheKey)
     {
-        SourceCodeLinesByPath.TryGetValue(sourcePath, out var sourceCode);
-
-        if (sourceCode is null)
+        if (CallbackCache.Instance.SourceFile.TryGetValue(cacheKey, out var sourceFile))
         {
-            sourceCode = File.ReadAllLines(sourcePath);
-            SourceCodeLinesByPath.Add(sourcePath, sourceCode);
+            return sourceFile.Lines;
         }
 
+        var sourceFileName = Path.GetFileName(sourcePath);
+        var sourceCode = File.ReadAllLines(sourcePath);
+        sourceFile = new PdbSourceCodeFile(sourceFileName, sourceCode);
+        CallbackCache.Instance.SourceFile.Add(cacheKey, sourceFile);
         return sourceCode;
     }
 }

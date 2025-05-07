@@ -1,33 +1,19 @@
 ﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Threading.Channels;
 using SampleConsoleApp;
 
+Console.WriteLine(":");
+Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
 
-
-IntPtr traceIdPointer;
-var activity = Activity.Current;
-
-if (activity is not null)
-{
-    var traceId = activity.TraceId;
-    var traceIdString = traceId.ToHexString();
-    var gcHandle = GCHandle.Alloc(traceIdString, GCHandleType.Pinned);
-    traceIdPointer = GCHandle.ToIntPtr(gcHandle);
-}
-else
-{
-    traceIdPointer = IntPtr.Zero;
-}
-
-
-Console.WriteLine(traceIdPointer);
-
-
-var test = bool.Parse("true");
-Console.WriteLine(test);
-//var activity = new Activity("SampleConsoleApp");
-Activity.Current = activity;
+var activity = new Activity("SampleConsoleApp");
 activity.Start();
+
+Console.WriteLine(bool.TrueString);
+Test.Benchmark();
+
+//Test.Switch(0, -1);
+
+
 /*
 var methodBytes = File.ReadAllBytes("C:\\Coding\\otel-line-profiler\\profiler\\Release\\2759490519408_140729133787632");
 var methodStream = new MemoryStream(methodBytes);
@@ -42,7 +28,6 @@ var probes = cfgParser.LocateProbes();
 
 
 //Test.IfElseIfElse(0);
-Test.Switch(0, -1);
 //Test.Switch(0, 1);
 //Test.Switch(1, 1);
 //Test.Switch(2, 1);

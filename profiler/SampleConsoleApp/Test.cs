@@ -4,6 +4,19 @@ namespace SampleConsoleApp;
 
 public class Test
 {
+    public static void Benchmark()
+    {
+        var value = Random.Shared.Next(0, 1000);
+
+        if (value % 2 == 0)
+        {
+            Console.WriteLine("even: " + bool.TrueString);
+            return;
+        }
+
+        Console.WriteLine("wow");
+    }
+    
     public static void CallTrace()
     {
         Console.WriteLine("Test");

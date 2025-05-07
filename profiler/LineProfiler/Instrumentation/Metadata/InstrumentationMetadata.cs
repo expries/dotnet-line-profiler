@@ -3,20 +3,15 @@ using Profiler.Core;
 namespace LineProfiler.Instrumentation.Metadata;
 
 public record InstrumentationMetadata(
-    AssemblyId AssemblyId,
-    FunctionId FunctionId,
+    MdToken FunctionToken,
     MdTypeRef BoolType,
-    ActivityTypeRefs ActivityType,
-    TraceIdTypeRefs TraceIdType,
-    SignatureTokens SignatureTokens,
+    MdMemberRef CallbackRef,
+    MdSignature LocalVarSignature,
     uint LocalVarCount)
 {
-    public AssemblyId AssemblyId { get; set; } = AssemblyId;
-    public FunctionId FunctionId { get; set; } = FunctionId;
+    public MdToken FunctionToken { get; set; } = FunctionToken;
     public MdTypeRef BoolType { get; set; } = BoolType;
-
-    public ActivityTypeRefs ActivityType { get; set; } = ActivityType;
-    public TraceIdTypeRefs TraceIdType { get; set; } = TraceIdType;
-    public SignatureTokens SignatureTokens { get; set; } = SignatureTokens;
+    public MdMemberRef CallbackRef { get; set; } = CallbackRef;
+    public MdSignature LocalVarSignature { get; set; } = LocalVarSignature;
     public uint LocalVarCount { get; set; } = LocalVarCount;
 }

@@ -1,6 +1,8 @@
-﻿namespace Profiler.Core;
+﻿using System.Runtime.InteropServices;
 
-public readonly struct ModuleId
+namespace Profiler.Core;
+
+public readonly record struct ModuleId
 {
     public readonly nint Value;
 }
@@ -155,6 +157,12 @@ public struct MdSignature
     public int Value;
 }
 
+public readonly struct MdAssemblyRef(uint value)
+{
+    public readonly uint Value = value;
+}
+
+
 public readonly struct MdModuleRef
 {
     public readonly int Value;
@@ -259,6 +267,58 @@ public readonly struct COR_PRF_FUNCTION_ARGUMENT_RANGE
 {
     public readonly nint StartAddress; // start address of the range
     public readonly uint Length; // contiguous length of the range
+}
+
+
+public unsafe struct ASSEMBLYMETADATA
+{
+    public ushort usMajorVersion;   // Major version
+    public ushort usMinorVersion;   // Minor version
+    public ushort usBuildNumber;    // Build number
+    public ushort usRevisionNumber; // Revision number
+
+    public char* szLocale;       // Locale string pointer
+    public uint cbLocale;           // Length in wide chars of szLocale
+
+    public uint* rdwProcessor;      // Pointer to processor array (or null)
+    public uint ulProcessor;        // Number of entries in rdwProcessor
+
+    public OSINFO* rOS;             // Pointer to OSINFO array (or null)
+    public uint ulOS;               // Number of entries in rOS
+}
+
+
+public unsafe struct OSINFO
+{
+    public uint platformid;       // Platform identifier
+    public uint usMajorVersion;   // OS major version
+    public uint usMinorVersion;   // OS minor version
+}
+
+[Flags]
+public enum CorAssemblyFlags {  
+  
+    afPublicKey             =   0x0001,  
+    afPA_None               =   0x0000,  
+    afPA_MSIL               =   0x0010,  
+    afPA_x86                =   0x0020,  
+    afPA_IA64               =   0x0030,  
+    afPA_AMD64              =   0x0040,  
+    afPA_ARM                =   0x0050,  
+    afPA_NoPlatform         =   0x0070,  
+    afPA_Specified          =   0x0080,  
+    afPA_Mask               =   0x0070,  
+    afPA_FullMask           =   0x00F0,  
+    afPA_Shift              =   0x0004,  
+  
+    afEnableJITcompileTracking  =   0x8000,  
+    afDisableJITcompileOptimizer=   0x4000,  
+  
+    afRetargetable          =   0x0100,  
+    afContentType_Default        =   0x0000,  
+    afContentType_WindowsRuntime =   0x0200,  
+    afContentType_Mask           =   0x0E00,  
+  
 }
 
 [Flags]
@@ -447,6 +507,7 @@ public static class KnownGuids
     public static Guid IMetaDataImport2 = Guid.Parse("FCE5EFA0-8BBA-4f8e-A036-8F2022B08466");
     public static Guid ClassFactoryGuid = Guid.Parse("00000001-0000-0000-C000-000000000046");
     public static Guid IMetaDataEmit = Guid.Parse("BA3FEE4C-ECB9-4e41-83B7-183FA41CD859");
+    public static Guid IMetaDataAssemblyEmit = Guid.Parse("211EF15B-5317-4438-B196-DEC87B887693");
 }
 
 [Flags]
@@ -595,6 +656,26 @@ public enum COR_PRF_HANDLE_TYPE
 public readonly struct ObjectHandleId
 {
     public readonly nint Value;
+}
+
+public static class CorCallingConvention
+{
+    public const byte IMAGE_CEE_CS_CALLCONV_DEFAULT = 0x0;
+
+    public const byte IMAGE_CEE_CS_CALLCONV_VARARG = 0x5;
+    public const byte IMAGE_CEE_CS_CALLCONV_FIELD = 0x6;
+    public const byte IMAGE_CEE_CS_CALLCONV_LOCAL_SIG = 0x7;
+    public const byte IMAGE_CEE_CS_CALLCONV_PROPERTY = 0x8;
+    public const byte IMAGE_CEE_CS_CALLCONV_UNMGD = 0x9;
+    public const byte IMAGE_CEE_CS_CALLCONV_GENERICINST = 0xa;
+    public const byte IMAGE_CEE_CS_CALLCONV_NATIVEVARARG = 0xb;
+    public const byte IMAGE_CEE_CS_CALLCONV_MAX = 0xc;
+
+    public const byte IMAGE_CEE_CS_CALLCONV_MASK = 0x0f;
+    public const byte IMAGE_CEE_CS_CALLCONV_HASTHIS = 0x20;
+    public const byte IMAGE_CEE_CS_CALLCONV_EXPLICITTHIS = 0x40;
+    public const byte IMAGE_CEE_CS_CALLCONV_GENERIC = 0x10;
+
 }
 
 public static class CorUnmanagedCallingConventionFlags

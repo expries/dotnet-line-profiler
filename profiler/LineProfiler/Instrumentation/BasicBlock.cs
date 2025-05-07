@@ -4,15 +4,16 @@ namespace LineProfiler.Instrumentation;
 
 public class BasicBlock(int startOffset, List<Instruction> instructions)
 {
+    public string Id => StartOffset.ToString();
     public int StartOffset { get; } = startOffset;
+    public List<int> InstructionOffsets { get; } = instructions.Select(instruction => instruction.Offset).ToList();
     public List<Instruction> Instructions { get; } = instructions;
     public Instruction LastInstruction => Instructions[^1];
     public List<BasicBlock> Predecessors { get; } = [];
 
     public List<int> GetCoveredInstructionOffsets()
     {
-        var instructions = GetCoveredInstructions();
-        var offsets = instructions
+        var offsets = GetCoveredInstructions()
             .Select(instruction => instruction.Offset)
             .OrderBy(offset => offset)
             .ToList();
@@ -32,7 +33,7 @@ public class BasicBlock(int startOffset, List<Instruction> instructions)
                 instructions.AddRange(blockInstructions);
             }
         }
-        
+
         return instructions;
     }
 }
