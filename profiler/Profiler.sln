@@ -14,6 +14,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IlRewriter", "IlRewriter\Il
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ILRewriter.Tests", "ILRewriter.Tests\ILRewriter.Tests.csproj", "{F8CCBA82-9C35-4B86-8CF9-127C4E9FBC2D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineProfiler.Benchmarks", "LineProfiler.Benchmarks\LineProfiler.Benchmarks.csproj", "{016168B3-C98A-4873-BD65-5CC356A69613}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineProfiler.Shims", "LineProfiler.Shims\LineProfiler.Shims.csproj", "{F6DB90B7-235C-4A84-BDCA-6941C6678E11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +52,13 @@ Global
 		{F8CCBA82-9C35-4B86-8CF9-127C4E9FBC2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8CCBA82-9C35-4B86-8CF9-127C4E9FBC2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8CCBA82-9C35-4B86-8CF9-127C4E9FBC2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{016168B3-C98A-4873-BD65-5CC356A69613}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{016168B3-C98A-4873-BD65-5CC356A69613}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{016168B3-C98A-4873-BD65-5CC356A69613}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{016168B3-C98A-4873-BD65-5CC356A69613}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6DB90B7-235C-4A84-BDCA-6941C6678E11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6DB90B7-235C-4A84-BDCA-6941C6678E11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6DB90B7-235C-4A84-BDCA-6941C6678E11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6DB90B7-235C-4A84-BDCA-6941C6678E11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
