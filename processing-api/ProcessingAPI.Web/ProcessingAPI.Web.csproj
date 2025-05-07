@@ -15,20 +15,22 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     </ItemGroup>
 
     <ItemGroup>
         <Content Include="..\.dockerignore">
             <Link>.dockerignore</Link>
         </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="opentelemetry\"/>
+        <Content Include="..\Dockerfile" />
     </ItemGroup>
 
     <ItemGroup>
         <Protobuf Include="opentelemetry\**\*.proto"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ProcessingAPI.Services\ProcessingAPI.Services.csproj" />
     </ItemGroup>
 
 </Project>

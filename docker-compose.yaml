@@ -1,4 +1,20 @@
 services:
+  app:
+    platform: linux/amd64
+    environment:
+      ASPNETCORE_URLS: http://*:8080
+      CORECLR_ENABLE_PROFILING: 1
+      CORECLR_PROFILER_PATH: /opt/dotnet-profiler/LineProfiler.so
+      CORECLR_PROFILER_PATH_64: /opt/dotnet-profiler/LineProfiler.so
+    ports:
+      - 8080:8080
+    build:
+      context: ./example-app
+    volumes:
+      - ./profiler/Release/linux-x64/:/opt/dotnet-profiler/
+    depends_on:
+      - otel-collector
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.120.0
     command: "--config /etc/otel-collector-config.yaml --feature-gates=service.profilesSupport"
@@ -11,27 +27,27 @@ services:
     volumes:
       - ./otel-collector/config.yaml:/etc/otel-collector-config.yaml/:ro
 
-  init:
-    image: &tempoImage grafana/tempo:latest
-    user: root
-    entrypoint:
-      - "chown"
-      - "10001:10001"
-      - "/var/tempo"
-    volumes:
-      - ./tempo-data:/var/tempo
-
-  tempo:
-    image: *tempoImage
-    command: [ "-config.file=/etc/tempo.yaml" ]
-    volumes:
-      - ./tempo/config.yaml:/etc/tempo.yaml
-      - ./tempo/data:/var/tempo
+  processing-api:
+    environment:
+      ASPNETCORE_URLS: http://*:9080
+      ConnectionStrings__Database: "Host=processing-api-db:5432;Database=db;Username=root;Password=REMOVED_SECRET"
     ports:
-      - 3200:3200 # tempo
-      - 5317:4317 # otlp grpc
+      - 9080:9080
+    build:
+      context: ./processing-api
     depends_on:
-      - init
+      - processing-api-db
+
+  processing-api-db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: REMOVED_SECRET
+      POSTGRES_DB: db
+    ports:
+      - 5432:5432
 
   grafana:
     image: grafana/grafana-enterprise
@@ -39,19 +55,3 @@ services:
       - 3000:3000
     volumes:
       - ./grafana/data:/var/lib/grafana/:rw
-
-  app:
-    platform: linux/amd64
-    environment:
-      ASPNETCORE_URLS: http://*:5000
-      CORECLR_ENABLE_PROFILING: 1
-      CORECLR_PROFILER_PATH: /opt/dotnet-profiler/LineProfiler.so
-      CORECLR_PROFILER_PATH_64: /opt/dotnet-profiler/LineProfiler.so
-    ports:
-      - 5000:5000
-    build:
-      context: ./example-app
-    volumes:
-      - ./profiler/Release/linux-x64/:/opt/dotnet-profiler/
-    depends_on:
-      - otel-collector

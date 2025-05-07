@@ -9,8 +9,9 @@ processors:
 exporters:
   debug:
     verbosity: detailed
-  otlp:
-    endpoint: tempo:4317
+  otlphttp:
+    endpoint: http://processing-api:9080/api
+    encoding: proto
     tls:
       insecure: true
 
@@ -20,10 +21,10 @@ service:
   pipelines:
     profiles:
       receivers: [ otlp ]
-      exporters: [ debug, otlp ]
+      exporters: [ debug, otlphttp ]
     traces:
       receivers: [ otlp ]
-      exporters: [ debug, otlp ]
+      exporters: [ otlphttp ]
     metrics:
       receivers: [ otlp ]
-      exporters: [ debug, otlp ]
+      exporters: [ debug, otlphttp ]
