@@ -30,7 +30,7 @@ services:
   processing-api:
     environment:
       ASPNETCORE_URLS: http://*:9080
-      ConnectionStrings__Database: "Host=processing-api-db:5432;Database=db;Username=root;Password=REMOVED_SECRET"
+      ConnectionStrings__Database: "Host=processing-api-db:5432;Database=${POSTGRES_DB:?Set POSTGRES_DB};Username=${POSTGRES_USER:?Set POSTGRES_USER};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}"
     ports:
       - 9080:9080
     build:
@@ -43,9 +43,9 @@ services:
     restart: always
     shm_size: 128mb
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: REMOVED_SECRET
-      POSTGRES_DB: db
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
     ports:
       - 5432:5432
 
